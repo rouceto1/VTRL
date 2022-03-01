@@ -1,0 +1,21 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            // "args": ["--dataset" , "stromovka", "--out_path" ,"Plotted"]
+            // "args": ["--dataset" , "stromovka", "--out_path" ,"Plotted"]
+
+            // "args": ["--in_path" , "./ToBePlotted/stromovka", "--out_path" ,"Plotted"]
+            // "args": ["--in_model_path" , "./results_siam/model.pt", "--data_path" ,"../grief_jpg/stromovka/", "--d0", "fall" ,"--d1", "winter" ,"--ocsv" ,"./results_siam/x.csv"]
+            // "args": ["--in_model_path" , "./results_siam/model.pt", "--data_path" ,"../nordland_rectified/", "--d0", "fall" ,"--d1", "winter" ,"--dsp","../nordland_rectified/orb_orb_su_w_PRE_FILTER_ENTR.csv" , "--omodel" ,"./results_siam/model1.pt"]
+        }
+    ]
+}
