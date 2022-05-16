@@ -1,3 +1,8 @@
+#ifndef GRIEF
+#define GRIEF
+
+
+
 #include <sys/time.h>
 #include <stdlib.h>
 #include <opencv2/opencv.hpp>
@@ -9,7 +14,6 @@
 #include <fstream>
 #include <opencv2/flann/miniflann.hpp>
 
-using namespace std;
  
 namespace cv{
 
@@ -29,7 +33,7 @@ namespace cv{
 			virtual int descriptorSize() const;
 			virtual int descriptorType() const;
 
-			virtual void computeImpl(const Mat& image, vector<KeyPoint>& keypoints, Mat& descriptors) const;
+			virtual void computeImpl(const Mat& image, std::vector<KeyPoint>& keypoints, Mat& descriptors) const;
 
 
 			/// @todo read and write for brief
@@ -38,9 +42,10 @@ namespace cv{
 
 		protected:
 
-			typedef void(*PixelTestFn)(const Mat&, const vector<KeyPoint>&, Mat&);
+			typedef void(*PixelTestFn)(const Mat&, const std::vector<KeyPoint>&, Mat&);
 
 			int bytes_;
 			PixelTestFn test_fn_;
 	};
 }
+#endif

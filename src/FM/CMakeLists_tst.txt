@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.10)
+
+# set the project name
+project(vtrl)
+
+# add the executable
+find_package( OpenCV REQUIRED )
+
+
+add_library(grief src/grief/grief.cpp)
+add_executable(vtrl src/match_all.cpp)
+
+#target_link_libraries(vtrl PUBLIC grief)
+
+include_directories( ${OpenCV_INCLUDE_DIRS})
+target_link_libraries( vtrl grief ${OpenCV_LIBS})

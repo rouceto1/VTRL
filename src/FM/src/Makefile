@@ -8,7 +8,7 @@ EXECUTABLE=$(TARGET)
 
 #CFLAGS := -Wall -g -O3 -Wfatal-errors -mssse3 -msse2 -march=native
 CFLAGS := -ggdb -g `pkg-config opencv4 --cflags`
-LDFLAGS :=  grief/grief.cpp -Llib -Wl,-rpath='$$ORIGIN/lib' -g `pkg-config opencv4 --libs` -fopenmp
+LDFLAGS :=  grief/grief.cpp -Llib  -g `pkg-config opencv4 --libs` -fopenmp
 
 
 #CFLAGS += `pkg-config opencv --cflags`

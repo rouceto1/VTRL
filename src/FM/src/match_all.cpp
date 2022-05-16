@@ -102,7 +102,7 @@ std::ofstream nn_file_out;
 char hist_file_o[1000];
 char nn_file_o[1000];
 vector <vector<double> > vec_temp;
-char hist_file[] = "../stromovka_nn_1.csv"; //input histogram name
+char hist_file[3000] = "../stromovka_nn_1.csv"; //input histogram name
 const char * form = NULL;
 vector<float> differences;
 //reads the detections from a file- in our case, used to read Super-pixel grid bounding boxes
@@ -639,6 +639,7 @@ void init(int argc, char ** argv){
     strcpy(hist_file,dataset);
     strcat(hist_file, argv[5]);
   }
+
   if (argc > 6){
     switch(atoi(argv[6])){
     case 0:
@@ -673,7 +674,8 @@ void init(int argc, char ** argv){
       readHistogram_enthr(hist_file);
     }
   }
-	initializeDateset();
+
+  initializeDateset();
 	memset(numFails,0,(maxFeatures/100+1)*sizeof(int));
 	memset(numFeats,0,(maxFeatures/100+1)*sizeof(int));
 	sprintf(hist_file_o,"%s/%s_%s_%s_%s.csv",dataset,detectorName,descriptorName, matching_method_enum2str(METHOD),hist_method_enum2str(hist_method));
@@ -1054,7 +1056,7 @@ int main(int argc, char ** argv){
   #pragma omp parallel for ordered schedule(dynamic)
   for (int ims=0;ims<numLocations;ims++) {
     compute(ims);
-}
+  }
 
   auto t3 = high_resolution_clock::now();
   hist_file_out.close();

@@ -49,7 +49,7 @@
 #include <iomanip>
 
 using namespace cv;
-
+using namespace std;
 inline int smoothedSum(const Mat& sum, const KeyPoint& pt, int y, int x)
 {
     static const int HALF_KERNEL = GriefDescriptorExtractor::KERNEL_SIZE / 2;
