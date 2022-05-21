@@ -18,14 +18,14 @@ using cv::Scalar;
 
 
 std::tuple<vector <vector <vector <double> > >,
-  vector <int>,
            vector <vector <double> > >
-readHistogram_sort( vector <vector<double> > vec_temp, int batch_size,double input_bin_count,double image_width);
+readHistogram_sort( vector <vector<double> > vec_temp, double input_bin_count,double image_width);
 
-vector <vector <vector<double> > >   readHistogram_enthr( vector <vector<double> > vec_temp, int batch_size,double input_bin_count,double image_width);
+vector <vector <vector<double> > >   readHistogram_enthr( vector <vector<double> > vec_temp, double input_bin_count,double image_width);
 void readHistogram_max(const char* name);
 
 
 std::vector<vector <double> > readHistogram(const char* name,int size_of_batch, int bin_count);
 
-std::vector<cv::DMatch> internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, int &sumDev, int &auxMax, int &histMax, int numBins, int (&histogram)[100], int (&bestHistogram)[100] , std::vector<cv::DMatch> matches, bool hist2D, int width, int height, int granularity, int verticaLimit);
+std::vector<cv::DMatch> internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, float &displacement ,  int numBins, int (&histogram)[100], int (&bestHistogram)[100] , std::vector<cv::DMatch> matches, int granularity, int verticaLimit);
+std::tuple<vector  <vector <double>  >,  vector <double> > histogram_single_sort(vector<double> vec_temp_l,double input_bin_count,double image_width);

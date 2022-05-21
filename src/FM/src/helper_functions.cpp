@@ -23,17 +23,6 @@ cv::Mat loadImage(char (&filename)[1000]){
   return img;
 }
 
-void resultsOut(float displacement, int matchesSize, float difference, int (&bestHistogram)[100],  std::ofstream& hist_file_out, int fails){
-
-  if (displacement < 9999) hist_file_out << displacement << "," << matchesSize << "," << difference << "," << fails << ",";
-  else hist_file_out << displacement << "," << 0 << "," << difference << "," << fails << ",";
-  int numBins = sizeof(bestHistogram)/sizeof(bestHistogram[0]);
-  for (int i = 0; i < numBins; i++){
-    hist_file_out << bestHistogram[i];
-    if (i != numBins-1) hist_file_out << ",";
-  }
-  hist_file_out << "\n";
-}
 
 /*to select most responsive features*/
 bool compare_response(cv::KeyPoint first, cv::KeyPoint second)
@@ -41,8 +30,12 @@ bool compare_response(cv::KeyPoint first, cv::KeyPoint second)
   if (first.response > second.response) return true; else return false;
 }
 
-void visualisation(	std::vector<cv::KeyPoint> keypoints1,	std::vector<cv::KeyPoint> keypoints2,double image_width, int ims,int sumDev, int histMax,std::vector<cv::DMatch> inliers_matches,float difference, float groundTruth , float pp, cv::Mat  imga, cv::Mat imgb, char (&filename)[1000],vector <vector<double> > vec_temp, bool save, int totalTests, vector <vector <vector <double> > > vec_sorted, char (&dataset)[50], int fails){
+void visualisation(	std::vector<cv::KeyPoint> keypoints1,	std::vector<cv::KeyPoint> keypoints2,double image_width,float displacement,std::vector<cv::DMatch> inliers_matches, float groundTruth , float pp, cv::Mat  imga, cv::Mat imgb, char (&filename)[1000],vector<double>  wholeHistogram,
+                    bool save, 
+                    vector <vector <double > > sortedHistogram,
+                    char (&dataset)[50], int fails){
 						//if (fabs(difference) > 35) cout << "DIFF: " << (sumDev/histMax) << " " << -(offsetX[ims+numLocations*a]-offsetX[ims+numLocations*b]) << std::endl;
+  int totalTests = 0; //TODO: fix saving
             cv::Mat imA,imB,img_matches,img_matches_transposed;
 						std::vector<cv::KeyPoint> kpA,kpB;
 						cv::KeyPoint kp;
@@ -66,12 +59,12 @@ void visualisation(	std::vector<cv::KeyPoint> keypoints1,	std::vector<cv::KeyPoi
               hgr.push_back(0);
             }
             int widold = 0;
-            for (size_t bn  = 0; bn < vec_temp[ims].size(); bn++){
+            for (size_t bn  = 0; bn < wholeHistogram.size(); bn++){
               
               double lower = -((31.0-bn)*8.0+4.0)*image_width/512.0;
               double upper = -((31.0-bn)*8.0-4.0)*image_width/512.0;
               for (int wid = lower; wid < upper; wid ++){
-                hgr.push_back(vec_temp[ims][bn]*10);
+                hgr.push_back(wholeHistogram[bn]*10);
                 widold = wid;
               }
             }
@@ -79,8 +72,8 @@ void visualisation(	std::vector<cv::KeyPoint> keypoints1,	std::vector<cv::KeyPoi
               hgr.push_back(0);
             }
             int rng [2]={0,int(500)};
-            std::cout << (float)sumDev/histMax << "  gt: "<< groundTruth <<  std::endl;
-            cv::Mat gr = plotGraph(hgr,rng,-groundTruth+image_width/2.0,(float)sumDev/histMax+image_width/2.0,(vec_sorted[ims][0][0]+vec_sorted[ims][0][1])/2+image_width/2.0,pp+image_width/2.0);
+            std::cout << displacement << "  gt: "<< groundTruth <<  std::endl;
+            cv::Mat gr = plotGraph(hgr,rng,-groundTruth+image_width/2.0,displacement+image_width/2.0,(sortedHistogram[0][0]+sortedHistogram[0][1])/2+image_width/2.0,pp+image_width/2.0);
             cv::imshow("graph", gr);
 						cv::transpose(imga, imA);
 						cv::transpose(imgb, imB);
@@ -88,7 +81,7 @@ void visualisation(	std::vector<cv::KeyPoint> keypoints1,	std::vector<cv::KeyPoi
 						Scalar color(0,0,255);
 						if (kpA.size() >0 && kpB.size()>0 && inliers_matches.size() >0)
 						{
-							if (fabs(difference) <= 35) color = Scalar(0,255,0);
+							if (fabs(displacement-groundTruth) <= 35) color = Scalar(0,255,0);
 						}else{
 							kpA.push_back(kp);
 							kpB.push_back(kp);
@@ -214,44 +207,44 @@ void progress_bar(int var, int max,int fails){
   }
 }
 
-float interploation(vector <vector <vector <double> > > vec_sorted, int ims, vector<vector< double > > vec_temp , int a , int b, int image_width, vector < vector <double > > vec_bin_s, float *offsetX, int numLocations, int nn_fails, std::ofstream& nn_file_out){ 
+float interploation(vector <vector  <double>  > sortedHistogram,  vector< double  > wholeHistogram , int image_width, vector  <double >  probHist,  int numLocations, int nn_fails, std::ofstream& nn_file_out, float groundTruth){ 
   float x0,x1,x2,x3;
   float y0,y1,y2,y3;
-
-  float bin1= (vec_sorted[ims][0][0]+vec_sorted[ims][0][1])/2.0;
+  
+  float bin1= (sortedHistogram[0][0]+sortedHistogram[0][1])/2.0;
   float bin2 = 0;
-  y1= (vec_sorted[ims][0][0]+vec_sorted[ims][0][1])/2.0;
-  x1 = vec_temp[ims][0];
-  for (int b = 1; b < vec_sorted[ims].size();b++){
-    bin2= (vec_sorted[ims][b][0]+vec_sorted[ims][b][1])/2.0;
+  y1= ( sortedHistogram[0][0]+sortedHistogram[0][1])/2.0;
+  x1 = wholeHistogram[0];
+  for (int b = 1; b < sortedHistogram.size();b++){
+    bin2= (sortedHistogram[b][0]+sortedHistogram[b][1])/2.0;
     if (abs(bin1-bin2) == 8*image_width/512){
-      float sum = vec_temp[ims][0]+vec_temp[ims][b];
-      float w1 =vec_temp[ims][0]/sum;
-      float w2 = vec_temp[ims][0]/sum;
+      float sum = wholeHistogram[0]+wholeHistogram[b];
+      float w1 = wholeHistogram[0]/sum;
+      float w2 = wholeHistogram[0]/sum;
     }
     if (bin2-bin1 == 8*image_width/512) {
       y0=bin2;
-      x0=vec_bin_s[ims][b];
+      x0=probHist[b];
     }else if(bin1-bin2 == 8*image_width/512){
       y1=bin2;
-      x1=vec_bin_s[ims][b];
+      x1=probHist[b];
     }else if(bin1-bin2 == 2*8*image_width/512){
       y2=bin2;
-      x2=vec_bin_s[ims][b];
+      x2=probHist[b];
     }else if(bin2-bin1 == 2*8*image_width/512){
       y3=bin2;
-      x3=vec_bin_s[ims][b];
+      x3=probHist[b];
     }
   }
   float sum = x0+x1+x2+x3;
   float pp = (y0*x0+y1*x1+y2*x2+y3*x3)/sum;
   //cout<<pp <<endl; 
-  float nn_difference = pp +((offsetX[ims+numLocations*a]-offsetX[ims+numLocations*b]));
+  float nn_difference = pp + groundTruth;
   //cout << y0 << " " << y2 << " b:" << pp<< " " << bin1<<" "<< x0 << " " << x2<< endl;
   if (fabs(nn_difference) > 35) nn_fails++;
   nn_file_out << pp << "," << 0 << "," << nn_difference<< "," << nn_fails << ",";
   for (int i = 0; i < 63; i++){
-    nn_file_out << vec_temp[ims][i];
+    nn_file_out << wholeHistogram[i];
     if (i != 63-1) nn_file_out << ",";
     //cout << "writin" << endl;
   }
@@ -262,13 +255,10 @@ float interploation(vector <vector <vector <double> > > vec_sorted, int ims, vec
 
 
 
-void resizeFeatures(cv::Mat &descriptors1,cv::Mat &descriptors2,std::vector<cv::KeyPoint> &keypoints1, std::vector<cv::KeyPoint> &keypoints2, int numFeatures){
+void resizeFeatures(cv::Mat &descriptors1,std::vector<cv::KeyPoint> &keypoints1, int numFeatures){
   int numRemove = cv::max(0,descriptors1.rows-numFeatures);
   keypoints1.resize(numFeatures);
-  descriptors1.pop_back(numRemove);
-  numRemove = cv::max(0,descriptors2.rows-numFeatures);
-  keypoints2.resize(numFeatures);
-  descriptors2.pop_back(numRemove);
+  descriptors1.pop_back(numRemove);;
 }
 
 
@@ -461,7 +451,7 @@ void cv::FakeFeatureDetector::detectImpl( const cv::Mat& image, vector<cv::KeyPo
   cv::KeyPoint kp;
 	while (feof(file) == 0)
     {
-      fscanf(file,"%f,%f,%f,%f\n",&a,&b,&c,&d);
+      if (fscanf(file,"%f,%f,%f,%f\n",&a,&b,&c,&d) != 4) std::cerr << "Detector settings loading broken" << std::endl;
       kp.pt.x = (a+c)/2.0;
       kp.pt.y = (b+d)/2.0;
       kp.angle = -1;

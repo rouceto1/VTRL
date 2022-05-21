@@ -151,7 +151,7 @@ add_library (
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(FM_node src/FM/src/match_all.cpp)
+#add_executable(FM_node src/FM/src/match_all.cpp)
 add_executable(FM_new src/FM/src/exploration.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -165,9 +165,9 @@ add_executable(FM_new src/FM/src/exploration.cpp)
 
 ## Specify libraries to link a library or executable target against
 #target_link_libraries(FM_node FM_lib )
-target_link_libraries(FM_node ${catkin_LIBRARIES} ${OpenCV_LIBS} grief)
+#target_link_libraries(FM_node ${catkin_LIBRARIES} ${OpenCV_LIBS} grief)
 
-target_link_libraries(FM_new ${catkin_LIBRARIES} ${OpenCV_LIBS} hist helper filter grief aligment)
+target_link_libraries(FM_new ${catkin_LIBRARIES} ${OpenCV_LIBS} hist helper aligment filter grief)
 #############
 ## Install ##
 #############

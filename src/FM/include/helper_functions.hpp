@@ -52,8 +52,8 @@ void rootSift(cv::Mat *m);
 cv::Ptr<cv::DescriptorExtractor> initializeDescriptor(char *nameI);
 
 std::vector<size_t> sort_indexes(const std::vector<double> &v);
-float interploation(vector <vector <vector <double> > > vec_sorted, int ims, vector<vector< double > > vec_temp , int a , int b, int image_width, vector < vector <double > > vec_bin_s, float *offsetX, int numLocations, int nn_fails, std::ofstream& nn_file_out);
-void resizeFeatures(cv::Mat &descriptors1,cv::Mat &descriptors2,std::vector<cv::KeyPoint> &keypoints1, std::vector<cv::KeyPoint> &keypoints2, int numFeatures);
+float interploation(vector <vector <double > > sortedHistogram, vector< double  > wholeHistogram , int image_width, vector  <double  > probHist,  int numLocations, int nn_fails, std::ofstream& nn_file_out, float groundTruth);
+void resizeFeatures(cv::Mat &descriptors1, std::vector<cv::KeyPoint> &keypoints1, int numFeatures);
 //reads the detections from a file- in our case, used to read Super-pixel grid bounding boxes
 namespace cv{
 
@@ -62,12 +62,16 @@ namespace cv{
   public:
     FakeFeatureDetector(){}
   protected:
-    //<aybe rmove VIRTUAL 
+    //maybe rmove VIRTUAL 
     virtual void detectImpl( const cv::Mat& image, std::vector<KeyPoint>& keypoints, const cv::Mat& mask=cv::Mat() ) const;
 	};
 }
-void resultsOut(float displacement, int matchesSize, float difference, int (&bestHistogram)[100], std::ofstream& hist_file_out, int fails);
 cv::Mat loadImage(char (&filename)[1000]);
-void visualisation(	std::vector<cv::KeyPoint> keypoints1,	std::vector<cv::KeyPoint> keypoints2,double image_width, int ims,int sumDev, int histMax,std::vector<cv::DMatch> inliers_matches,float difference,float groundTruth,  float pp, cv::Mat  imga, cv::Mat imgb, char (&filename)[1000],vector <vector<double> > vec_temp, bool save, int totalTests, vector <vector <vector <double> > > vec_sorted, char (&dataset)[50], int fails);
+void visualisation(	std::vector<cv::KeyPoint> keypoints1,	std::vector<cv::KeyPoint> keypoints2,double image_width,float displacement, std::vector<cv::DMatch> inliers_matches,float groundTruth,  float pp, cv::Mat  imga, cv::Mat imgb, char (&filename)[1000],vector<double> wholeHistogram, bool save,  vector <vector <double>  > sortedHistogram, char (&dataset)[50], int fails);
 //void FakeFeatureDetector::detectImpl( const cv::Mat& image, vector<cv::KeyPoint>& keypoints, const cv::Mat& mask ) const;
+
+
+
+
+
 #endif

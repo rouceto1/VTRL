@@ -73,13 +73,12 @@ float *offsetY;
 int numLocations = 0;
 int wait_a=0;
 
-float range[2]={-100000,100000};
 char print_flag=0;
 vector <vector <double > > vec;
 double histEst[500];
 vector <int> vec_num;
-vector <vector <vector <double> > > vec_sorted;
-vector <vector <vector <double> > > vec_enthropy;
+vector <vector <double> > vec_hist;
+vector <vector <vector <double> > > vec_hist_sorted;
 vector <vector <double>  > vec_bin_s;
 int totalTests = 0;
 int numPictures = 0;
@@ -89,6 +88,5 @@ char hist_file_o[1000];
 char nn_file_o[1000];
 vector <vector<double> > vec_temp;
 const char * form = NULL;
-vector<float> differences;
 
 #endif

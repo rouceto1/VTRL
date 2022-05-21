@@ -53,7 +53,7 @@ std::vector<vector <double> > readHistogram(const char* name,int size_of_batch, 
 }
 
 
-vector <vector <vector<double> > >  readHistogram_enthr(vector <vector<double> > vec_temp,int batch_size,double input_bin_count,double image_width){
+vector <vector <vector<double> > >  readHistogram_enthr(vector <vector<double> > vec_temp,double input_bin_count,double image_width){
 
   vector <vector <vector <double> > > vec_enthropy;
 
@@ -92,9 +92,10 @@ vector <vector <vector<double> > >  readHistogram_enthr(vector <vector<double> >
   }
   return vec_enthropy;
 }
-std::vector<cv::DMatch> internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, int &sumDev, int &auxMax, int &histMax, int numBins, int (&histogram)[100], int (&bestHistogram)[100] , std::vector<cv::DMatch> matches, bool hist2D, int width, int height, int granularity, int verticaLimit){
+std::vector<cv::DMatch> internalHistogram2D(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, int &sumDev, int &auxMax, int &histMax, int numBins, int (&histogram)[100], int (&bestHistogram)[100] , std::vector<cv::DMatch> matches, int width, int height, int granularity, int verticaLimit){
   std::vector<cv::DMatch> inliers_matches;
 	//histogram assembly
+  bool hist2D = false;
 						if (hist2D){
               int histogram2D[width*2+granularity][height*2+granularity];
 							int iX = 0;
@@ -180,52 +181,104 @@ std::vector<cv::DMatch> internalHistogram(std::vector<cv::KeyPoint> keypoints1,s
 
 }
 
-std::tuple<vector <vector <vector <double> > >,
-           vector <int>,
-           vector <vector <double> > >
-readHistogram_sort( vector <vector<double> > vec_temp, int batch_size,double input_bin_count,double image_width){
-  std::vector<double>  vec_temp_abs;
+std::vector<cv::DMatch> internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, float &displacement, int numBins, int (&histogram)[100], int (&bestHistogram)[100] , std::vector<cv::DMatch> matches, int granularity, int verticaLimit){
+  std::vector<cv::DMatch> inliers_matches;
+	//histogram assembly
+  int auxMax = 0;
+	int sumDev,histMax;
+  sumDev = histMax = 0;
 
-  vector <int> vec_num;
-  vector <vector <double>  > vec_bin_s;
-  vector <vector <vector <double> > > vec_sorted;
+							//histogram assembly
+							memset(bestHistogram,0,sizeof(int)*numBins);
+							histMax = 0;
+							int maxS,domDir;
+							maxS = domDir = 0;
+							for (int s = 0;s<granularity;s++){
+								memset(histogram,0,sizeof(int)*numBins);
+								for( size_t i = 0; i < matches.size(); i++ )
+								{
+									int i1 = matches[i].queryIdx;
+									int i2 = matches[i].trainIdx;
+									if ((fabs(keypoints1[i1].pt.y-keypoints2[i2].pt.y))<verticaLimit){
+										int devx = (int)(keypoints1[i1].pt.x-keypoints2[i2].pt.x + numBins/2*granularity);
+										int index = (devx+s)/granularity;
+										if (index > -1 && index < numBins) histogram[index]++;
+									}
+								}
+								for (int i = 0;i<numBins;i++){
+									if (histMax < histogram[i]){
+										histMax = histogram[i];
+										maxS = s;
+										domDir = i;
+										memcpy(bestHistogram,histogram,sizeof(int)*numBins);
+									}
+								}
+							}
+							auxMax=0;
+							for (int i =0;i<numBins;i++){
+								if (auxMax < bestHistogram[i] && bestHistogram[i] != histMax){
+									auxMax = bestHistogram[i];
+								}
+							}
+							sumDev = 0;
+							for( size_t i = 0; i < matches.size(); i++ ){
+								int i1 = matches[i].queryIdx;
+								int i2 = matches[i].trainIdx;
 
-  for(size_t l = 0; l < vec_temp.size(); l++){
-    int count = 0;
-    int threshold_count = 0;
-      //cout << i << " ";
-    //cout << endl;
-    double histmax = *std::max_element(vec_temp[l].begin(), vec_temp[l].end());
-    //cout <<histmax << endl;
+								if ((int)((keypoints1[i1].pt.x-keypoints2[i2].pt.x + numBins/2*granularity+maxS)/granularity) == domDir && fabs(keypoints1[i1].pt.y-keypoints2[i2].pt.y)<verticaLimit)
+								{
+									sumDev += keypoints1[i1].pt.x-keypoints2[i2].pt.x;
+									inliers_matches.push_back(matches[i]);
+								}
+							}
 
-    for (size_t i = 0; i < vec_temp[l].size();i++){
-      if (histmax * 0.5 < vec_temp[l][i]) {
-        threshold_count ++;
-      }
+              if (histMax > 0) displacement = (float)sumDev/histMax;
+            return inliers_matches;
+
+}
+
+
+std::tuple<vector  <vector <double>  >,  vector <double> > 
+histogram_single_sort(vector<double> vec_temp_l,double input_bin_count,double image_width){
+  int threshold_count = 0;
+  double histmax = *std::max_element(vec_temp_l.begin(), vec_temp_l.end());
+  for (size_t i = 0; i < vec_temp_l.size();i++){
+    if (histmax * 0.5 < vec_temp_l[i]) {
+      threshold_count ++;
     }
-    vec_num.push_back(threshold_count);
-    std::vector<vector <double> > vec_bins_e;
-    std::vector<double> bns;
-    //cout<< threshold_count << endl;
-    for (int indx: sort_indexes(vec_temp[l])){
+  }
+  std::vector<vector <double> > vec_bins_e;
+  std::vector<double> bns;
+  int reject = 0;
+  for (int indx: sort_indexes(vec_temp_l)){
+    if (reject < threshold_count){
       double lower = -image_width*((indx/input_bin_count)-(1.0/2.0));//1 should be in bracket for 63 bins 0 for 64
       double upper = -image_width*((indx+1)/input_bin_count-1.0/2.0);
       std::vector<double> range;
       lower = -((31.0-indx)*8.0+4.0)*image_width/512.0;
       upper = -((31.0-indx)*8.0-4.0)*image_width/512.0;
-	
-			range.push_back(lower);
-		  range.push_back (upper);
+      range.push_back(lower);
+      range.push_back (upper);
       vec_bins_e.push_back(range);
-      bns.push_back(vec_temp[l][indx]);
-      count++ ;
+      bns.push_back(vec_temp_l[indx]);
     }
+    reject++;
+  }
+  return {vec_bins_e, bns};
+}
+
+
+std::tuple<vector <vector <vector <double> > >,
+           vector <vector <double> > >
+readHistogram_sort( vector <vector<double> > vec_temp,double input_bin_count,double image_width){
+  vector <vector <double>  > vec_bin_s;
+  vector <vector <vector <double> > > vec_sorted;
+
+  for(size_t l = 0; l < vec_temp.size(); l++){
+    auto [vec_bins_e, bns] = histogram_single_sort(vec_temp[l],input_bin_count,image_width);
+
     vec_sorted.push_back(vec_bins_e);
     vec_bin_s.push_back(bns);
-    if (l < 0){
-      for (int i = 0 ; i < vec_num[l]; i++){
-      }
-    }
   }
-  return {vec_sorted, vec_num, vec_bin_s};
+  return {vec_sorted, vec_bin_s};
 }
