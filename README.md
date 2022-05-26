@@ -56,3 +56,17 @@ if it is present then weights were trined Purley on GT,
 if neural is the prefix of the file then this is the output of the NN only.
 
 If the name contains the word pure then the CSV is from pure FM only.
+
+
+NOTES: 
+
+If you wanna use C_types for python.... you need to wrap all that you wanna expose in the H file into 
+extern "C"{
+void foo..... 
+}
+
+create python_module where you defince input and output from the fuction. nupy arrays are ok, standart stuf si ok vectors are pain. 
+in this file you also define function that you call from python. stadart python input and tha you there process whateer are your python datatypes into C datatypes. Only arrays are somewhat needed and strings. all strings have to have the encoding. 
+it is recomanded to pass pointers to stuff you alocate in python for return functins from these if you want multiple returns, touples are pain. 
+
+

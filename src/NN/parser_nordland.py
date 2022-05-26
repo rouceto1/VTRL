@@ -4,14 +4,12 @@ from torch.utils.data import Dataset, DataLoader
 import os
 from torchvision.io import read_image, decode_image
 import random
-from utils import plot_samples
 import itertools
 from glob import glob
 import kornia as K
 import numpy as np
 import torchvision
 import pandas as pd
-from utils import plot_img_pair
 from matplotlib.pyplot import imshow
 import statistics
 
@@ -115,7 +113,8 @@ class RectifiedNordland(RectifiedImgPairDataset):
             return source, cropped_target, heatmap , data_idx
         else:
             source, target  = super(RectifiedNordland, self).__getitem__(idx)
-            return source, target 
+            return source, target
+
     def set_crop_size(self, crop_size, smoothness=None):
         self.crop_width = crop_size
         if smoothness is None:

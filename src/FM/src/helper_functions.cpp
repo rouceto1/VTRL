@@ -22,14 +22,14 @@ cv::Mat loadImage(char (&filename)[1000]){
   }
   return img;
 }
-
-
-/*to select most responsive features*/
-bool compare_response(cv::KeyPoint first, cv::KeyPoint second)
-{
-  if (first.response > second.response) return true; else return false;
+cv::Mat loadImage(std::string filename){
+  cv::Mat img;
+  img = cv::imread(filename, cv::IMREAD_GRAYSCALE);
+  if (img.empty()){
+    std::cerr << "Could not read image " << filename << std::endl;
+  }
+  return img;
 }
-
 void visualisation(	std::vector<cv::KeyPoint> keypoints1,	std::vector<cv::KeyPoint> keypoints2,double image_width,float displacement,std::vector<cv::DMatch> inliers_matches, float groundTruth , float pp, cv::Mat  imga, cv::Mat imgb, char (&filename)[1000],vector<double>  wholeHistogram,
                     bool save, 
                     vector <vector <double > > sortedHistogram,

@@ -4,9 +4,10 @@ from tkinter import W
 from xml.etree.ElementTree import Comment
 from pkg_resources import evaluate_marker
 import torch as t
-from model import Siamese, load_model, get_custom_CNN, save_model
+from .model import Siamese, load_model, get_custom_CNN, save_model
 from torch.utils.data import DataLoader
-from parser_nordland import RectifiedNordland 
+from .parser_nordland import RectifiedNordland
+from .parser_strands import Strands
 from torchvision.transforms import Resize
 from tqdm import tqdm
 import numpy as np
@@ -14,7 +15,6 @@ from scipy import interpolate
 import os
 from torch.optim import SGD, AdamW
 from torch.nn import CrossEntropyLoss, BCEWithLogitsLoss, MSELoss
-from utils import plot_samples, batch_augmentations ,get_shift , plot_displacement, affine
 from matplotlib.pyplot import imshow
 from time import time,ctime
 import argparse
@@ -140,14 +140,26 @@ def eval_displacement(eval_model):
         print("Evaluated: Absolute mean error: {} Predictions in tolerance: {} %".format(abs_err/idx, valid*100/idx))
         return abs_err/idx, valid*100/idx
 
-def train_loop(epoch):
+def get_dataset(data_path, GT):
+    if "nordland" in data_path: 
+        dataset = RectifiedNordland(CROP_SIZE,FRACTION, SMOOTHNESS ,data_path,dsp,[d0,d1],threshold=THRESHOLD)
+    elif "stromovka" in data_path:
+        pass
+    elif "carlevaris" in data_path:
+        pass
+    elif "strand" in data_path:
+
+        dataset = Strands(CROP_SIZE,FRACTION, SMOOTHNESS ,GT,thre=THRESHOLD)
+    return dataset
+
+def train_loop(epoch, GT = 0, data_path = "", ):
     global PAD , model,optimizer ,loss
     NEGATIVE_FRAC = 1/3
     model.train()
     loss_sum = 0
-#    print("[+] Training model epoch", epoch)
     generation = 0
-    dataset = RectifiedNordland(CROP_SIZE,FRACTION, SMOOTHNESS ,data_path,dsp,[d0,d1],threshold=THRESHOLD) #!
+    #dataset = RectifiedNordland(CROP_SIZE,FRACTION, SMOOTHNESS ,data_path,dsp,[d0,d1],threshold=THRESHOLD) #!
+    dataset = get_dataset(data_path,GT)
     train_loader = DataLoader(dataset, BATCH_SIZE, shuffle=False)
     idx=0
     for batch in tqdm(train_loader):
@@ -173,22 +185,21 @@ def train_loop(epoch):
 
     print("Training of epoch", epoch, "ended with loss", loss_sum / len(train_loader))
 
+def NNteach_from_python(GT, data_path, weights_file):
+    global backbone, model, optimizer, loss 
+    backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)
+    model = Siamese(backbone, padding=PAD, eb=END_BN).to(device)
+    optimizer = AdamW(model.parameters(), lr=LR)
+    loss = BCEWithLogitsLoss()
+    train_loop(0, GT, data_path)
+    save_model(model, optimizer,weights_file,0) #!
+
 if __name__ == '__main__':
-    for epoch in range(EPOCHS):
-        if epoch % EVAL_RATE == 0:
-            if epoch==0:
-                backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)
-                model = Siamese(backbone, padding=PAD, eb=END_BN).to(device)
-                optimizer = AdamW(model.parameters(), lr=LR)
-                loss = BCEWithLogitsLoss()
-                if in_model_path != "start":
-                    load_model(model,in_model_path,optimizer)
-            
-            else:
-                save_model(model, optimizer,omodel,epoch) #!
-                eval_displacement(model)
-
-
-        train_loop(epoch)
-        save_model(model, optimizer,omodel,epoch) #!
-#    print("love you bye!")
+    backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)
+    model = Siamese(backbone, padding=PAD, eb=END_BN).to(device)
+    optimizer = AdamW(model.parameters(), lr=LR)
+    loss = BCEWithLogitsLoss()
+    if in_model_path != "start":
+        load_model(model,in_model_path,optimizer)
+    train_loop(0, dsp, data_path)
+    save_model(model, optimizer,omodel,0) #!

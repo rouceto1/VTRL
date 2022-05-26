@@ -96,6 +96,8 @@ def eval_displacement(eval_model):
         dataset = RectifiedNordland (CROP_SIZE,FRACTION, SMOOTHNESS ,data_path,None, [d0,d1] ,center_mask)
     elif "grief_jpg" in data_path:
         dataset =ImgPairDataset(data_path)
+    #elif "explore" in data_path:
+    #    dataset = exploreDataset()
     train_loader = DataLoader(dataset, 1, shuffle=False)
     model.eval()
     with torch.no_grad():
@@ -148,4 +150,3 @@ if __name__ == '__main__':
     model = Siamese(backbone, padding=PAD, eb=END_BN).to(device)
     model=load_model(model,in_model_path)
     eval_displacement(model) #! commented out just for understanding code
-    #print("love you bye!")

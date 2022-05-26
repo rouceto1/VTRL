@@ -139,7 +139,7 @@ add_library(
   filter src/FM/src/filter.cpp
 )
 add_library (
-  aligment src/FM/src/aligment.cpp
+  aligment SHARED src/FM/src/aligment.cpp
 )
 
 
@@ -166,8 +166,8 @@ add_executable(FM_new src/FM/src/exploration.cpp)
 ## Specify libraries to link a library or executable target against
 #target_link_libraries(FM_node FM_lib )
 #target_link_libraries(FM_node ${catkin_LIBRARIES} ${OpenCV_LIBS} grief)
-
 target_link_libraries(FM_new ${catkin_LIBRARIES} ${OpenCV_LIBS} hist helper aligment filter grief)
+target_link_libraries(aligment ${catkin_LIBRARIES} ${OpenCV_LIBS} hist helper filter grief)
 #############
 ## Install ##
 #############

@@ -32,14 +32,13 @@ enum hist_handling_methods {hist_max,hist_sorted, hist_enthropy, hist_zero} ; //
 void distinctiveMatch(const cv::Mat& descriptors1, const cv::Mat& descriptors2, std::vector<cv::DMatch>& matches, bool norm2, bool crossCheck,float distance_factor);
 
 
-
+cv::Mat loadImage(std::string filename);
 float * initializeDateset(int &seasons,char (&season)[50][50],char (&dataset)[50], int &numLocations);
 int getElapsedTime();
 
 
 cv::Mat plotGraph(std::vector<double>& vals, int YRange[2], int gt, int estimate,int hpeak,int inter);
 void progress_bar(int var, int max,int fails);
-bool compare_response(cv::KeyPoint first, cv::KeyPoint second);
 const char* matching_method_enum2str(enum matching_method e);
 const char* hist_method_enum2str(enum hist_handling_methods e);
 

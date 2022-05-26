@@ -233,6 +233,7 @@ std::vector<cv::DMatch> internalHistogram(std::vector<cv::KeyPoint> keypoints1,s
 							}
 
               if (histMax > 0) displacement = (float)sumDev/histMax;
+            
             return inliers_matches;
 
 }

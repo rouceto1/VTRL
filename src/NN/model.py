@@ -114,6 +114,10 @@ class Siamese(t.nn.Module):
 
 
 def save_model(model, optimizer,omodel,epoch):
+    print (model)
+    print(optimizer)
+    print(omodel)
+    print(epoch)
     t.save({
         'epoch': epoch,
         'model_state_dict': model.state_dict(),
