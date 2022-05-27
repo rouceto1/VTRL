@@ -9,7 +9,7 @@ from src.FM.python.python_module import *
 from src.NN.NNT import *
 print("Import functional")
 
-dataset_path = "/home/rouceto1/datasets/eplore/training_Nov"
+dataset_path = "/datafast/VTRL/eplore/training_Nov"
 chosen_positions_file = "input.txt"
 weights_file = "exploration.pt"
 feature_matcher_file = "FM_out.pickle"
@@ -24,7 +24,7 @@ chosen_positions = np.loadtxt(os.path.join(dataset_path, chosen_positions_file),
 
 def FM_eval (file_list):
     count = len(file_list)
-    count = 50 ## THIS IS TO LIMIT IT FOR DEBUGING PURPOUSES (may be a fnction in the future?)
+    ##count = 50 ## THIS IS TO LIMIT IT FOR DEBUGING PURPOUSES (may be a fnction in the future?)
     disp = np.zeros(count, dtype = np.float32)
     fcount = np.zeros(count, dtype = np.int32)
     cpp_teach_on_files(file_list, disp, fcount, count)
@@ -54,10 +54,14 @@ for i, value in enumerate(chosen_positions):
 print("indexes Made")
 ## make a combination list from all the chosen places
 combination_list = []
+added = []
 for key in indexes:
     for val in indexes[key]:
-        if val is not indexes[key][0]:
-            combination_list.append([key,indexes[key][0],val])
+        for val2 in indexes[key]:
+            if not val == val2:
+                if not val2 in added:
+                    combination_list.append([key,val,val2])
+        added.append(val)
             #print((np.array(combination_list))) ## combination list has place | imga | imgb
 
 file_list = []
@@ -80,7 +84,7 @@ print("Displcaments aquired")
 #print(files_with_displacement)
 ## teach NN on all the combinsations
 
-NNteach_from_python(files_with_displacement,"strands", os.path.join(dataset_path, weights_file) )
+NNteach_from_python(files_with_displacement,"strands", os.path.join(dataset_path, weights_file),3 )
 
 
 

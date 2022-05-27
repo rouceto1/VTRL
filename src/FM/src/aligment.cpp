@@ -148,7 +148,6 @@ void teachOnFiles(const char ** filesFrom, const char ** filesTo, float *displac
     feature_count[i]=fcount;
     displacement[i] = dsp;
     progress_bar(i,files,fails);
-    std:: cout << fcount << " "<<  dsp << std::endl; 
   }
 }
 

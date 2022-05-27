@@ -17,14 +17,14 @@ class StrandsImgPairDataset(Dataset):
 
     def __init__(self, GT,thr):
         super(StrandsImgPairDataset, self).__init__()
-        self.width = 760
-        self.height = 600
+        self.width = 512
+        self.height = 404
         self.quality_threshold = thr
         self.GT = GT
         self.disp = GT[:,2].astype(np.float32)
         self.fcount = GT[:,3].astype(np.float32).astype(np.int32)
         # GT in format imagea | imageb | displacemetn | feature count | 63x histgram bin|
-        print (GT[0])
+        ##print (GT[0])
         qualifieds= np.array(self.fcount) >= max(self.fcount) * 0.1 ## TODO the 0.1 as a paratmeters .. arashes hardoced shit
         #print(qualifieds)
         qualifieds2 = self.disp < 9999
@@ -37,6 +37,8 @@ class StrandsImgPairDataset(Dataset):
 
         self.data = []
         for i, pair in enumerate(self.GT):
+            #if i == 44:
+                #print(self.GT[i])
             path1 = pair[0]
             path2 = pair[1]
             if qualifieds[i] and qualifieds2[i]:
@@ -47,8 +49,8 @@ class StrandsImgPairDataset(Dataset):
 
     def __getitem__(self, idx):
 
-        source_img = read_image(self.data[idx][0])/255.0
-        target_img = read_image(self.data[idx][1])/255.0
+        source_img = read_image(self.data[idx][0],mode=torchvision.io.image.ImageReadMode.RGB)/255.0
+        target_img = read_image(self.data[idx][1],mode=torchvision.io.image.ImageReadMode.RGB)/255.0
         if not self.GT is None:
             displ=self.data[idx][2]
             return source_img, target_img,displ,self.data[idx][3]
@@ -74,7 +76,8 @@ class Strands(StrandsImgPairDataset):
         if not self.GT is None:
             source, target , displ , data_idx = super().__getitem__(idx)
             #source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8) # for vlurring out the water mark
-            cropped_target, crop_start = self.crop_img(target,displ)
+            #displ = displ*(512.0/self.width)
+            cropped_target, crop_start = self.crop_img(target)
             if self.smoothness == 0:
                 heatmap = self.get_heatmap(crop_start)
             else:
@@ -89,7 +92,7 @@ class Strands(StrandsImgPairDataset):
 
         lower_bound = self.crop_width
         upper_bound = self.width-self.crop_width/2
-        
+
         if dspl>0:
             upper_bound = int(upper_bound - dspl)
         elif dspl<0:
@@ -100,7 +103,7 @@ class Strands(StrandsImgPairDataset):
         return img[:, :, crop_start:crop_start + self.crop_width], crop_start
 
     def get_heatmap(self, crop_start):
-        frac = self.width // self.fraction ##wivision without reminder 
+        frac = self.width // self.fraction
         heatmap = t.zeros(frac).long()
         idx = int((crop_start + self.crop_width//2) * (frac/self.width))
         heatmap[idx] = 1
@@ -121,17 +124,25 @@ class Strands(StrandsImgPairDataset):
                     heatmap[j] = 1 - i * (1/(self.smoothness + 1))
         return heatmap[surround//2:-surround//2]
 
-    def augment(self, source, target):
-        # crop the logo - this for some reason makes the network diverge on evaluation set
-        # source = source[:, 30:, :]
-        # target = target[:, 30:, :]
-        source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8)
-        if random.random() > 0.95:
-            target = source.clone()
-        if random.random() > 0.5:
-            source = self.flip(source)
-            target = self.flip(target)
-        return source.squeeze(0), target
+    def get_heatmapd(self, crop_start, displacement):
+        frac = self.width // self.fraction - 1
+        heatmap = t.zeros(frac).long()
+        idx = int((crop_start - displacement + self.crop_width//2) / self.fraction)
+        if 0 <= idx < 31:
+            heatmap[idx] = 1
+        return heatmap
+
+    def get_smooth_heatmapd(self, crop_start, displacement):
+        surround = self.smoothness * 2
+        frac = self.width // self.fraction - 1
+        heatmap = t.zeros(frac + surround)
+        idx = int((crop_start - displacement + self.crop_width//2) / self.fraction) + 3
+        idxs = t.tensor([-1, +1])
+        for i in range(self.smoothness):
+            for j in idx + i*idxs:
+                if 0 <= j < heatmap.size(0):
+                    heatmap[j] = 1 - i * (1/self.smoothness)
+        return heatmap[surround//2:-surround//2] ##qadded one cos why the fuck not
 
 if __name__ == '__main__':
     data = StrandsImgPairDataset()

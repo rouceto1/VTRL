@@ -36,9 +36,9 @@ data_path=args.data_path
 device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
 #print("[+] device is {}".format(device))
 LR = 2e-5
-EPOCHS=1
+EPOCHS=3
 EVAL_RATE = 1
-BATCH_SIZE=30
+BATCH_SIZE= 30
 THRESHOLD=0.25
 VISUALIZE = False
 PLOT_IMPORTANCES = False
@@ -96,7 +96,7 @@ def eval_displacement(eval_model):
             hist_height=len(f.read().split("\n"))
         histograms = np.zeros((hist_height, 64))
         #! hist rows with zero rows means that they are discarded from evaluation
-        for batch in tqdm(train_loader):
+        for batch in train_loader:
             # source, target, displ = transform(batch[0].to(device)), transform(batch[1].to(device)), batch[2] #! transform changes the shape
             source, target, displ, data_idx = batch[0].to(device), batch[1].to(device), batch[2] , batch[3] #! without transform hist wont be 64
             histogram = get_histogram(source, target)
@@ -162,37 +162,44 @@ def train_loop(epoch, GT = 0, data_path = "", ):
     dataset = get_dataset(data_path,GT)
     train_loader = DataLoader(dataset, BATCH_SIZE, shuffle=False)
     idx=0
-    for batch in tqdm(train_loader):
-        source, target, heatmap = batch[0].to(device), batch[1].to(device), batch[2].to(device)
-        #! plt.imshow(batch[0][0].numpy().T) # for curiosity
-        # source = batch_augmentations(source) #! no augmentation with gt
-        #! if NEGATIVE_FRAC > 0.01:
+    try:
+        for batch in tqdm(train_loader):
+            source, target, heatmap = batch[0].to(device), batch[1].to(device), batch[2].to(device)
+            #! plt.imshow(batch[0][0].numpy().T) # for curiosity
+            # source = batch_augmentations(source) #! no augmentation with gt
+            #! if NEGATIVE_FRAC > 0.01:
             #! batch, heatmap = hard_negatives(source, heatmap)
-        out = model(source, target, padding=PAD)
-        optimizer.zero_grad()
-        l = loss(out, heatmap)
-        loss_sum += l.cpu().detach().numpy()
-        l.backward()
-        optimizer.step()
-        idx+=1
-        # if VISUALIZE:
+            out = model(source, target, padding=PAD)
+            #print(source, target)
+            optimizer.zero_grad()
+            l = loss(out, heatmap)
+            loss_sum += l.cpu().detach().numpy()
+            l.backward()
+            optimizer.step()
+            idx+=1
+            # if VISUALIZE:
             # plot_samples(source[0].cpu(),
             #         target[0].cpu(),
             #         heatmap[0].cpu(),
             #         prediction=out[0].cpu(),
             #         name=str(idx),
             #         dir="results_" + NAME + "/" + str(epoch) + "/")
+    except Exception as e:
+        print(e)
+
+        print (GT[idx+1])
 
     print("Training of epoch", epoch, "ended with loss", loss_sum / len(train_loader))
 
-def NNteach_from_python(GT, data_path, weights_file):
+def NNteach_from_python(GT, data_path, weights_file, epochs):
     global backbone, model, optimizer, loss 
     backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)
     model = Siamese(backbone, padding=PAD, eb=END_BN).to(device)
     optimizer = AdamW(model.parameters(), lr=LR)
     loss = BCEWithLogitsLoss()
-    train_loop(0, GT, data_path)
-    save_model(model, optimizer,weights_file,0) #!
+    for epoch in range(EPOCHS):
+        train_loop(epoch, GT, data_path)
+        save_model(model, optimizer,weights_file,epoch) #!
 
 if __name__ == '__main__':
     backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)

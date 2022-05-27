@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 import ctypes as ct
-lib = ct.cdll.LoadLibrary("/home/rouceto1/git/VTRL/build/libaligment.so")
+lib = ct.cdll.LoadLibrary("/datafast/VTRL/VTRL/build/libaligment.so")
 
 
 
