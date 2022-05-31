@@ -90,7 +90,6 @@ struct settings default_config (){
   return settings;
 }
 float twoImagesAndHistogram(cv::Mat img1, cv::Mat img2, vector<double> histogram_input ){
-
   int fails= 0;
   int features = 0;
   float displacement = 0.0;
@@ -138,13 +137,22 @@ float pBindTst(int a){
   return a+2;
 }
 
+void evalOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count, int &fails, vector<double> histogram, float GT, vector<double> histogram_out){
+  int features;
+  settings settings = default_config();
+  cv::Mat img1 = loadImage(f1);
+  auto [sortedHistogram, bns] = histogram_single_sort(histogram,histogram.size(),img1.cols);
+  displacemnet = computeOnTwoImages(img1,loadImage(f2), settings,features, fails, GT, &sortedHistogram);
+  feature_count = features;
+}
+
 void teachOnFiles(const char ** filesFrom, const char ** filesTo, float *displacement, int *feature_count, int files ){
   int fails = 0;
 #pragma omp parallel for ordered schedule(dynamic)
   for (int i = 0; i < files; i++){
     float dsp = 0;
     int fcount = 0;
-    teachOnFile(filesFrom[i], filesTo[i],dsp,fcount, fails);
+    teachOnFile(filesFrom[i], filesTo[i],dsp,fcount, fails );
     feature_count[i]=fcount;
     displacement[i] = dsp;
     progress_bar(i,files,fails);
@@ -153,7 +161,27 @@ void teachOnFiles(const char ** filesFrom, const char ** filesTo, float *displac
 
 void teachOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count, int &fails){
   int features;
-  settings settings = default_config();
+  const settings settings = default_config();
   displacemnet = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features, fails);
   feature_count = features;
 }
+
+void evalOnFiles(const char ** filesFrom, const char ** filesTo, double ** histogram_in, double ** hist_out,double * gt, float *displacement, int *feature_count, int files){
+  int fails = 0;
+  const settings config = default_config();
+  vector<double  > histogram_out;
+#pragma omp parallel for ordered schedule(dynamic)
+  for (int i = 0; i < files; i++){
+    float dsp = 0;
+    int fcount = 0;
+    vector<double> hist_vector (histogram_in[i], histogram_in[i] + sizeof histogram_in[i] / sizeof histogram_in[i][0]);
+    evalOnFile(filesFrom[i], filesTo[i],dsp,fcount, fails, hist_vector,gt[i], histogram_out);
+    
+    feature_count[i]=fcount;
+    displacement[i] = dsp;
+    progress_bar(i,files,fails);
+    hist_out[i] = histogram_out.data();
+  }
+}
+
+

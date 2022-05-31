@@ -3,7 +3,7 @@ from torch.utils.data import Dataset, DataLoader
 import os
 from torchvision.io import read_image, decode_image
 import random
-from utils import plot_samples
+from .utils import plot_samples
 import pandas as pd
 import numpy as np
 import json

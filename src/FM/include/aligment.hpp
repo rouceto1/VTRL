@@ -56,10 +56,10 @@ struct settings default_config ();
 
 float pBindTst(int a);
 void teachOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count, int &fails);
-
+void evalOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count, int &fails, vector<double> histogram, float GT, vector<double> histogram_out);
 
 extern "C"{
   void teachOnFiles(const char ** filesFrom, const char ** filesTo, float *displacement, int *feature_count, int files );
 
-
+  void evalOnFiles(const char ** filesFrom, const char ** filesTo,double ** histogram_in, double ** hist_out, double * gt, float *displacement, int *feature_count, int files);
 }

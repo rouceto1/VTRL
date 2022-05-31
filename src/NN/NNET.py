@@ -18,23 +18,13 @@ import os
 from torch.optim import AdamW
 from matplotlib.pyplot import imshow
 from time import time,ctime
-import argparse
-
-parser = argparse.ArgumentParser(description='example: -in_model_path ./results_siam/model.pt --data_path ../grief_jpg/stromovka/ --d0 fall --d1 winter --ocsv ./results_siam/x.csv')
-parser.add_argument('--in_model_path', type=str, help="path to the model to be train. if passed string start , it will start with an empty model")
-parser.add_argument('--data_path', type=str, help="path to the main data")
-parser.add_argument('--d0', type=str, help="path to first dataset")
-parser.add_argument('--d1', type=str, help="path to second dataset")
-parser.add_argument('--ocsv', type=str, help="output csv file path")
-
-args = parser.parse_args()
-in_model_path=args.in_model_path
-d0=args.d0
-d1=args.d1
-ocsv=args.ocsv
-data_path=args.data_path
 
 
+from torch.nn import CrossEntropyLoss, BCEWithLogitsLoss, MSELoss
+BATCH_SIZE= 30
+LR = 1e-4
+EPOCHS=10
+EVAL_RATE = 1
 device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
 print("[+] device is {}".format(device))
 code_run_time=ctime(time()).replace(":","_").replace(" ","_")
@@ -42,8 +32,8 @@ VISUALIZE = False
 PLOT_IMPORTANCES = False
 WIDTH = 512 #! nord width is 512 but stromovka width is 1024
 # CROP_SIZE = WIDTH//16 
-CROP_SIZE = WIDTH - 8
-# CROP_SIZE = 56
+#CROP_SIZE = WIDTH - 8
+CROP_SIZE = 56
 SMOOTHNESS = 3
 center_mask=0
 PAD = (CROP_SIZE - 8) // 16
@@ -51,15 +41,17 @@ FRACTION = 8
 OUTPUT_SIZE = 64  #  WIDTH // FRACTION
 CROPS_MULTIPLIER = 1
 BATCHING = CROPS_MULTIPLIER    # this improves evaluation speed by a lot
-# LAYER_POOL = True
+LAYER_POOL = True
 LAYER_POOL = False
-# FILTER_SIZE = 3 #! incompatible with train_siam.py
+FILTER_SIZE = 3 #! incompatible with train_siam.py
 FILTER_SIZE =5 
 END_BN = True
 EMB_CHANNELS = 256
 
 EVAL_LIMIT = 2000
 TOLERANCE = 48
+
+TRAINING = 1
 
 #if "stromovka" in data_path or "carlevaris" in data_path:
 #    transform = Resize(192)
@@ -99,13 +91,19 @@ def get_dataset(data_path, GT):
     elif "carlevaris" in data_path:
         histograms = np.zeros((539, 63))
     elif "strand" in data_path:
-        dataset = Strands(CROP_SIZE,FRACTION, SMOOTHNESS ,GT,thre=-2) #TODO: threshold does not work abd is currently 
+        dataset = Strands(CROP_SIZE,FRACTION, SMOOTHNESS ,GT,thre=TRAINING) #TODO: threshold does not work abd is currently 
         histograms = np.zeros((len(GT),63))
     return dataset, histograms
 
 def eval_displacement(eval_model,data_path, GT):
     global model
     model = eval_model
+    #if "nordland" in data_path:
+    #    dataset = RectifiedNordland (CROP_SIZE,FRACTION, SMOOTHNESS ,data_path,None, [d0,d1] ,center_mask)
+    #elif "grief_jpg" in data_path:
+    #    dataset =ImgPairDataset(data_path)
+    #elif "explore" in data_path:
+    #    dataset = exploreDataset()
     dataset, histograms = get_dataset(data_path,GT)
     train_loader = DataLoader(dataset, 1, shuffle=False)
     model.eval()
@@ -128,11 +126,11 @@ def eval_displacement(eval_model,data_path, GT):
             histograms[idx, :] = histogram.cpu().numpy()
             shift_hist = histogram.cpu()
             # pdb.set_trace()
-            f = interpolate.interp1d(np.linspace(0, 512, OUTPUT_SIZE-1), shift_hist, kind="cubic") #? why this is needed?
-            interpolated = f(np.arange(512))
-            ret = -(np.argmax(interpolated) - 256)
+            f = interpolate.interp1d(np.linspace(0, 1024, OUTPUT_SIZE-1), shift_hist, kind="cubic") #? why this is needed?
+            interpolated = f(np.arange(1024))
+            ret = -(np.argmax(interpolated) - 512)
             results.append(ret)
-            displac_mult = 512/WIDTH #? what is this?
+            displac_mult = 1024/WIDTH #? what is this?
 
             # plot_displacement(source.squeeze(0).cpu(),
             #         target.squeeze(0).cpu(),
@@ -147,12 +145,64 @@ def eval_displacement(eval_model,data_path, GT):
         np.savetxt(ocsv, histograms, delimiter=",")
         return abs_err/idx, valid*100/idx
 
+def train_loop(epoch, GT = 0, data_path = "", ):
+    global PAD , model,optimizer ,loss
+    NEGATIVE_FRAC = 1/3
+    model.train()
+    loss_sum = 0
+    generation = 0
+    #dataset = RectifiedNordland(CROP_SIZE,FRACTION, SMOOTHNESS ,data_path,dsp,[d0,d1],threshold=THRESHOLD) #!
+    dataset, histograms = get_dataset(data_path,GT)
+    train_loader = DataLoader(dataset, BATCH_SIZE, shuffle=False)
+    idx=0
+    #try:
+    if 1: 
+        for batch in tqdm(train_loader):
+            source, target, heatmap = batch[0].to(device), batch[1].to(device), batch[2].to(device)
+            #! plt.imshow(batch[0][0].numpy().T) # for curiosity
+            # source = batch_augmentations(source) #! no augmentation with gt
+            #! if NEGATIVE_FRAC > 0.01:
+            #! batch, heatmap = hard_negatives(source, heatmap)
+            out = model(source, target, padding=PAD)
+            #print(source, target)
+            optimizer.zero_grad()
+            l = loss(out, heatmap)
+            loss_sum += l.cpu().detach().numpy()
+            l.backward()
+            optimizer.step()
+            idx+=1
+            # if VISUALIZE:
+            # plot_samples(source[0].cpu(),
+            #         target[0].cpu(),
+            #         heatmap[0].cpu(),
+            #         prediction=out[0].cpu(),
+            #         name=str(idx),
+            #         dir="results_" + NAME + "/" + str(epoch) + "/")
+    #except Exception as e:
+    #    print ("TRAINING FAILED")
+    #    print(e)
+    print("Training of epoch", epoch, "ended with loss", loss_sum / len(train_loader))
+
 def NNeval_from_python(files, data_path, weights_file):
     global backbone, model, optimizer, loss 
+    global TRAINING
+    TRAINING = -1
     backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)
     model = Siamese(backbone, padding=PAD, eb=END_BN).to(device)
     model=load_model(model,weights_file)
     eval_displacement(model,data_path,files) #! commented out just for understanding code
+
+def NNteach_from_python(GT, data_path, weights_file, epochs):
+    global backbone, model, optimizer, loss
+    global TRAINING 
+    TRAINING = 1
+    backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)
+    model = Siamese(backbone, padding=PAD, eb=END_BN).to(device)
+    optimizer = AdamW(model.parameters(), lr=LR)
+    loss = BCEWithLogitsLoss()
+    for epoch in range(EPOCHS):
+        train_loop(epoch, GT, data_path)
+        save_model(model, optimizer,weights_file,epoch) #!
 
 if __name__ == '__main__':
     backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)

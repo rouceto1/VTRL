@@ -35,8 +35,8 @@ omodel=args.omodel
 data_path=args.data_path
 device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
 #print("[+] device is {}".format(device))
-LR = 2e-5
-EPOCHS=3
+LR = 1e-4
+EPOCHS=10
 EVAL_RATE = 1
 BATCH_SIZE= 30
 THRESHOLD=0.25
@@ -82,7 +82,7 @@ def get_importance(src, tgt, displac):
 def eval_displacement(eval_model):
     global model
     model = eval_model
-    dataset = RectifiedNordland(CROP_SIZE,FRACTION, SMOOTHNESS ,data_path,dsp,[d0,d1],threshold=THRESHOLD) #!
+    dataset = RectifiedNordland(CROP_SIZE,FRACTION, SMOOTHNESS ,data_path,dsp,[d0,d1],threshold=1)
     train_loader = DataLoader(dataset, 1, shuffle=False)
     model.eval()
     with t.no_grad():
@@ -102,15 +102,15 @@ def eval_displacement(eval_model):
             histogram = get_histogram(source, target)
             histograms[data_idx, :] = histogram.cpu().numpy()
             shift_hist = histogram.cpu()
-            f = interpolate.interp1d(np.linspace(0, 1024, OUTPUT_SIZE), shift_hist, kind="cubic") #? why this is needed?
-            interpolated = f(np.arange(1024))
-            ret = -(np.argmax(interpolated) - 512)
+            f = interpolate.interp1d(np.linspace(0, 512, OUTPUT_SIZE), shift_hist, kind="cubic") #? why this is needed?
+            interpolated = f(np.arange(512))
+            ret = -(np.argmax(interpolated) - 256)
             results.append(ret)
-            displac_mult = 1024/WIDTH #? what is this?
+            displac_mult = 512/WIDTH #? what is this?
 
-            f_gt = interpolate.interp1d(np.linspace(0, 1024, OUTPUT_SIZE), displ, kind="cubic") #? why this is needed?
-            interpolated_gt = f_gt(np.arange(1024))
-            ret_gt = -(np.argmax(interpolated_gt) - 512)
+            f_gt = interpolate.interp1d(np.linspace(0, 512, OUTPUT_SIZE), displ, kind="cubic") #? why this is needed?
+            interpolated_gt = f_gt(np.arange(512))
+            ret_gt = -(np.argmax(interpolated_gt) - 256)
             results_gt.append(ret_gt)
 
             tmp_err = (ret - ret_gt)/displac_mult
@@ -149,7 +149,7 @@ def get_dataset(data_path, GT):
         pass
     elif "strand" in data_path:
 
-        dataset = Strands(CROP_SIZE,FRACTION, SMOOTHNESS ,GT,thre=THRESHOLD)
+        dataset = Strands(CROP_SIZE,FRACTION, SMOOTHNESS ,GT,thre=THRESHOLD) #TODO: threshold does not work abd is currently seying if teaching or taring occurs
     return dataset
 
 def train_loop(epoch, GT = 0, data_path = "", ):

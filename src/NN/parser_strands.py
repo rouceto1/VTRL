@@ -15,34 +15,45 @@ import statistics
 
 class StrandsImgPairDataset(Dataset):
 
-    def __init__(self, GT,thr):
+    def __init__(self, GT,training):
         super(StrandsImgPairDataset, self).__init__()
         self.width = 512
         self.height = 404
-        self.quality_threshold = thr
+        self.train = training
         self.GT = GT
-        self.disp = GT[:,2].astype(np.float32)
-        self.fcount = GT[:,3].astype(np.float32).astype(np.int32)
-        # GT in format imagea | imageb | displacemetn | feature count | 63x histgram bin|
-        ##print (GT[0])
-        qualifieds= np.array(self.fcount) >= max(self.fcount) * 0.1 ## TODO the 0.1 as a paratmeters .. arashes hardoced shit
-        #print(qualifieds)
-        qualifieds2 = self.disp < 9999
-        #print(qualifieds2)
-        self.nonzeros=np.count_nonzero(qualifieds)  + np.count_nonzero(qualifieds2)
-        print("[+] {} images were qualified out of {} images with threshold {}".format(self.nonzeros,len(qualifieds),self.quality_threshold))
-        if self.nonzeros==0:
-            print("[-] no valid selection to teach on. Exiting")
-            exit(0)
 
-        self.data = []
-        for i, pair in enumerate(self.GT):
-            #if i == 44:
+        if self.train < 0:
+            self.data = []
+            for i, pair in enumerate(self.GT):
+                #if i == 44:
                 #print(self.GT[i])
-            path1 = pair[0]
-            path2 = pair[1]
-            if qualifieds[i] and qualifieds2[i]:
-                self.data.append((path1,path2, self.disp[i],i))
+                path1 = pair[0]
+                path2 = pair[1]
+                self.data.append((path1,path2))
+        else:
+            
+            self.disp = GT[:,2].astype(np.float32)
+            self.fcount = GT[:,3].astype(np.float32).astype(np.int32)
+            # GT in format imagea | imageb | displacemetn | feature count | 63x histgram bin|
+            ##print (GT[0])
+            qualifieds= np.array(self.fcount) >= max(self.fcount) * 0.1 ## TODO the 0.1 as a paratmeters .. arashes hardoced shit
+            #print(qualifieds)
+            qualifieds2 = self.disp < 9999
+            #print(qualifieds2)
+            self.nonzeros=np.count_nonzero(qualifieds)  + np.count_nonzero(qualifieds2)
+            print("[+] {} images were qualified out of {} images with threshold {}".format(self.nonzeros,len(qualifieds),0.1))
+            if self.nonzeros==0:
+                print("[-] no valid selection to teach on. Exiting")
+                exit(0)
+
+            self.data = []
+            for i, pair in enumerate(self.GT):
+                #if i == 44:
+                #print(self.GT[i])
+                path1 = pair[0]
+                path2 = pair[1]
+                if qualifieds[i] and qualifieds2[i]:
+                    self.data.append((path1,path2, self.disp[i],i))
 
     def __len__(self):
         return len(self.data)
@@ -51,7 +62,7 @@ class StrandsImgPairDataset(Dataset):
 
         source_img = read_image(self.data[idx][0],mode=torchvision.io.image.ImageReadMode.RGB)/255.0
         target_img = read_image(self.data[idx][1],mode=torchvision.io.image.ImageReadMode.RGB)/255.0
-        if not self.GT is None:
+        if self.train > 0:
             displ=self.data[idx][2]
             return source_img, target_img,displ,self.data[idx][3]
         else:
@@ -65,15 +76,14 @@ class Strands(StrandsImgPairDataset):
     # dsp path to the file with displacements
     # seasosns array of names of the folders with iamfes.
     def __init__(self, crop_width, fraction, smoothness, GT,thre=0.25):
-        super().__init__(GT=GT, thr=thre)
+        super().__init__(GT=GT, training=thre)
         self.crop_width = crop_width
         self.fraction = fraction
         self.smoothness = smoothness
         # self.flip = K.Hflip()
         self.flip =K.geometry.transform.Hflip()
-
     def __getitem__(self, idx):
-        if not self.GT is None:
+        if self.train > 0:
             source, target , displ , data_idx = super().__getitem__(idx)
             #source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8) # for vlurring out the water mark
             #displ = displ*(512.0/self.width)
@@ -97,7 +107,7 @@ class Strands(StrandsImgPairDataset):
             upper_bound = int(upper_bound - dspl)
         elif dspl<0:
             lower_bound = int(lower_bound - dspl)
-        #print("u  " , upper_bound , lower_bound, dspl)
+        #print("u  " , upper_bound , lower_bound, dspl, self.crop_width)
         crop_center = random.randint(lower_bound, upper_bound)
         crop_start = crop_center - self.crop_width
         return img[:, :, crop_start:crop_start + self.crop_width], crop_start
