@@ -40,8 +40,8 @@ class StrandsImgPairDataset(Dataset):
             #print(qualifieds)
             qualifieds2 = self.disp < 9999
             #print(qualifieds2)
-            self.nonzeros=np.count_nonzero(qualifieds)  + np.count_nonzero(qualifieds2)
-            print("[+] {} images were qualified out of {} images with threshold {}".format(self.nonzeros,len(qualifieds),0.1))
+            self.nonzeros=np.count_nonzero(np.logical_and(qualifieds, qualifieds2))
+            print("[+] {} images were qualified out of {} images with {} images not being aligned at all".format(self.nonzeros,len(qualifieds),0.1))
             if self.nonzeros==0:
                 print("[-] no valid selection to teach on. Exiting")
                 exit(0)

@@ -2,7 +2,11 @@ import os
 
 import numpy as np
 import ctypes as ct
-lib = ct.cdll.LoadLibrary("/home/rouceto1/git/VTRL/build/libaligment.so")
+from pathlib import Path
+libPath = Path("build/libaligment.so").absolute()
+print(libPath)
+
+lib = ct.cdll.LoadLibrary(libPath)
 
 
 
