@@ -20,7 +20,7 @@ void pre_filter( const cv::Mat& descriptors1,const cv::Mat& descriptors2, std::v
 					counter_2_bank.push_back(counter_2);
 				}
 			}else if (hist_method == hist_sorted){
-        for(int i=0; i < vec_in.size(); i++){
+        for(size_t i=0; i < vec_in.size(); i++){
 					//cout << keypoints1[counter_1].pt.x - keypoints2[counter_2].pt.x << " " << vec_sorted[ims][i][0] <<" " << vec_sorted[ims][i][1] << endl;
 					if ((keypoints1[counter_1].pt.x - keypoints2[counter_2].pt.x ) >= vec_in[i][0] && (keypoints1[counter_1].pt.x - keypoints2[counter_2].pt.x ) <= vec_in[i][1]){
 						descriptors2_chosens.push_back(descriptors2.row(counter_2));

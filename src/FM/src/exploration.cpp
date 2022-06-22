@@ -163,7 +163,7 @@ int main(int argc, char ** argv){
 	std::cout << "Tests have finished.\n";
 	int numPairs = numLocations*seasons*(seasons-1)/2;
 	numFails[0] = numPairs;
-	char report[1000];
+	char report[100];
 	//sprintf(report,"%s/%s_%s_%s_%s.histogram",dataset,detectorName,descriptorName, matching_method_enum2str(METHOD),hist_method_enum2str(hist_method));
 
 	n=maxFeatures/100;

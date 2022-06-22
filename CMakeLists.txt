@@ -3,7 +3,7 @@ project(VTRL)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 
-add_compile_options(-std=c++17 -g -O3)
+add_compile_options(-std=c++17 -ggdb -O3)
 #add_compile_options(-std=c++17 -O3 -g)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 ## Find catkin macros and libraries

@@ -4,14 +4,13 @@ from tkinter import W
 from pkg_resources import evaluate_marker
 import torch
 import torch as t
-from .model import Siamese, load_model, get_custom_CNN, save_model
+from model import Siamese, load_model, get_custom_CNN, save_model
 from torch.utils.data import DataLoader
-from .parser_grief import ImgPairDataset
-from .parser_nordland import RectifiedNordland 
-from .parser_strands import Strands
+from parser_grief import ImgPairDataset
+from parser_nordland import RectifiedNordland 
 from torchvision.transforms import Resize
 from tqdm import tqdm
-#from .utils import get_shift, plot_samples, plot_displacement, affine
+from utils import get_shift, plot_samples, plot_displacement, affine
 import numpy as np
 from scipy import interpolate
 import os
@@ -61,8 +60,8 @@ EMB_CHANNELS = 256
 EVAL_LIMIT = 2000
 TOLERANCE = 48
 
-#if "stromovka" in data_path or "carlevaris" in data_path:
-#    transform = Resize(192)
+if "stromovka" in data_path or "carlevaris" in data_path:
+    transform = Resize(192)
     # transform = Resize(192 * 2)
     # transform = Resize((288, 512))
 
@@ -90,23 +89,15 @@ def get_importance(src, tgt, displac):
     return interpolated[0]
 
 
-def get_dataset(data_path, GT):
-    if "nordland" in data_path: 
-        dataset = RectifiedNordland(CROP_SIZE,FRACTION, SMOOTHNESS ,data_path,dsp,[d0,d1],threshold=THRESHOLD)
-        histograms = np.zeros((14124, 63))
-    elif "stromovka" in data_path:
-        histograms = np.zeros((500, 63))
-    elif "carlevaris" in data_path:
-        histograms = np.zeros((539, 63))
-    elif "strand" in data_path:
-        dataset = Strands(CROP_SIZE,FRACTION, SMOOTHNESS ,GT,thre=-2) #TODO: threshold does not work abd is currently 
-        histograms = np.zeros((len(GT),63))
-    return dataset, histograms
-
-def eval_displacement(eval_model,data_path, GT):
+def eval_displacement(eval_model):
     global model
     model = eval_model
-    dataset, histograms = get_dataset(data_path,GT)
+    if "nordland" in data_path:
+        dataset = RectifiedNordland (CROP_SIZE,FRACTION, SMOOTHNESS ,data_path,None, [d0,d1] ,center_mask)
+    elif "grief_jpg" in data_path:
+        dataset =ImgPairDataset(data_path)
+    #elif "explore" in data_path:
+    #    dataset = exploreDataset()
     train_loader = DataLoader(dataset, 1, shuffle=False)
     model.eval()
     with torch.no_grad():
@@ -116,6 +107,13 @@ def eval_displacement(eval_model,data_path, GT):
         errors = []
         results = []
         results_gt = []
+        if "nordland" in data_path: 
+            histograms = np.zeros((14124, 63))
+            #! hist rows with zero rows means that they are discarded from evaluation
+        elif "stromovka" in data_path:
+            histograms = np.zeros((500, 63))
+        elif "carlevaris" in data_path:
+            histograms = np.zeros((539, 63))
         for batch in tqdm(train_loader):
             if "grief" in data_path:
                 source, target , displ = transform(batch[0].to(device)), transform(batch[1].to(device)) , batch[2]
@@ -128,11 +126,11 @@ def eval_displacement(eval_model,data_path, GT):
             histograms[idx, :] = histogram.cpu().numpy()
             shift_hist = histogram.cpu()
             # pdb.set_trace()
-            f = interpolate.interp1d(np.linspace(0, 512, OUTPUT_SIZE-1), shift_hist, kind="cubic") #? why this is needed?
-            interpolated = f(np.arange(512))
-            ret = -(np.argmax(interpolated) - 256)
+            f = interpolate.interp1d(np.linspace(0, 1024, OUTPUT_SIZE-1), shift_hist, kind="cubic") #? why this is needed?
+            interpolated = f(np.arange(1024))
+            ret = -(np.argmax(interpolated) - 512)
             results.append(ret)
-            displac_mult = 512/WIDTH #? what is this?
+            displac_mult = 1024/WIDTH #? what is this?
 
             # plot_displacement(source.squeeze(0).cpu(),
             #         target.squeeze(0).cpu(),
@@ -146,13 +144,6 @@ def eval_displacement(eval_model,data_path, GT):
         print("Evaluated: Absolute mean error: {} Predictions in tolerance: {} %".format(abs_err/idx, valid*100/idx))
         np.savetxt(ocsv, histograms, delimiter=",")
         return abs_err/idx, valid*100/idx
-
-def NNeval_from_python(files, data_path, weights_file):
-    global backbone, model, optimizer, loss 
-    backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)
-    model = Siamese(backbone, padding=PAD, eb=END_BN).to(device)
-    model=load_model(model,weights_file)
-    eval_displacement(model,data_path,files) #! commented out just for understanding code
 
 if __name__ == '__main__':
     backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)

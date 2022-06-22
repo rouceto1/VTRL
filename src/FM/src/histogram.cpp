@@ -92,7 +92,7 @@ vector <vector <vector<double> > >  readHistogram_enthr(vector <vector<double> >
   }
   return vec_enthropy;
 }
-std::vector<cv::DMatch> internalHistogram2D(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, int &sumDev, int &auxMax, int &histMax, int numBins, int (&histogram)[100], int (&bestHistogram)[100] , std::vector<cv::DMatch> matches, int width, int height, int granularity, int verticaLimit){
+int internalHistogram2D(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, int &sumDev, int &auxMax, int &histMax, int numBins, int (&histogram)[63], int (&bestHistogram)[63] , std::vector<cv::DMatch> matches, int width, int height, int granularity, int verticaLimit){
   std::vector<cv::DMatch> inliers_matches;
 	//histogram assembly
   bool hist2D = false;
@@ -177,65 +177,69 @@ std::vector<cv::DMatch> internalHistogram2D(std::vector<cv::KeyPoint> keypoints1
 							}
 						}
 
-            return inliers_matches;
+            return inliers_matches.size();
 
 }
 
-std::vector<cv::DMatch> internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, float &displacement, int numBins, int (&histogram)[100], int (&bestHistogram)[100] , std::vector<cv::DMatch> matches, int granularity, int verticaLimit){
+int internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, float &displacement, int numBins, int (&histogram)[63], std::vector<int> &hist_out , std::vector<cv::DMatch> matches, int granularity, int verticaLimit){
   std::vector<cv::DMatch> inliers_matches;
 	//histogram assembly
   int auxMax = 0;
 	int sumDev,histMax;
   sumDev = histMax = 0;
+  int bestHistogram[63];
+  //histogram assembly
+  memset(bestHistogram,0,sizeof(int)*numBins);
+  histMax = 0;
+  int maxS,domDir;
+  maxS = domDir = 0;
+  for (int s = 0;s<granularity;s++){
+    memset(histogram,0,sizeof(int)*numBins);
+    for( size_t i = 0; i < matches.size(); i++ )
+      {
+        int i1 = matches[i].queryIdx;
+        int i2 = matches[i].trainIdx;
+        if ((fabs(keypoints1[i1].pt.y-keypoints2[i2].pt.y))<verticaLimit){
+          int devx = (int)(keypoints1[i1].pt.x-keypoints2[i2].pt.x + numBins/2*granularity);
+          int index = (devx+s)/granularity;
+          if (index > -1 && index < numBins) histogram[index]++;
+        }
+      }
+    for (int i = 0;i<numBins;i++){
+      if (histMax < histogram[i]){
+        histMax = histogram[i];
+        maxS = s;
+        domDir = i;
+        memcpy(bestHistogram,histogram,sizeof(int)*numBins);
+      }
+    }
+  }
+  auxMax=0;
+  for (int i =0;i<numBins;i++){
+    if (auxMax < bestHistogram[i] && bestHistogram[i] != histMax){
+      auxMax = bestHistogram[i];
+    }
+  }
+  sumDev = 0;
+  for( size_t i = 0; i < matches.size(); i++ ){
+    int i1 = matches[i].queryIdx;
+    int i2 = matches[i].trainIdx;
+    
+    if ((int)((keypoints1[i1].pt.x-keypoints2[i2].pt.x + numBins/2*granularity+maxS)/granularity) == domDir && fabs(keypoints1[i1].pt.y-keypoints2[i2].pt.y)<verticaLimit)
+      {
+        sumDev += keypoints1[i1].pt.x-keypoints2[i2].pt.x;
+        inliers_matches.push_back(matches[i]);
+      }
+  }
 
-							//histogram assembly
-							memset(bestHistogram,0,sizeof(int)*numBins);
-							histMax = 0;
-							int maxS,domDir;
-							maxS = domDir = 0;
-							for (int s = 0;s<granularity;s++){
-								memset(histogram,0,sizeof(int)*numBins);
-								for( size_t i = 0; i < matches.size(); i++ )
-								{
-									int i1 = matches[i].queryIdx;
-									int i2 = matches[i].trainIdx;
-									if ((fabs(keypoints1[i1].pt.y-keypoints2[i2].pt.y))<verticaLimit){
-										int devx = (int)(keypoints1[i1].pt.x-keypoints2[i2].pt.x + numBins/2*granularity);
-										int index = (devx+s)/granularity;
-										if (index > -1 && index < numBins) histogram[index]++;
-									}
-								}
-								for (int i = 0;i<numBins;i++){
-									if (histMax < histogram[i]){
-										histMax = histogram[i];
-										maxS = s;
-										domDir = i;
-										memcpy(bestHistogram,histogram,sizeof(int)*numBins);
-									}
-								}
-							}
-							auxMax=0;
-							for (int i =0;i<numBins;i++){
-								if (auxMax < bestHistogram[i] && bestHistogram[i] != histMax){
-									auxMax = bestHistogram[i];
-								}
-							}
-							sumDev = 0;
-							for( size_t i = 0; i < matches.size(); i++ ){
-								int i1 = matches[i].queryIdx;
-								int i2 = matches[i].trainIdx;
-
-								if ((int)((keypoints1[i1].pt.x-keypoints2[i2].pt.x + numBins/2*granularity+maxS)/granularity) == domDir && fabs(keypoints1[i1].pt.y-keypoints2[i2].pt.y)<verticaLimit)
-								{
-									sumDev += keypoints1[i1].pt.x-keypoints2[i2].pt.x;
-									inliers_matches.push_back(matches[i]);
-								}
-							}
-
-              if (histMax > 0) displacement = (float)sumDev/histMax;
-            
-            return inliers_matches;
-
+  for (int i = 0; i < numBins; i++){
+    hist_out.push_back(bestHistogram[i]);
+    //std::cout << bestHistogram[i] << " ";
+  }
+  //std::cout << std::endl;
+  //std::cout << inliers_matches.size() <<std::endl;
+  if (histMax > 0) displacement = (float)sumDev/histMax;
+  return inliers_matches.size();
 }
 
 

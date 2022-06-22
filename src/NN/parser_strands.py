@@ -107,7 +107,7 @@ class Strands(StrandsImgPairDataset):
             upper_bound = int(upper_bound - dspl)
         elif dspl<0:
             lower_bound = int(lower_bound - dspl)
-        #print("u  " , upper_bound , lower_bound, dspl, self.crop_width)
+        print("u  " , upper_bound , lower_bound, dspl, self.crop_width)
         crop_center = random.randint(lower_bound, upper_bound)
         crop_start = crop_center - self.crop_width
         return img[:, :, crop_start:crop_start + self.crop_width], crop_start

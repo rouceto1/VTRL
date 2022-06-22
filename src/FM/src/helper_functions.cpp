@@ -215,12 +215,12 @@ float interploation(vector <vector  <double>  > sortedHistogram,  vector< double
   float bin2 = 0;
   y1= ( sortedHistogram[0][0]+sortedHistogram[0][1])/2.0;
   x1 = wholeHistogram[0];
-  for (int b = 1; b < sortedHistogram.size();b++){
+  for (size_t b = 1; b < sortedHistogram.size();b++){
     bin2= (sortedHistogram[b][0]+sortedHistogram[b][1])/2.0;
     if (abs(bin1-bin2) == 8*image_width/512){
-      float sum = wholeHistogram[0]+wholeHistogram[b];
-      float w1 = wholeHistogram[0]/sum;
-      float w2 = wholeHistogram[0]/sum;
+      //float sum = wholeHistogram[0]+wholeHistogram[b];
+      //float w1 = wholeHistogram[0]/sum;
+      //float w2 = wholeHistogram[0]/sum;
     }
     if (bin2-bin1 == 8*image_width/512) {
       y0=bin2;

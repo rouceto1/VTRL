@@ -12,61 +12,7 @@ bool compare_response(cv::KeyPoint first, cv::KeyPoint second)
 }
 
 
-void descriptorsAqusition(cv::Mat img,std::vector<cv::KeyPoint> &keypoints,
-                          cv::Mat &descriptors,
-                          struct settings settings,
-                          cv::Ptr<cv::FeatureDetector> detector,
-                          cv::Ptr<cv::DescriptorExtractor> descriptor,
-                          cv::GriefDescriptorExtractor *griefDescriptor ){
-  /*detection*/
-  detector->detect(img, keypoints);
-  sort(keypoints.begin(),keypoints.end(),compare_response);
-  /*extraction*/
-  if (settings.upright) for (unsigned int j = 0;j<keypoints.size();j++) keypoints[j].angle = -1;
-  if(griefDescriptor != NULL) griefDescriptor->computeImpl(img,keypoints,descriptors);
-  else
-    descriptor->compute(img,keypoints,descriptors);
-  resizeFeatures(descriptors,keypoints,settings.featureMaximum);
-}
-// inlier mathces are require  for this to work i guess ...
-float imageDisplacementUnsave( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, settings settings ,std::vector<cv::DMatch> &inliers_matches,int (&bestHistogram)[100], std::vector<std::vector <double> > *sortedHistogram){
-  std::vector<cv::DMatch> matches;
-  // matching descriptors
-  if (descriptors1.rows*descriptors2.rows > 0){
-    if (sortedHistogram == nullptr) 	   distinctiveMatch(descriptors1, descriptors2, matches, norm2,settings.crossCheck, settings.distance_factor);
-    else pre_filter(descriptors1,descriptors2,keypoints1,keypoints2,matches,settings.crossCheck,settings.distance_factor,*sortedHistogram);
-  }
-  int numBins = 100;
-  int histogram[100];
-  float displacement = 999999;
-  if (matches.size() > 0){
-    inliers_matches = internalHistogram(keypoints1,keypoints2, displacement, numBins, histogram, bestHistogram , matches,   settings.granularity,settings.verticaLimit);
-  }
-  return displacement;
-}
-
-
-float imageDisplacement( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2,  float groundTruth,  int &fails,settings settings , std::ofstream& hist_file_out,std::vector<cv::DMatch> &inliers_matches,std::vector<std::vector <double> > *sortedHistogram  ){
-					//use all features when numFeatures is 0
-  float difference = 0;
-  float displacement= 999999;
-
-  int bestHistogram[100];
-  if (sortedHistogram == nullptr)
-    displacement = imageDisplacementUnsave(descriptors1, descriptors2, keypoints1, keypoints2, settings, inliers_matches, bestHistogram);
-  else
-    displacement = imageDisplacementUnsave(descriptors1, descriptors2, keypoints1, keypoints2, settings, inliers_matches, bestHistogram, sortedHistogram);
-#pragma omp ordered
-      difference = displacement + groundTruth;//((offsetX[ims+numLocations*a]-offsetX[ims+numLocations*b]));
-  if (fabs(difference) > 35) fails++;
-
-  if (hist_file_out.is_open())
-    /*if the heading estimation error is bigger than 35 pixels, it's considered as false, otherwise it's considered correct*/
-    resultsOut(displacement,inliers_matches.size(),difference,bestHistogram, hist_file_out,fails);
-  return displacement;
-}
-
-void resultsOut(float displacement, int matchesSize, float difference, int (&bestHistogram)[100],  std::ofstream& hist_file_out, int fails){
+void resultsOut(float displacement, int matchesSize, float difference, int (&bestHistogram)[63],  std::ofstream& hist_file_out, int fails){
 
   if (displacement < 9999) hist_file_out << displacement << "," << matchesSize << "," << difference << "," << fails << ",";
   else hist_file_out << displacement << "," << 0 << "," << difference << "," << fails << ",";
@@ -102,8 +48,65 @@ float twoImagesAndHistogram(cv::Mat img1, cv::Mat img2, vector<double> histogram
   }
   return displacement;
 }
+void descriptorsAqusition(cv::Mat img,std::vector<cv::KeyPoint> &keypoints,
+                          cv::Mat &descriptors,
+                          struct settings settings,
+                          cv::Ptr<cv::FeatureDetector> detector,
+                          cv::Ptr<cv::DescriptorExtractor> descriptor,
+                          cv::GriefDescriptorExtractor *griefDescriptor ){
+  /*detection*/
+  detector->detect(img, keypoints);
+  sort(keypoints.begin(),keypoints.end(),compare_response);
+  /*extraction*/
+  if (settings.upright) for (unsigned int j = 0;j<keypoints.size();j++) keypoints[j].angle = -1;
+  if(griefDescriptor != NULL) griefDescriptor->computeImpl(img,keypoints,descriptors);
+  else
+    descriptor->compute(img,keypoints,descriptors);
+  resizeFeatures(descriptors,keypoints,settings.featureMaximum);
+}
+// inlier mathces are require  for this to work i guess ...
+float imageDisplacementUnsave( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, settings settings ,int &inliers_matches_count,std::vector<int> &bestHistogram, std::vector<std::vector <double> > *sortedHistogram){
+  std::vector<cv::DMatch> matches;
+  // matching descriptors
+  if (descriptors1.rows*descriptors2.rows > 0){
+    if (sortedHistogram == nullptr) 	   distinctiveMatch(descriptors1, descriptors2, matches, norm2,settings.crossCheck, settings.distance_factor);
+    else pre_filter(descriptors1,descriptors2,keypoints1,keypoints2,matches,settings.crossCheck,settings.distance_factor,*sortedHistogram);
+  }
+  int numBins = 63;
+  int histogram[63];
+  float displacement = 999999;
+  if (matches.size() > 0){
+    inliers_matches_count = internalHistogram(keypoints1,keypoints2, displacement, numBins, histogram, bestHistogram , matches,   settings.granularity,settings.verticaLimit);
+  }
+  return displacement;
+}
 
-float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features, int  &fails, std::ofstream& hist_file_out, float GT,std::vector< vector <double> > *sortedHistogram){
+
+float imageDisplacement( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2,  float groundTruth,  int &fails,settings settings , std::ofstream& hist_file_out,int &inliers_matches_count, std::vector<int> &hist_out, std::vector<std::vector <double> > *sortedHistogram){
+  //use all features when numFeatures is 0
+  float difference = 0;
+  float displ= 999999;
+  int bestHistogram[63];
+  if (sortedHistogram == nullptr){
+    displ = imageDisplacementUnsave(descriptors1, descriptors2, keypoints1, keypoints2, settings, inliers_matches_count, hist_out);
+    }else{
+    displ = imageDisplacementUnsave(descriptors1, descriptors2, keypoints1, keypoints2, settings, inliers_matches_count, hist_out, sortedHistogram);
+  }
+  //#pragma omp ordered
+      difference = displ + groundTruth;//((offsetX[ims+numLocations*a]-offsetX[ims+numLocations*b]));
+  if (fabs(difference) > 35) fails++;
+
+  if (hist_file_out.is_open())
+    /*if the heading estimation error is bigger than 35 pixels, it's considered as false, otherwise it's considered correct*/
+    //TODO: fix best histogram, shuld be hist_out but is now a different datatype
+    resultsOut(displ,inliers_matches_count,difference, bestHistogram, hist_file_out,fails);
+  return displ;
+}
+
+
+float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features, int  &fails,
+                         std::ofstream& hist_file_out,std::vector<int> &hist_out,
+                         float GT,std::vector< vector <double> > *sortedHistogram){
   //detect
   cv::Ptr<cv::FeatureDetector> detector;
   cv::Ptr<cv::DescriptorExtractor> descriptor;
@@ -121,30 +124,76 @@ float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,i
 
   features = (descriptor1.rows+descriptor2.rows)/2;
   std::vector<cv::DMatch> inliers_matches;
-  displacement = imageDisplacement( descriptor1, descriptor2,kp1, kp2, GT, fails ,settings, hist_file_out, inliers_matches, sortedHistogram);
+  int inliers_matches_count;
+  displacement = imageDisplacement( descriptor1, descriptor2,kp1, kp2, GT, fails ,settings, hist_file_out, inliers_matches_count, hist_out, sortedHistogram);
 
   return displacement;
 }
 
-
-float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features, int  &fails, float GT,std::vector< vector <double> > *sortedHistogram){
+float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features, int  &fails,
+                         std::ofstream& hist_file_out,
+                         float GT,std::vector< vector <double> > *sortedHistogram){
+  float displacement;
+  std::vector<int> hist_out;
+  displacement = computeOnTwoImages(img1,img2, settings,features, fails, hist_file_out,hist_out,GT, sortedHistogram);
+  return displacement;
+}
+float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features, int  &fails,
+                         float GT,std::vector< vector <double> > *sortedHistogram){
   std::ofstream hist_file_out;
   float displacement;
-  displacement = computeOnTwoImages(img1,img2, settings,features, fails, hist_file_out,GT, sortedHistogram);
+  std::vector<int> hist_out;
+  displacement = computeOnTwoImages(img1,img2, settings,features, fails, hist_file_out,hist_out,GT, sortedHistogram);
   return displacement;
 }
-float pBindTst(int a){
-  return a+2;
+float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features, int  &fails,
+                         std::vector<int> &hist_out,
+                         float GT, std::vector< vector <double> > *sortedHistogram){
+  std::ofstream hist_file_out;
+  float displacement;
+  displacement = computeOnTwoImages(img1,img2, settings,features, fails, hist_file_out,hist_out,GT, sortedHistogram);
+  return displacement;
 }
 
-void evalOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count, int &fails, vector<double> histogram, float GT, vector<double> histogram_out){
+void evalOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count, int &fails, vector<double> histogram, float GT, vector<int> &histogram_out){
   int features;
   settings settings = default_config();
   cv::Mat img1 = loadImage(f1);
   auto [sortedHistogram, bns] = histogram_single_sort(histogram,histogram.size(),img1.cols);
-  displacemnet = computeOnTwoImages(img1,loadImage(f2), settings,features, fails, GT, &sortedHistogram);
+  displacemnet = computeOnTwoImages(img1,loadImage(f2), settings,features, fails,histogram_out, GT, &sortedHistogram);
   feature_count = features;
+
 }
+
+void evalOnFiles(const char ** filesFrom, const char ** filesTo, double ** histogram_in, double ** hist_out,double * gt, float *displacement, int *feature_count, int hist_width,int files){
+  int fails = 0;
+  vector<int> histogram_out;
+  //#pragma omp parallel for ordered schedule(dynamic)
+  for (int i = 0; i < files; i++){
+    float dsp = 0;
+    int fcount = 0;
+    vector<double> hist_vector (histogram_in[i], histogram_in[i] + hist_width);
+    evalOnFile(filesFrom[i], filesTo[i],dsp,fcount, fails, hist_vector,gt[i], histogram_out);
+
+    for (int w = 0; w < hist_width; w ++){
+      hist_out[i][w] = histogram_out[w];
+      //std::cout << histogram_out[w] << " ";
+    } 
+    feature_count[i]=fcount;
+    displacement[i] = dsp;
+    progress_bar(i,files,fails);
+    //std::cout << histogram_out.data();
+    //hist_out[i] = histogram_out.data();
+    for (size_t w = 0; w < 5; w ++){
+      //std::cout << hist_out[i];
+    }
+    //std::cout << std::endl;
+    std::cout << "ev: " << i  << " "<<  fcount << " "  <<dsp << std::endl;
+  }
+}
+
+
+
 
 void teachOnFiles(const char ** filesFrom, const char ** filesTo, float *displacement, int *feature_count, int files ){
   int fails = 0;
@@ -161,27 +210,9 @@ void teachOnFiles(const char ** filesFrom, const char ** filesTo, float *displac
 
 void teachOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count, int &fails){
   int features;
+  if (f1 == nullptr) std::cerr << "shit1";
+  if (f2 == nullptr) std::cerr << "shit2";
   const settings settings = default_config();
   displacemnet = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features, fails);
   feature_count = features;
 }
-
-void evalOnFiles(const char ** filesFrom, const char ** filesTo, double ** histogram_in, double ** hist_out,double * gt, float *displacement, int *feature_count, int files){
-  int fails = 0;
-  const settings config = default_config();
-  vector<double  > histogram_out;
-#pragma omp parallel for ordered schedule(dynamic)
-  for (int i = 0; i < files; i++){
-    float dsp = 0;
-    int fcount = 0;
-    vector<double> hist_vector (histogram_in[i], histogram_in[i] + sizeof histogram_in[i] / sizeof histogram_in[i][0]);
-    evalOnFile(filesFrom[i], filesTo[i],dsp,fcount, fails, hist_vector,gt[i], histogram_out);
-    
-    feature_count[i]=fcount;
-    displacement[i] = dsp;
-    progress_bar(i,files,fails);
-    hist_out[i] = histogram_out.data();
-  }
-}
-
-
