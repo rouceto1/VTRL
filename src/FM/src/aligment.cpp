@@ -75,6 +75,8 @@ float imageDisplacementUnsave( cv::Mat descriptors1, cv::Mat descriptors2,std::v
   int numBins = 63;
   int histogram[63];
   float displacement = 999999;
+
+  //std::cout << "test5" << std::endl;
   if (matches.size() > 0){
     inliers_matches_count = internalHistogram(keypoints1,keypoints2, displacement, numBins, histogram, bestHistogram , matches,   settings.granularity,settings.verticaLimit);
   }
@@ -158,37 +160,43 @@ float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,i
 void evalOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count, int &fails, vector<double> histogram, float GT, vector<int> &histogram_out){
   int features;
   settings settings = default_config();
+  //std::cout << f1 << std::endl << f2 << std::endl;
   cv::Mat img1 = loadImage(f1);
+  cv::Mat img2 = loadImage(f2);
   auto [sortedHistogram, bns] = histogram_single_sort(histogram,histogram.size(),img1.cols);
-  displacemnet = computeOnTwoImages(img1,loadImage(f2), settings,features, fails,histogram_out, GT, &sortedHistogram);
+  displacemnet = computeOnTwoImages(img1,img2, settings,features, fails,histogram_out, GT, &sortedHistogram);
   feature_count = features;
-
 }
 
 void evalOnFiles(const char ** filesFrom, const char ** filesTo, double ** histogram_in, double ** hist_out,double * gt, float *displacement, int *feature_count, int hist_width,int files){
   int fails = 0;
-  vector<int> histogram_out;
   //#pragma omp parallel for ordered schedule(dynamic)
   for (int i = 0; i < files; i++){
+    //std::cout << i << " " << files <<std::endl; 
+    vector<int> histogram_out;
     float dsp = 0;
     int fcount = 0;
     vector<double> hist_vector (histogram_in[i], histogram_in[i] + hist_width);
     evalOnFile(filesFrom[i], filesTo[i],dsp,fcount, fails, hist_vector,gt[i], histogram_out);
-
+    //std::cout << i << "  "<< histogram_out.size() <<std::endl;
+    if (histogram_out.size() == 0){
+      fcount = 0;
+      dsp = 0;
+      vector<int> tmp_vec(hist_width,0);
+      histogram_out = tmp_vec;
+    }
     for (int w = 0; w < hist_width; w ++){
       hist_out[i][w] = histogram_out[w];
-      //std::cout << histogram_out[w] << " ";
-    } 
+    }
     feature_count[i]=fcount;
     displacement[i] = dsp;
     progress_bar(i,files,fails);
     //std::cout << histogram_out.data();
     //hist_out[i] = histogram_out.data();
     for (size_t w = 0; w < 5; w ++){
-      //std::cout << hist_out[i];
+      //std::cout << hist_out[i][w] << " ";
     }
-    //std::cout << std::endl;
-    std::cout << "ev: " << i  << " "<<  fcount << " "  <<dsp << std::endl;
+    // std::cout << "ev: " << i  << " "<<  fcount << " "  <<dsp << std::endl;
   }
 }
 
@@ -210,8 +218,6 @@ void teachOnFiles(const char ** filesFrom, const char ** filesTo, float *displac
 
 void teachOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count, int &fails){
   int features;
-  if (f1 == nullptr) std::cerr << "shit1";
-  if (f2 == nullptr) std::cerr << "shit2";
   const settings settings = default_config();
   displacemnet = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features, fails);
   feature_count = features;

@@ -131,7 +131,7 @@ def eval_displacement(eval_model,data_path, GT):
             ret = -(np.argmax(interpolated) - WIDTH/2)
             results.append(ret)
             displac_mult = WIDTH/WIDTH #? what is this?
-            print(source.squeeze(0).cpu().size())
+            #print(source.squeeze(0).cpu().size())
            # plt.imshow(np.rot90(batch[0][0].numpy().T),origin='lower')
             #plt.show()
             plot_displacement(source.squeeze(0).cpu(),

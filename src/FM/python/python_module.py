@@ -70,7 +70,7 @@ def cpp_eval_on_files(combinations, displacement, feature_count, length, hist_in
       + np.arange(hist_in.shape[0])*hist_in.strides[0]).astype(np.uintp)
     ho = (hist_out.__array_interface__['data'][0]
       + np.arange(hist_out.shape[0])*hist_out.strides[0]).astype(np.uintp)
-    length = ct.c_int(hist_in.shape[0])
+    #length = ct.c_int(hist_in.shape[0])
     width= ct.c_int(hist_in.shape[1])
     lib.evalOnFiles(c1,c2, hi, ho,GT,displacement, feature_count, width,length)
     return displacement,feature_count, hist_out

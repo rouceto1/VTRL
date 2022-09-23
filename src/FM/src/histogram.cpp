@@ -193,6 +193,7 @@ int internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPo
   histMax = 0;
   int maxS,domDir;
   maxS = domDir = 0;
+
   for (int s = 0;s<granularity;s++){
     memset(histogram,0,sizeof(int)*numBins);
     for( size_t i = 0; i < matches.size(); i++ )
@@ -231,13 +232,11 @@ int internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPo
         inliers_matches.push_back(matches[i]);
       }
   }
-
   for (int i = 0; i < numBins; i++){
     hist_out.push_back(bestHistogram[i]);
-    //std::cout << bestHistogram[i] << " ";
   }
-  //std::cout << std::endl;
-  //std::cout << inliers_matches.size() <<std::endl;
+
+  //std::cout << "test2" << std::endl;
   if (histMax > 0) displacement = (float)sumDev/histMax;
   return inliers_matches.size();
 }

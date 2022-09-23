@@ -27,7 +27,7 @@ cache2 = os.path.join(dataset_path, neural_network_file )
 filetype_FM = ".bmp"
 filetype_NN = ".png"
 image_file_template = "place_%d/%05d"
-use_cache = False
+use_cache = True
 
 chosen_positions = np.loadtxt(os.path.join(dataset_path, chosen_positions_file),int)
 
@@ -55,7 +55,7 @@ def FM_eval (file_list):
 
 def FM_NN_eval(file_list):
     count = len(file_list)
-    count = 200
+    count = 50
     disp = np.zeros(count, dtype = np.float32)
     fcount = np.zeros(count, dtype = np.int32)
     gt = np.zeros(count, dtype = np.float64)
@@ -75,16 +75,11 @@ def FM_NN_eval(file_list):
     print(hist_out.shape)
     d,fc,hist = cpp_eval_on_files(choose_proper_filetype(filetype_FM,file_list), disp, fcount, count, hist_in, hist_out, gt)
     FM_out = np.array([disp, fcount], dtype=np.float64).T
-    #file_list.append(disp)-
     file_list = np.array(file_list)[:count]
     np.set_printoptions(threshold=sys.maxsize)
-
-    print(hist)
     #NN_eval()
-    
 
 def teach():
-
     if not os.path.exists(cache) :
         print("First file loaded")
         indexes = dict([(0,[]),(1,[]),(2,[]),(3,[]),(4,[]),(5,[]),(6,[]),(7,[])])
@@ -115,7 +110,6 @@ def teach():
                             if not val2 in added:
                                 combination_list.append([key,val,val2])
                                 added.append(val)
-                        #print((np.array(combination_list))) ## combination list has place | imga | imgb
         else:
             for key in indexes:
                 for val in indexes[key]:
@@ -164,6 +158,6 @@ def evaluate():
     FM_NN_eval(file_list2)
 
 if __name__ == "__main__":
-    #teach()
+    teach()
     evaluate()
 
