@@ -7,8 +7,10 @@ import os
 import copy
 import numpy as np
 import pickle
-from src.FM.python.python_module import *
-from src.NN.NNET import *
+import src.FM.python.python_module as grief
+import src.NN.NNET as neuralka
+#from src.FM.python.python_module import *
+#from src.NN.NNET import *
 print("Import functional")
 #from src.NN.NNE import *
 
@@ -31,6 +33,7 @@ use_cache = True
 
 chosen_positions = np.loadtxt(os.path.join(dataset_path, chosen_positions_file),int)
 
+## adds file extension to all files in the list
 def choose_proper_filetype(filetype, lst):
     file_lst = copy.deepcopy(lst).tolist()
     #print(file_lst)
@@ -41,12 +44,22 @@ def choose_proper_filetype(filetype, lst):
         #print(file_lst[i][0])
     return file_lst
 
+
+
+def FM_evla_files(file_list, filetype):
+    count = len(file_list)
+    count = 50 ## THIS IS TO LIMIT IT FOR DEBUGING PURPOUSES (may be a fnction in the future?)
+    disp = np.zeros(count, dtype = np.float32)
+    fcount = np.zeros(count, dtype = np.int32)
+
+## Feature matcher treis to evaluate on all files in the list 
 def FM_eval (file_list):
     count = len(file_list)
     count = 50 ## THIS IS TO LIMIT IT FOR DEBUGING PURPOUSES (may be a fnction in the future?)
     disp = np.zeros(count, dtype = np.float32)
     fcount = np.zeros(count, dtype = np.int32)
-    cpp_teach_on_files(choose_proper_filetype(filetype_FM,file_list), disp, fcount, count)
+
+    grief.cpp_teach_on_files(choose_proper_filetype(filetype_FM,file_list), disp, fcount, count)
     FM_out = np.array([disp, fcount], dtype=np.float32).T
     #file_list.append(disp)
     file_list = np.array(file_list)[:count]
@@ -61,83 +74,92 @@ def FM_NN_eval(file_list):
     gt = np.zeros(count, dtype = np.float64)
     file_list = np.array(file_list)[:count]
 
+
     if not os.path.exists(cache2) or not use_cache:
-        a, b, hist_in, dsp = NNeval_from_python(np.array(choose_proper_filetype(filetype_NN, file_list)),"strands", os.path.join(dataset_path, weights_file))
+        a, b, hist_in, dsp = neuralka.NNeval_from_python(np.array(choose_proper_filetype(filetype_NN, file_list)),"strands", os.path.join(dataset_path, weights_file))
         hist_in = np.float64(hist_in)
         with open(cache2, 'wb') as handle:
             pickle.dump(hist_in, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            print("making chache" + str(cache2))
     else:
-        print("reading cache")
+        print("reading cache" + str(cache2))
         with open(cache2, 'rb') as handle:
             hist_in = pickle.load(handle)
+
+
     hist_out = np.zeros((count,63), dtype = np.float64)
-    print(hist_in.shape)
-    print(hist_out.shape)
-    d,fc,hist = cpp_eval_on_files(choose_proper_filetype(filetype_FM,file_list), disp, fcount, count, hist_in, hist_out, gt)
+    #print(hist_in.shape)
+    #print(hist_out.shape)
+    d,fc,hist = grief.cpp_eval_on_files(choose_proper_filetype(filetype_FM,file_list), disp, fcount, count, hist_in, hist_out, gt)
     FM_out = np.array([disp, fcount], dtype=np.float64).T
     file_list = np.array(file_list)[:count]
     np.set_printoptions(threshold=sys.maxsize)
     #NN_eval()
 
-def teach():
-    if not os.path.exists(cache) :
-        print("First file loaded")
-        indexes = dict([(0,[]),(1,[]),(2,[]),(3,[]),(4,[]),(5,[]),(6,[]),(7,[])])
-        for i, value in enumerate(chosen_positions):
-            if value == -1:
-                continue
+def make_combos_for_teaching():
+    print("First file loaded")
+    indexes = dict([(0,[]),(1,[]),(2,[]),(3,[]),(4,[]),(5,[]),(6,[]),(7,[])])
+    for i, value in enumerate(chosen_positions):
+        if value == -1:
+            continue
 
-            if value == 8:
-                for every in range(8):
-                    if os.path.exists(os.path.join(dataset_path, image_file_template % (every,i)) + filetype_FM):
-                        indexes[every].extend([i])
-                    else:
-                        continue
-            else:
-                if os.path.exists(os.path.join(dataset_path, image_file_template % (value,i)) + filetype_FM):
-                    indexes[value].extend([i])
-
-        print("indexes Made")
-        ## make a combination list from all the chosen places
-        combination_list = []
-        all_combos = False
-        added = []
-        if all_combos:
-            for key in indexes:
-                for val in indexes[key]:
-                    for val2 in indexes[key]:
-                        if not val == val2:
-                            if not val2 in added:
-                                combination_list.append([key,val,val2])
-                                added.append(val)
+        if value == 8:
+            for every in range(8):
+                if os.path.exists(os.path.join(dataset_path, image_file_template % (every,i)) + filetype_FM):
+                    indexes[every].extend([i])
+                else:
+                    continue
         else:
-            for key in indexes:
-                for val in indexes[key]:
-                    if not val == indexes[key][0]:
-                        combination_list.append([key,indexes[key][0],val])
+            if os.path.exists(os.path.join(dataset_path, image_file_template % (value,i)) + filetype_FM):
+                indexes[value].extend([i])
 
-        file_list = []
-        for combo in combination_list:
-            file1 = os.path.join(dataset_path, image_file_template % (combo[0],combo[1]))
-            file2 = os.path.join(dataset_path, image_file_template % (combo[0],combo[2]))
-            file_list.append([file1, file2])
-        file_list= np.array(file_list)
-        print(file_list)
-            ## call FM on all combinations
-        print("evaling FM")
-        files_with_displacement = FM_eval(file_list)
-        with open(cache, 'wb') as handle:
-            pickle.dump(files_with_displacement, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    print("indexes Made")
+    ## make a combination list from all the chosen places
+    combination_list = []
+    all_combos = False
+    added = []
+    if all_combos:
+        for key in indexes:
+            for val in indexes[key]:
+                for val2 in indexes[key]:
+                    if not val == val2:
+                        if not val2 in added:
+                            combination_list.append([key,val,val2])
+                            added.append(val)
     else:
-        print("reading cache")
+        for key in indexes:
+            for val in indexes[key]:
+                if not val == indexes[key][0]:
+                    combination_list.append([key,indexes[key][0],val])
+
+    file_list = []
+    for combo in combination_list:
+        file1 = os.path.join(dataset_path, image_file_template % (combo[0],combo[1]))
+        file2 = os.path.join(dataset_path, image_file_template % (combo[0],combo[2]))
+        file_list.append([file1, file2])
+    file_list= np.array(file_list)
+    print(file_list)
+    ## call FM on all combinations
+    print("evaling FM")
+    files_with_displacement = FM_eval(file_list)
+    with open(cache, 'wb') as handle:
+        pickle.dump(files_with_displacement, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    return files_with_displacement
+def teach():
+    if not os.path.exists(cache) or not use_cache:
+        files_with_displacement = make_combos_for_teaching()
+        print("making new chace " + cache)
+    else:
+        print("reading cache " + cache)
         with open(cache, 'rb') as handle:
             files_with_displacement = pickle.load(handle)
-
-    print("Displcaments aquired")
+            
+    print("Displcaments aquired " + cache)
     #print(files_with_displacement)
     ## teach NN on all the combinsations
     #print (choose_proper_filetype(filetype_NN, files_with_displacement))
-    NNteach_from_python(np.array(choose_proper_filetype(filetype_NN, files_with_displacement)),"strands", os.path.join(dataset_path, weights_file),3 )
+    neuralka.NNteach_from_python(np.array(choose_proper_filetype(filetype_NN, files_with_displacement)),"strands", os.path.join(dataset_path, weights_file),3 )
 
 ## EVAL->
 ## what files to eval
@@ -158,6 +180,6 @@ def evaluate():
     FM_NN_eval(file_list2)
 
 if __name__ == "__main__":
-    teach()
+   # teach()
     evaluate()
 
