@@ -23,6 +23,7 @@ chosen_positions_file = "input.txt"
 weights_file = "exploration.pt"
 feature_matcher_file = "FM_out.pickle"
 neural_network_file = "NN_out.pickle"
+annotation_weights = "shit.pt"
 
 cache = os.path.join(dataset_path, feature_matcher_file )
 cache2 = os.path.join(dataset_path, neural_network_file )
@@ -45,12 +46,24 @@ def choose_proper_filetype(filetype, lst):
     return file_lst
 
 
+## makes the file list from all images to all targets images
 
-def FM_evla_files(file_list, filetype):
-    count = len(file_list)
-    count = 50 ## THIS IS TO LIMIT IT FOR DEBUGING PURPOUSES (may be a fnction in the future?)
-    disp = np.zeros(count, dtype = np.float32)
-    fcount = np.zeros(count, dtype = np.int32)
+def make_file_list(places,targets, images):
+    combination_list2 = []
+    file_list2 = []
+    for e in evaluation_paths:
+        for places in places: #range(7):
+            for nmbr in images: #range(1,143):
+                for target in targets:
+                    combination_list2.append([places,target,nmbr])
+        for combo in combination_list2:
+            file1 = os.path.join(dataset_path, image_file_template % (combo[0],combo[1]))
+            file2 = os.path.join(evaluation_prefix,e, image_file_template % (combo[0],combo[2]))
+            if os.path.exists(file1 + ".png"):
+                if  os.path.exists(file2 + ".png"):
+                    file_list2.append([file1, file2])
+    return file_list2
+
 
 ## Feature matcher treis to evaluate on all files in the list 
 def FM_eval (file_list):
@@ -59,12 +72,19 @@ def FM_eval (file_list):
     disp = np.zeros(count, dtype = np.float32)
     fcount = np.zeros(count, dtype = np.int32)
 
-    grief.cpp_teach_on_files(choose_proper_filetype(filetype_FM,file_list), disp, fcount, count)
+    grief.cpp_teach_on_files(choose_proper_filetype(filetype_FM,file_list),
+                             disp,fcount,count)
     FM_out = np.array([disp, fcount], dtype=np.float32).T
     #file_list.append(disp)
     file_list = np.array(file_list)[:count]
     files_with_displacement = np.append(file_list, FM_out, axis=1)
     return files_with_displacement
+
+
+def NN_eval(file_list):
+    a, b, hist_in, dsp = neuralka.NNeval_from_python(np.array(choose_proper_filetype(filetype_NN, file_list)),"strands", os.path.join(dataset_path, weights_file))
+    hist_in = np.float64(hist_in)
+    return hist_in, dsp
 
 def FM_NN_eval(file_list):
     count = len(file_list)
@@ -76,8 +96,7 @@ def FM_NN_eval(file_list):
 
 
     if not os.path.exists(cache2) or not use_cache:
-        a, b, hist_in, dsp = neuralka.NNeval_from_python(np.array(choose_proper_filetype(filetype_NN, file_list)),"strands", os.path.join(dataset_path, weights_file))
-        hist_in = np.float64(hist_in)
+        hist_in, displacement = NN_eval(file_list)
         with open(cache2, 'wb') as handle:
             pickle.dump(hist_in, handle, protocol=pickle.HIGHEST_PROTOCOL)
             print("making chache" + str(cache2))
@@ -88,13 +107,12 @@ def FM_NN_eval(file_list):
 
 
     hist_out = np.zeros((count,63), dtype = np.float64)
-    #print(hist_in.shape)
-    #print(hist_out.shape)
-    d,fc,hist = grief.cpp_eval_on_files(choose_proper_filetype(filetype_FM,file_list), disp, fcount, count, hist_in, hist_out, gt)
+    d,fc,hist = grief.cpp_eval_on_files(choose_proper_filetype(filetype_FM,file_list),
+                                        disp, fcount, count, hist_in, hist_out, gt)
     FM_out = np.array([disp, fcount], dtype=np.float64).T
     file_list = np.array(file_list)[:count]
     np.set_printoptions(threshold=sys.maxsize)
-    #NN_eval()
+    NN_eval(file_list)
 
 def make_combos_for_teaching():
     print("First file loaded")
@@ -146,6 +164,8 @@ def make_combos_for_teaching():
         pickle.dump(files_with_displacement, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     return files_with_displacement
+
+
 def teach():
     if not os.path.exists(cache) or not use_cache:
         files_with_displacement = make_combos_for_teaching()
@@ -154,32 +174,31 @@ def teach():
         print("reading cache " + cache)
         with open(cache, 'rb') as handle:
             files_with_displacement = pickle.load(handle)
-            
     print("Displcaments aquired " + cache)
     #print(files_with_displacement)
     ## teach NN on all the combinsations
     #print (choose_proper_filetype(filetype_NN, files_with_displacement))
-    neuralka.NNteach_from_python(np.array(choose_proper_filetype(filetype_NN, files_with_displacement)),"strands", os.path.join(dataset_path, weights_file),3 )
+    neuralka.NNteach_from_python(np.array(choose_proper_filetype(filetype_NN,files_with_displacement)),
+                                 "strands",
+                                 os.path.join(dataset_path,
+                                              weights_file),
+                                 3)
 
 ## EVAL->
 ## what files to eval
 def evaluate():
-    combination_list2 = []
-    file_list2 = []
-    for e in evaluation_paths:
-        for places in range(7):
-            for nmbr in range(1,143):
-                combination_list2.append([places,0,nmbr])
-        for combo in combination_list2:
-            file1 = os.path.join(dataset_path, image_file_template % (combo[0],combo[1]))
-            file2 = os.path.join(evaluation_prefix,e, image_file_template % (combo[0],combo[2]))
-            if os.path.exists(file1 + ".png"):
-                if  os.path.exists(file2 + ".png"):
-                    file_list2.append([file1, file2])
 
-    FM_NN_eval(file_list2)
+    #make filelist agaisnt first images (original map)
+    file_list = make_file_list(range(7), 0,range(1,143))
+    FM_NN_eval(file_list)
+
+def annotate():
+    evaluate()
+    
+
 
 if __name__ == "__main__":
+    annotate()
    # teach()
     evaluate()
 
