@@ -13,7 +13,7 @@ def NN_eval(file_list_nn,weights_file):
 def FM_NN_eval(file_list,filetype_NN,filetype_FM,weights_file,dataset_path,cache2,use_cache,gt,limit = False):
     count = len(file_list)
     if limit:
-        count = 10
+        count = 1500
         gt = np.zeros(count, dtype = np.float64)
     disp = np.zeros(count, dtype = np.float32)
     fcount = np.zeros(count, dtype = np.int32)

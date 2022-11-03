@@ -25,13 +25,15 @@ evaluation_paths = ["testing_Dec", "testing_Feb", "testing_Nov"]
 chosen_positions_file = "input.txt"
 weights_file = "exploration.pt"
 feature_matcher_file = "FM_out.pickle"
-neural_network_file = "NN_out.pickle"
 
 annotation_file = "1-2-fast-grief.pt"
-GT_file = annotation_file + ".pkl"
-annotation_weights = "/home/rouceto1/git/VTRL/" + annotation_file
+GT_file = annotation_file + "_GT_.pickle"
+chosen_positions_file = "input.txt"
+neural_network_file = weights_file + "_NN_cache.pickle"
 
 
+eval_out_file = weights_file + "_eval.pickle"
+eval_out = os.path.join(dataset_path,eval_out_file)
 
 cache = os.path.join(dataset_path, feature_matcher_file )
 cache2 = os.path.join(dataset_path, neural_network_file )
@@ -79,12 +81,19 @@ def evaluate():
     gt = readGTFile(file_list,os.path.join(evaluation_prefix, GT_file ))
     print ("usign gt:")
     print(gt)
-    displacements,feature_count,histograms, hist_nn =  FM_NN_eval(file_list,filetype_NN,filetype_FM,os.path.join(dataset_path, weights_file),dataset_path,cache2,use_cache,gt)
-    return file_list, displacements,feature_count,histograms
+    displacements,feature_count,histograms, hist_nn =  FM_NN_eval(file_list,filetype_NN,filetype_FM,os.path.join(dataset_path, weights_file),dataset_path,cache2,use_cache,gt, True)
+   
+    return file_list, displacements,feature_count,histograms, hist_nn
+
+def evaluate_to_file():
+    out = [evaluate()]
+    with open(eval_out, 'wb') as handle:
+        pickle.dump(out,
+                    handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 if __name__ == "__main__":
-    annotate()
+    #annotate()
     #teach()
-    #evaluate()
+    evaluate_to_file()
 

@@ -45,7 +45,7 @@ def annotate():
     file_list = make_file_list(range(7), [0],range(1,143), image_file_template,dataset_path,evaluation_prefix,evaluation_paths)
 
     gt = np.zeros(len(file_list), dtype = np.float64)
-    displacements,feature_count,histograms,hist_nn =  FM_NN_eval(file_list,filetype_NN,filetype_FM,annotation_weights,dataset_path,cache2,use_cache,gt,False)
+    displacements,feature_count,histograms,hist_nn =  FM_NN_eval(file_list,filetype_NN,filetype_FM,annotation_weights,dataset_path,cache2,use_cache,gt,True)
 
     annotations = []
     for i in range(len(displacements)):
