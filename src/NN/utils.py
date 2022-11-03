@@ -127,7 +127,7 @@ def plot_displacement(source, target, prediction, displacement=None, importance=
     f.tight_layout()
     Path(dir).mkdir(parents=True, exist_ok=True)
     plt.savefig(dir + str(name) + ".png")
-    print("[+] utils: saved to {}".format(dir + str(name) + ".png"))
+   # print("[+] utils: saved to {}".format(dir + str(name) + ".png"))
     plt.close()
 
 

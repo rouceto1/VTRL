@@ -100,7 +100,7 @@ def get_dataset(data_path, GT):
         histograms = np.zeros((len(GT),63))
     return dataset, histograms
 
-def eval_displacement(eval_model,data_path, GT):
+def eval_displacement(eval_model,data_path, GT,weights_file):
     global model
     model = eval_model
     dataset, histograms = get_dataset(data_path,GT)
@@ -134,11 +134,13 @@ def eval_displacement(eval_model,data_path, GT):
             #print(source.squeeze(0).cpu().size())
            # plt.imshow(np.rot90(batch[0][0].numpy().T),origin='lower')
             #plt.show()
+            path = os.path.normpath(weights_file)
+            split_path = path.split(os.sep)
             plot_displacement(source.squeeze(0).cpu(),
                     target.squeeze(0).cpu(),
                     shift_hist.squeeze(0).cpu(),
                     displacement = ret,
-                    name=str(idx))
+                              name=str(idx)+"_"+str(split_path[-1]))
                     # dir="results_" + MODEL_TYPE + "/eval_" + MODEL + "/")
             idx += 1
         print("Evaluated: Absolute mean error: {} Predictions in tolerance: {} %".format(abs_err/idx, valid*100/idx))
@@ -190,7 +192,7 @@ def NNeval_from_python(files, data_path, weights_file):
     backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)
     model = Siamese(backbone, padding=HISTPAD, eb=END_BN).to(device)
     model=load_model(model,weights_file)
-    return eval_displacement(model,data_path,files) #! commented out just for understanding code
+    return eval_displacement(model,data_path,files,weights_file) #! commented out just for understanding code
 
 def NNteach_from_python(GT, data_path, weights_file, epochs):
     global backbone, model, optimizer, loss

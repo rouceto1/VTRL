@@ -28,7 +28,7 @@ def readGTFile(file_list, gt_exact_file):
             if split_path[-1] in gt_single and split_path[-3] + "/" + split_path[-2] in gt_single:
                 if split_path2[-1] in gt_single and split_path2[-3] + "/" + split_path2[-2] in gt_single:
                     gt_out.append(gt_single[0])
-    print(gt_out)
+    ##print(gt_out)
     return gt_out
 
 
