@@ -40,7 +40,7 @@ cache2 = os.path.join(dataset_path, neural_network_file )
 filetype_FM = ".bmp"
 filetype_NN = ".png"
 image_file_template = "place_%d/%05d"
-use_cache = False
+use_cache = True
 
 chosen_positions = np.loadtxt(os.path.join(dataset_path, chosen_positions_file),int)
 
@@ -82,7 +82,6 @@ def evaluate():
     print ("usign gt:")
     print(gt)
     displacements,feature_count,histograms, hist_nn =  FM_NN_eval(file_list,filetype_NN,filetype_FM,os.path.join(dataset_path, weights_file),dataset_path,cache2,use_cache,gt, True)
-   
     return file_list, displacements,feature_count,histograms, hist_nn
 
 def evaluate_to_file():
@@ -90,7 +89,8 @@ def evaluate_to_file():
     with open(eval_out, 'wb') as handle:
         pickle.dump(out,
                     handle, protocol=pickle.HIGHEST_PROTOCOL)
-
+    print("evaluation output at:")
+    print(eval_out)
 
 if __name__ == "__main__":
     #annotate()
