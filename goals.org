@@ -1,0 +1,11 @@
+* Code things
+** DONE Make a pythom lib for this that eats file names. Make the name generation the main editable file
+** TODO Write basic tests 
+* Training
+** DONE Make method that can annotate the whole dataset based on good weights
+** TODO Visualise the results so they make sense
+** TODO Kill as many ppl as posssible
+* Annotate the dataset
+** TODO Use zdeneks weights to annotate - GT_best
+*** DONE Used old greif but appears to be working  
+** TODO Train even more zdeneks weights using all available data then annotate - GT_utlimate

@@ -8,6 +8,7 @@ import copy
 import numpy as np
 import pickle
 
+from matplotlib import pyplot as plt
 
 
 
@@ -33,10 +34,15 @@ histogram_from_NN[ [likliehood distribution rather then actual histogram] ]
 ]
 '''
 def plot_alignments(data):
-    
+    file_list = data[0][0]
+    disp = data[0][1]
+    feature_count = data[0][2]
+    histogram_FM = data[0][3]
+    histogram_NN = data[0][4]
+    print (len(disp))
 
-    print(data)
-
+    plt.plot(disp)
+    plt.show()
 
 
 if __name__ == "__main__":
