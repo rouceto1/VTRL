@@ -1,9 +1,16 @@
 * Code things
 ** DONE Make a pythom lib for this that eats file names. Make the name generation the main editable file
-** TODO Write basic tests 
+** TODO Write basic tests
+* Evaluation
+** TODO finish writing the evaluation
+*** TODO GT to results association
+*** TODO proper AC curve intergrl calcualation
+*** TODO prepare folder structure for results
+**** Propose: results-> exp_name -> [weights, eval file, curve, few image samples, input for training]
+**** resluts -> csv with exp_name, AC curve, + ohter metrics (possible longest streak under threshold)
 * Training
 ** DONE Make method that can annotate the whole dataset based on good weights
-** TODO Visualise the results so they make sense
+** DONE Visualise the results so they make sense
 ** TODO Kill as many ppl as posssible
 * Annotate the dataset
 ** TODO Use zdeneks weights to annotate - GT_best

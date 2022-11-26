@@ -17,6 +17,12 @@ weights_file = "exploration.pt"
 eval_out_file = weights_file + "_eval.pickle"
 eval_out = os.path.join(dataset_path,eval_out_file)
 
+def filter_to_max(lst, threshold):
+    lst[lst>threshold] = threshold
+    lst[lst<-threshold] = -threshold
+    return lst
+
+
 '''
 data in in format [
 file_list[
@@ -40,7 +46,7 @@ def plot_alignments(data):
     histogram_FM = data[0][3]
     histogram_NN = data[0][4]
     print (len(disp))
-
+    disp = filter_to_max(disp,300)
     plt.plot(disp)
     plt.show()
 
