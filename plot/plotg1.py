@@ -21,6 +21,32 @@ plt.grid()
 plt.ylim(0.3,1)
 legend = ax.legend(loc='lower right', shadow=True, fontsize='x-large')
 plt.xticks(fontsize= 12)
+fig, ax = plt.subplots()
+lengt = 0
+for i in range(len(file_list)):
+    print ("reading: " + file_list[i])
+    with open(file_list[i]) as file:
+        lines = [float(line.rstrip()) for line in file]
+        
+    length = len(lines)
+    lines = np.array(lines)
+    print ("plotting: " + file_list[i])
+    print(lines)
+    print(length)
+    ax.plot(lines,np.array(range(length))/length, label=names[i])
+plt.xlim(0,20)
+plt.grid()
+plt.ylim(0.3,1)
+legend = ax.legend(loc='lower right', shadow=True, fontsize='x-large')
+plt.xticks(fontsize= 12)
+plt.yticks(fontsize= 12)
+plt.title("Accuracies over different seasons of Nordland")
+plt.ylabel('Prob. of correct registration [-]',fontsize = 13)
+plt.xlabel('Registration error threshold [pixels]',fontsize = 13)
+plt.savefig('out/plotg1.eps', format='eps')
+plt.show()
+
+
 plt.yticks(fontsize= 12)
 plt.title("Accuracies over different seasons of Nordland")
 plt.ylabel('Prob. of correct registration [-]',fontsize = 13)

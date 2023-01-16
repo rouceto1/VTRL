@@ -7,7 +7,7 @@
 *** TODO proper AC curve intergrl calcualation
 *** TODO prepare folder structure for results
 **** Propose: results-> exp_name -> [weights, eval file, curve, few image samples, input for training]
-**** resluts -> csv with exp_name, AC curve, + ohter metrics (possible longest streak under threshold)
+**** resluts -> csv with exp_name, AC curve, + ohter metrics (possible longest streak under threshold,50 percentile,90 percetile, 99 precentile)
 * Training
 ** DONE Make method that can annotate the whole dataset based on good weights
 ** DONE Visualise the results so they make sense
