@@ -1,3 +1,7 @@
 *.pyc
 *.pt
 *.o
+*.jpg
+*.png
+*#*
+build/
