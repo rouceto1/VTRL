@@ -40,19 +40,19 @@ def teach():
                                              image_file_template,
                                              filetype_FM)
 
-        print("evaling FM")
-        files_with_displacement = FM_eval(file_list, filetype_FM)
+        print("evaluating FM")
+        files_with_displacement = fm_eval(file_list, filetype_FM)
         with open(cache, 'wb') as handle:
             pickle.dump(files_with_displacement,
                         handle, protocol=pickle.HIGHEST_PROTOCOL)
-        print("making new chace " + cache)
+        print("making new chance " + cache)
     else:
         print("reading cache " + cache)
         with open(cache, 'rb') as handle:
             files_with_displacement = pickle.load(handle)
-    print("Displcaments aquired " + cache)
+    print("Dispalcaments acquired " + cache)
     # print(files_with_displacement)
-    # teach NN on all the combinsations
+    # teach NN on all the combinations
     # print (choose_proper_filetype(filetype_NN, files_with_displacement))
     desired_files = np.array(
         choose_proper_filetype(
@@ -68,7 +68,7 @@ def teach():
 
 
 def evaluate():
-    # make file list agaisnt first images (original map)
+    # make file list against first images (original map)
     file_list = make_file_list(
         range(7),
         [0],
@@ -79,10 +79,10 @@ def evaluate():
         dataset_path,
         evaluation_prefix,
         evaluation_paths)
-    gt = readGTFile(file_list, os.path.join(evaluation_prefix, GT_file))
-    print("usign gt:")
+    gt = read_gt_file(file_list, os.path.join(evaluation_prefix, GT_file))
+    print("using gt:")
     print(gt)
-    displacements, feature_count, histograms, hist_nn = FM_NN_eval(
+    displacements, feature_count, histograms, hist_nn = fm_nn_eval(
         file_list, filetype_NN, filetype_FM, os.path.join(
             dataset_path, weights_file), dataset_path, cache2, use_cache, gt, True)
     return file_list, displacements, feature_count, histograms, hist_nn
@@ -98,6 +98,5 @@ def evaluate_to_file():
 
 
 if __name__ == "__main__":
-    # annotate()
     # teach()
     evaluate_to_file()

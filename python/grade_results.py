@@ -32,38 +32,39 @@ def add_img_to_plot(plot, img_path):
 def read_GT(gt):
     gt_disp = []
     gt_features = []
-    gt_placeA = []
+    gt_place_a = []
     gt_timeA = []
-    gt_placeB = []
+    gt_place_b = []
     gt_timeB = []
     gt_histogram_FM = []
     gt_histogram_NN = []
     for place in gt:
         gt_disp.append(place[0])
         # gt_features.append(place[1])
-        gt_placeA.append(place[2] + "/" + place[3])
+        gt_place_a.append(place[2] + "/" + place[3])
         # gt_timeA.append(place[3])
-        gt_placeB.append(place[4] + "/" + place[5])
+        gt_place_b.append(place[4] + "/" + place[5])
         # gt_timeB.append(place[5])
         # gt_histogram_FM.append(place[6])
         # gt_histogram_NN.append(place[7])
-    return gt_disp, gt_placeA, gt_placeB
+    return gt_disp, gt_place_a, gt_place_b
 
 
 ##Function to match evaluated things to ground truth, for now it is ordered TODO
+# noinspection PyPep8Naming
 def match_gt_to_eval(gt_placeA, gt_placeB, file_list, gt_disp):
     return gt_disp
 
 
 def load_data(data, gt):
-    gt_disp, gt_placeA, gt_placeB = read_GT(gt)
+    gt_disp, gt_place_a, gt_place_b = read_GT(gt)
     file_list = data[0][0]
-    histogram_FM = data[0][3]
-    histogram_NN = data[0][4]
+    histogram_fm = data[0][3]
+    histogram_nn = data[0][4]
     feature_count = data[0][2]
     displacement = data[0][1]
-    gt_disp = match_gt_to_eval(gt_placeA, gt_placeB, file_list, gt_disp)
-    return file_list, histogram_FM, histogram_NN, feature_count, displacement, np.array(gt_disp)
+    gt_disp = match_gt_to_eval(gt_place_a, gt_place_b, file_list, gt_disp)
+    return file_list, histogram_fm, histogram_nn, feature_count, displacement, np.array(gt_disp)
 
 
 ##TODO do this function
@@ -90,22 +91,14 @@ def get_streak(disp):
 def compute_to_file(data, gt, dist):
     line_out = os.path.join(dist, "line.pkl")
     streak_out = os.path.join(dist, "streak.pkl")
-    file_list, histogram_FM, histogram_NN, feature_count, displacement, gt_disp = load_data(data, gt)
+    file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
     disp, line, line_integral, streak = compute(displacement, gt_disp)
-    with open(line_out, 'wb') as handle:
-        pickle.dump(line, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open(line_out, 'wb') as hand:
+        pickle.dump(line, hand, protocol=pickle.HIGHEST_PROTOCOL)
         print("Line written " + str(line_out))
-    with open(streak_out, 'wb') as handle:
-        pickle.dump(streak, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open(streak_out, 'wb') as hand:
+        pickle.dump(streak, hand, protocol=pickle.HIGHEST_PROTOCOL)
         print("streak " + str(streak_out))
-    out = []
-    out.append(w)
-    out.append(weights_file)
-    out.append(line_integral)
-    out.append(streak_integral)
-    out.append(get_percentile(line, 50))
-    out.append(get_percentile(line, 90))
-    out.append(get_percentile(line, 99))
 
 
 def compute_with_plot(data, gt):
@@ -133,7 +126,7 @@ def compute_with_plot(data, gt):
         f.tight_layout()
         plt.savefig("./comparison/" + file_list[location][1][-5:] + ".png")
         plt.close()
-    return (line, line_integral)
+    return line, line_integral
 
 
 def compute(displacement, gt):
@@ -156,7 +149,9 @@ def compute_AC_curve(error):
 
 
 ## TODO this is probably incorect since it just summs all the errors therefore not normalised
-def get_integral_from_line(values, places=0):
+def get_integral_from_line(values, places=None):
+    if places is None:
+        places = [0]
     total = 0
     gaps = np.diff(places)
     for idx, i in enumerate(values):
@@ -164,6 +159,7 @@ def get_integral_from_line(values, places=0):
     return total
 
 
+# noinspection PyShadowingNames
 def grade_type(eval_out, gt_file_in, dest):
     print("loading")
     with open(eval_out, 'rb') as handle:

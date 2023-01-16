@@ -8,10 +8,6 @@ import itertools
 from glob import glob
 import kornia as K
 import numpy as np
-import torchvision
-import pandas as pd
-from matplotlib.pyplot import imshow
-import statistics
 
 class RectifiedImgPairDataset(Dataset):
 
