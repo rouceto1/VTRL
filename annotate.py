@@ -1,51 +1,33 @@
 #!/usr/bin/env python3
-import ctypes
-import sys
-import json
-import os
-import copy
-import numpy as np
-import pickle
-import src.FM.python.python_module as grief
-import src.NN.NNET as neuralka
-from helper_functions import *
 from evaluate import *
-#from src.FM.python.python_module import *
-#from src.NN.NNET import *
+
 print("Import functional")
-#from src.NN.NNE import *
 
 dataset_path = "/home/rouceto1/datasets/strands_crop/training_Nov"
 evaluation_prefix = "/home/rouceto1/datasets/strands_crop"
 evaluation_paths = ["testing_Dec", "testing_Feb", "testing_Nov"]
 
-
 annotation_file = "1-2-fast-grief.pt"
 GT_file = annotation_file + "_GT_.pickle"
 annotation_weights = "/home/rouceto1/git/VTRL/" + annotation_file
 
-
-
-chosen_positions_file = "input.txt"
 neural_network_file = annotation_file + "_NN_cache.pickle"
 
-
-
-
-cache2 = os.path.join(dataset_path, neural_network_file )
+cache2 = os.path.join(dataset_path, neural_network_file)
 filetype_FM = ".bmp"
 filetype_NN = ".png"
 image_file_template = "place_%d/%05d"
 use_cache = False
 
-chosen_positions = np.loadtxt(os.path.join(dataset_path, chosen_positions_file),int)
-
 
 def annotate():
-    file_list = make_file_list(range(7), [0],range(1,143), image_file_template,dataset_path,evaluation_prefix,evaluation_paths)
+    file_list = make_file_list(range(7), [0], range(1, 143), image_file_template, dataset_path, evaluation_prefix,
+                               evaluation_paths)
 
-    gt = np.zeros(len(file_list), dtype = np.float64)
-    displacements,feature_count,histograms,hist_nn =  FM_NN_eval(file_list,filetype_NN,filetype_FM,annotation_weights,dataset_path,cache2,use_cache,gt,True)
+    gt = np.zeros(len(file_list), dtype=np.float64)
+    displacements, feature_count, histograms, hist_nn = FM_NN_eval(file_list, filetype_NN, filetype_FM,
+                                                                   annotation_weights, dataset_path, cache2, use_cache,
+                                                                   gt, True)
 
     annotations = []
     for i in range(len(displacements)):
@@ -70,8 +52,7 @@ def annotate():
     with open(gt_out, 'wb') as handle:
         pickle.dump(annotations, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print("GT written " + str(gt_out))
-    #print(annotations)
+
 
 if __name__ == "__main__":
     annotate()
-

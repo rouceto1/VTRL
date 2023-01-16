@@ -3,11 +3,10 @@ from torch.utils.data import Dataset, DataLoader
 import os
 from torchvision.io import read_image, decode_image
 import random
-#from .utils import plot_samples
 import pandas as pd
 import numpy as np
 import json
-from matplotlib.pyplot import imshow
+
 
 class ImgPairDataset(Dataset):
 
@@ -31,7 +30,7 @@ class ImgPairDataset(Dataset):
                     try:
                         displacements.append(int(line.split(" ")[0]))
                     except:
-                        #! it means that data is in float form. because of other codes output
+                        # ! it means that data is in float form. because of other codes output
                         displacements.append(int(float(line.split(" ")[0])))
                 images_displacements[subsubfolder] = displacements
         season_pairs = []
@@ -50,36 +49,37 @@ class ImgPairDataset(Dataset):
         return len(self.annotated_img_pairs)
 
     def __getitem__(self, idx):
-        #if random.random() > 0.0:
+        # if random.random() > 0.0:
         a, b = 0, 1
         #    displacement = self.annotated_img_pairs[idx][2]
-        #else:
+        # else:
         #    b, a = 0, 1
         displacement = -self.annotated_img_pairs[idx][2]
 
-        source_img = read_image(self.annotated_img_pairs[idx][a])/255.0
-        target_img = read_image(self.annotated_img_pairs[idx][b])/255.0
+        source_img = read_image(self.annotated_img_pairs[idx][a]) / 255.0
+        target_img = read_image(self.annotated_img_pairs[idx][b]) / 255.0
         return source_img, target_img, displacement
 
 
 class CroppedImgPairDataset(ImgPairDataset):
 
-    def __init__(self, crop_width, fraction, smoothness, path="/home/zdeeno/Documents/Datasets/grief_jpg", transforms=None,dataset=None,allign_flag=False):
-        super(CroppedImgPairDataset, self).__init__(path=path,dataset=dataset)
+    def __init__(self, crop_width, fraction, smoothness, path="/home/zdeeno/Documents/Datasets/grief_jpg",
+                 transforms=None, dataset=None, allign_flag=False):
+        super(CroppedImgPairDataset, self).__init__(path=path, dataset=dataset)
         self.crop_width = crop_width
         self.fraction = fraction
         self.smoothness = smoothness
         self.tr = transforms
-        self.allign_flag=allign_flag
+        self.allign_flag = allign_flag
 
     def __getitem__(self, idx):
         source, target, displac = super(CroppedImgPairDataset, self).__getitem__(idx)
-        displac = displac/2
+        displac = displac / 2
         if self.tr is not None:
             source = self.tr(source)
             target = self.tr(target)
-        if self.allign_flag :
-            source, target = self.allign(source, target, displac) 
+        if self.allign_flag:
+            source, target = self.allign(source, target, displac)
         cropped_target, crop_start = self.crop_img(target)
         if self.smoothness == 0:
             heatmap = self.get_heatmap(crop_start, displac)
@@ -87,25 +87,25 @@ class CroppedImgPairDataset(ImgPairDataset):
             heatmap = self.get_smooth_heatmap(crop_start, displac)
         return source, cropped_target, heatmap
 
-    def allign(self,  source, target, displac ):
-        dsp=int(displac)
-        mid=self.width//2
-        if dsp<0: #! not sure about sign here // positive is displacement to right
-            source=source[: , : , 0:dsp ]
-            target=target[: , : , -dsp: ]
+    def allign(self, source, target, displac):
+        dsp = int(displac)
+        mid = self.width // 2
+        if dsp < 0:  # ! not sure about sign here // positive is displacement to right
+            source = source[:, :, 0:dsp]
+            target = target[:, :, -dsp:]
         else:
-            source=source[: , : , dsp: ]
-            target=target[: , : , 0:-dsp ]
+            source = source[:, :, dsp:]
+            target = target[:, :, 0:-dsp]
         return source, target
 
     def crop_img(self, img):
-        crop_start = random.randint(self.crop_width, self.width - 2*self.crop_width - 1)
+        crop_start = random.randint(self.crop_width, self.width - 2 * self.crop_width - 1)
         return img[:, :, crop_start:crop_start + self.crop_width], crop_start
 
     def get_heatmap(self, crop_start, displacement):
         frac = self.width // self.fraction - 1
         heatmap = t.zeros(frac).long()
-        idx = int((crop_start - displacement + self.crop_width//2) / self.fraction)
+        idx = int((crop_start - displacement + self.crop_width // 2) / self.fraction)
         if 0 <= idx < 31:
             heatmap[idx] = 1
         return heatmap
@@ -114,13 +114,13 @@ class CroppedImgPairDataset(ImgPairDataset):
         surround = self.smoothness * 2
         frac = self.width // self.fraction - 1
         heatmap = t.zeros(frac + surround)
-        idx = int((crop_start - displacement + self.crop_width//2) / self.fraction) + 3
+        idx = int((crop_start - displacement + self.crop_width // 2) / self.fraction) + 3
         idxs = t.tensor([-1, +1])
         for i in range(self.smoothness):
-            for j in idx + i*idxs:
+            for j in idx + i * idxs:
                 if 0 <= j < heatmap.size(0):
-                    heatmap[j] = 1 - i * (1/self.smoothness)
-        return heatmap[surround//2:-surround//2]
+                    heatmap[j] = 1 - i * (1 / self.smoothness)
+        return heatmap[surround // 2:-surround // 2]
 
 
 def test_annotations():
@@ -141,11 +141,12 @@ def test_annotations():
             kp_dict1 = json.loads(entry[1]["kp-1"].replace("'", "\""))
             kp_dict2 = json.loads(entry[1]["kp-2"].replace("'", "\""))
             for kp1, kp2 in zip(kp_dict1, kp_dict2):
-                diff += (kp1["x"]/100) * 1024 - (kp2["x"]/100) * 1024
+                diff += (kp1["x"] / 100) * 1024 - (kp2["x"] / 100) * 1024
             new_displac[img_idx] = diff // len(kp_dict1)
     old_displac = old_displac[new_displac != 0]
     new_displac = new_displac[new_displac != 0]
     return old_displac, new_displac
+
 
 class RectifiedEULongterm(ImgPairDataset):
 
@@ -191,7 +192,7 @@ class RectifiedEULongterm(ImgPairDataset):
     def get_heatmap(self, crop_start):
         frac = self.width // self.fraction
         heatmap = t.zeros(frac).long()
-        idx = int((crop_start + self.crop_width//2) * (frac/self.width))
+        idx = int((crop_start + self.crop_width // 2) * (frac / self.width))
         heatmap[idx] = 1
         heatmap[idx + 1] = 1
         return heatmap
@@ -200,15 +201,15 @@ class RectifiedEULongterm(ImgPairDataset):
         surround = self.smoothness * 2
         frac = self.width // self.fraction
         heatmap = t.zeros(frac + surround)
-        idx = int((crop_start + self.crop_width//2) * (frac/self.width)) + self.smoothness
+        idx = int((crop_start + self.crop_width // 2) * (frac / self.width)) + self.smoothness
         heatmap[idx] = 1
         idxs = np.array([-1, +1])
         for i in range(1, self.smoothness + 1):
             indexes = list(idx + i * idxs)
             for j in indexes:
                 if 0 <= j < heatmap.size(0):
-                    heatmap[j] = 1 - i * (1/(self.smoothness + 1))
-        return heatmap[surround//2:-surround//2]
+                    heatmap[j] = 1 - i * (1 / (self.smoothness + 1))
+        return heatmap[surround // 2:-surround // 2]
 
     def augment(self, source, target):
         # crop the logo - this for some reason makes the network diverge on evaluation set
@@ -221,6 +222,7 @@ class RectifiedEULongterm(ImgPairDataset):
             source = self.flip(source)
             target = self.flip(target)
         return source.squeeze(0), target
+
 
 if __name__ == '__main__':
     # dataset = CroppedImgPairDataset(64, 8, 3)

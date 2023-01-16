@@ -1,14 +1,10 @@
-import random
-import torch
 import torch as t
 from torch.nn.functional import conv2d, conv1d
-import torch.nn as nn
-import math
-from einops import rearrange
 from torch.nn import functional as F
-from copy import deepcopy
 import os
 import errno
+
+
 # non of libraries in this module are local. This module is independet of other scripts
 
 def create_conv_block(in_channel, out_channel, kernel, stride, padding, pooling, bn=True, relu=True, pool_layer=False):
@@ -113,8 +109,8 @@ class Siamese(t.nn.Module):
         return match_map
 
 
-def save_model(model, optimizer,omodel,epoch):
-    #print (model)
+def save_model(model, optimizer, omodel, epoch):
+    # print (model)
     print(optimizer)
     print(omodel)
     print(epoch)
@@ -123,7 +119,7 @@ def save_model(model, optimizer,omodel,epoch):
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict() if optimizer is not None else None
     }, omodel)
-    print("Model saved to: "+omodel)
+    print("Model saved to: " + omodel)
 
 
 def load_model(model, path, optimizer=None):
@@ -137,7 +133,7 @@ def load_model(model, path, optimizer=None):
         return model
 
 
-def jit_save(model, name, epoch, arb_in, args,comment=""):
+def jit_save(model, name, epoch, arb_in, args, comment=""):
     # save model arguments
     filename = "./results_" + name + "/model.info"
     if not os.path.exists(os.path.dirname(filename)):
@@ -150,9 +146,8 @@ def jit_save(model, name, epoch, arb_in, args,comment=""):
         f.write(str(args))
 
     # save actual model
-    t.jit.save(t.jit.trace(model, arb_in), "./results_" + name + "/model_" + str(epoch) +comment+ ".jit")
+    t.jit.save(t.jit.trace(model, arb_in), "./results_" + name + "/model_" + str(epoch) + comment + ".jit")
 
 
 def jit_load(path, device):
     return t.jit.load(path, map_location=device)
-
