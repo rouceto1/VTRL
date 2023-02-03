@@ -199,6 +199,7 @@ def NNeval_from_python(files, data_path, weights_file):
     backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)
     model = Siamese(backbone, padding=HISTPAD, eb=END_BN).to(device)
     model = load_model(model, weights_file)
+
     return eval_displacement(model, data_path, files, weights_file)  # ! commented out just for understanding code
 
 

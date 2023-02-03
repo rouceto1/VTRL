@@ -70,3 +70,6 @@ in this file you also define function that you call from python. stadart python 
 it is recomanded to pass pointers to stuff you alocate in python for return functins from these if you want multiple returns, touples are pain. 
 
 
+
+to get get stuff wroking link dataset folder to the main VTRL folder using 
+ln -s "dataset_folder_path"

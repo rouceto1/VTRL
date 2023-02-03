@@ -1,7 +1,4 @@
 #!
-import pdb
-from tkinter import W
-from pkg_resources import evaluate_marker
 import torch
 import torch as t
 from model import Siamese, load_model, get_custom_CNN, save_model
@@ -10,12 +7,8 @@ from parser_grief import ImgPairDataset
 from parser_nordland import RectifiedNordland 
 from torchvision.transforms import Resize
 from tqdm import tqdm
-from utils import get_shift, plot_samples, plot_displacement, affine
 import numpy as np
 from scipy import interpolate
-import os
-from torch.optim import AdamW
-from matplotlib.pyplot import imshow
 from time import time,ctime
 import argparse
 
