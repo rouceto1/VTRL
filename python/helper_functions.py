@@ -1,7 +1,13 @@
 import numpy as np
 import copy
 import os
-import pickle
+import marshal as pickle
+
+filetype_FM = ".bmp"
+filetype_NN = ".png"
+image_file_template = "place_%d/%05d"
+chosen_positions_file = "input.txt"
+feature_matcher_file = "FM_out.pickle"
 
 
 # adds file extension to all files in the list
@@ -37,7 +43,7 @@ def usefull_annotation(feature_count, histogram):
 
 # makes the file list from all images to all targets images
 
-def make_file_list(places, targets, images, image_file_template, dataset_path, evaluation_prefix, evaluation_paths):
+def make_file_list(places, targets, images, dataset_path, evaluation_prefix, evaluation_paths):
     combination_list2 = []
     file_list2 = []
     for e in evaluation_paths:
@@ -53,10 +59,12 @@ def make_file_list(places, targets, images, image_file_template, dataset_path, e
     return file_list2
 
 
-def make_combos_for_teaching(chosen_positions, dataset_path, image_file_template, filetype_fm, all_combos=False):
+def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_combos=False, limit=None):
     print("First file loaded")
     indexes = dict([(0, []), (1, []), (2, []), (3, []), (4, []), (5, []), (6, []), (7, [])])
     for i, value in enumerate(chosen_positions):
+        if limit == i:
+            break
         if value == -1:
             continue
 
@@ -79,7 +87,7 @@ def make_combos_for_teaching(chosen_positions, dataset_path, image_file_template
             for val in indexes[key]:
                 for val2 in indexes[key]:
                     if val != val2:
-                        if not val2 in added:
+                        if val2 not in added:
                             combination_list.append([key, val, val2])
                             added.append(val)
     else:

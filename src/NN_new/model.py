@@ -50,7 +50,7 @@ class CNNOLD(t.nn.Module):
             self.l2 = create_conv_block(16, 64, fs, 1, pad, (2, 2), pool_layer=lp, relu=False)
             self.l3 = create_conv_block(64, 256, fs, 1, pad, (2, 2), pool_layer=lp, relu=False)
             self.l4 = create_conv_block(256, 512, fs, 1, pad, (2, 1), pool_layer=lp, relu=False)
-            self.l5 = create_conv_block(512, ech, fs, 1, pad, (3, 1), relu=False, pool_layer=lp)
+            self.l5 = create_conv_block(512, ech, fs, 1, pad, (3, 1), relu=False, pool_layer=lp, bn=False)
             if self.res == 1:
                 # residual blocks
                 self.l1res = create_residual_block(fs, 16, pad)
@@ -100,8 +100,8 @@ class CNNOLD(t.nn.Module):
             return x
 
 
-def get_custom_CNN(lp, fs, ech, res):
-    return CNNOLD(lp, fs, ech, res)
+def get_custom_CNN(lp, fs, ech, res, legacy=False):
+    return CNNOLD(lp, fs, ech, res, legacy=legacy)
 
 
 class SE_Block(nn.Module):
@@ -180,8 +180,8 @@ class Siamese(t.nn.Module):
         return match_map
 
 
-def get_parametrized_model(lp, fs, ech, res, pad, device):
-    backbone = get_custom_CNN(lp, fs, ech, res)
+def get_parametrized_model(lp, fs, ech, res, pad, device, legacy = False):
+    backbone = get_custom_CNN(lp, fs, ech, res, legacy = legacy)
     model = Siamese(backbone, padding=pad).to(device)
     return model
 

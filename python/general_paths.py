@@ -1,9 +1,6 @@
-#!/usr/bin/env python3
-from annotate import *
-from evaluate_to_file import *
-from teach import *
 import argparse
-from python.helper_functions import *
+
+from .helper_functions import *
 
 pwd = os.getcwd()
 parser = argparse.ArgumentParser(
@@ -24,12 +21,6 @@ parser.add_argument('--file_out', type=str, help="name of pickle out",
                     default="_GT_.pickle")
 args = parser.parse_args()
 
-filetype_FM = ".bmp"
-filetype_NN = ".png"
-image_file_template = "place_%d/%05d"
-chosen_positions_file = "input.txt"
-feature_matcher_file = "FM_out.pickle"
-
 dataset_path = os.path.join(pwd, args.dataset_path)
 evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
 evaluation_paths = args.evaluation_paths
@@ -43,19 +34,3 @@ eval_out_file = weights_file + "_eval.pickle"
 chosen_positions = np.loadtxt(os.path.join(dataset_path, chosen_positions_file), int)
 eval_out = os.path.join(dataset_path, eval_out_file)
 cache = os.path.join(dataset_path, feature_matcher_file)
-
-if __name__ == "__main__":
-    print("Annotation:")
-    print("skipped")
-    #annotate(dataset_path, evaluation_prefix, evaluation_paths,
-    #         weights_file, GT_file + "_test", cache2, use_cache=False, limit=10)
-    print("-------")
-    print("Teaching:")
-    teach(dataset_path, chosen_positions, weights_file + "_tests", cache, use_cache=False, limit=10)
-    print("-------")
-    print("Evaluation:")
-    evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_file + "_tests", GT_file, eval_out,
-                     cache2, use_cache=False, limit=20)
-    print("-------")
-    print("Grading:")
-    # grade_restuls()

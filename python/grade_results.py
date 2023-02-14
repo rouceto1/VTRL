@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import os
 import numpy as np
-import pickle
-
+import marshal as pickle
 from matplotlib import image
 from matplotlib import pyplot as plt
 
@@ -94,10 +93,10 @@ def compute_to_file(data, gt, dist):
     file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
     disp, line, line_integral, streak = compute(displacement, gt_disp)
     with open(line_out, 'wb') as hand:
-        pickle.dump(line, hand, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(line, hand)
         print("Line written " + str(line_out))
     with open(streak_out, 'wb') as hand:
-        pickle.dump(streak, hand, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(streak, hand)
         print("streak " + str(streak_out))
 
 

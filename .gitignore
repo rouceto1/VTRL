@@ -1,4 +1,6 @@
 .idea/
+weights/
+*autosave
 *.pyc
 *.pt
 *.o

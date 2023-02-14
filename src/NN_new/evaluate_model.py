@@ -46,12 +46,8 @@ EVAL_RATE = 3
 CROP_SIZE2 = WIDTH - 8
 HISTPAD = (CROP_SIZE2 - 8) // 16
 CROP_SIZES = [56]  # [56 + 16*i for i in range(5)]
-FRACTION = 8
 SMOOTHNESS = 3
 NEGATIVE_FRAC = 1/3
-LAYER_POOL = False
-FILTER_SIZE = 3
-EMB_CHANNELS = 8
 RESIDUAL = 0
 MODEL_TYPE = "siam"
 MODEL = "model_tiny"
@@ -68,22 +64,22 @@ crops_idx = np.linspace(0, WIDTH - CROP_SIZE, crops_num, dtype=int) + FRACTION /
 # crops_idx = np.array([WIDTH // 2 - CROP_SIZE // 2])
 # crops_num = 1
 print(crops_num, np.array(crops_idx))
-histograms = np.zeros((1000, 64))
-
-args = CONFIG("best_params")
-NAME = args.nm
-LR = 10 ** -args.lr
-BATCH_SIZE = args.bs
-NEGATIVE_FRAC = args.nf
-# device = args.dev
-LAYER_POOL = args.lp
-FILTER_SIZE = args.fs
-EMB_CHANNELS = args.ech
-SMOOTHNESS = args.sm
-assert args.res in [0, 1, 2, 3], "Residual type is wrong"
-RESIDUALS = args.res
-EMB_CHANNELS = 16
-model = get_parametrized_model(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS, RESIDUALS, PAD, device)
+# histograms = np.zeros((1000, 64))
+#
+# args = CONFIG("best_params")
+# NAME = args.nm
+# LR = 10 ** -args.lr
+# BATCH_SIZE = args.bs
+# NEGATIVE_FRAC = args.nf
+# # device = args.dev
+# LAYER_POOL = args.lp
+# FILTER_SIZE = args.fs
+# EMB_CHANNELS = args.ech
+# SMOOTHNESS = args.sm
+# assert args.res in [0, 1, 2, 3], "Residual type is wrong"
+# RESIDUALS = args.res
+# EMB_CHANNELS = 80
+model = None
 
 
 def get_histogram_old(src, tgt):
@@ -137,7 +133,15 @@ def eval_displacement(eval_model=None, data_path="grief", GT=None,
     global model
     # backbone = get_custom_CNN(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS)
     # model = Siamese(backbone, padding=PAD, eb=END_BN).to(device)
-    # model = load_model(model, "./results_" + MODEL_TYPE + "/" + MODEL + ".pt")
+    # model = load_model(model, "./results_" + MODEL_TYPE + "/" + MODEL + ".
+    # pt")
+    if "tiny" in model_path:
+        EMB_CHANNELS = 16
+        use256 = False
+    else:
+        EMB_CHANNELS = 256
+        use256 = True
+    model = get_parametrized_model(LAYER_POOL, FILTER_SIZE, EMB_CHANNELS, RESIDUALS, PAD, device, legacy=use256)
     if eval_model is not None:
         model = eval_model
     else:
