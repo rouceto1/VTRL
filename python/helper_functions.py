@@ -1,7 +1,7 @@
 import numpy as np
 import copy
 import os
-import marshal as pickle
+import pickle as pickle
 
 filetype_FM = ".bmp"
 filetype_NN = ".png"
@@ -23,14 +23,23 @@ def read_gt_file(file_list, gt_exact_file):
     with open(gt_exact_file, 'rb') as handle:
         gt_in = pickle.load(handle)
     gt_out = []
+    test = 0
     for file_pair in file_list:
+        test = test + 1
         path = os.path.normpath(file_pair[0])
         split_path = path.split(os.sep)
         path2 = os.path.normpath(file_pair[1])
         split_path2 = path2.split(os.sep)
+        time = split_path[-1]
+        place = split_path[-3] + "/" + split_path[-2]
+        time2 = split_path2[-1]
+        place2 = split_path2[-3] + "/" + split_path2[-2]
         for gt_single in gt_in:
-            if split_path[-1] in gt_single and split_path[-3] + "/" + split_path[-2] in gt_single:
-                if split_path2[-1] in gt_single and split_path2[-3] + "/" + split_path2[-2] in gt_single:
+            second = place2 in gt_single and time2 in gt_single
+            if second:
+                first = place in gt_single and time in gt_single
+                if first:
+                    # SOLVED: this adds more things than it shoudl. Prolly bad variable --SOLVED-- was isse with file list making
                     gt_out.append(gt_single[0])
     return gt_out
 
@@ -46,11 +55,11 @@ def usefull_annotation(feature_count, histogram):
 def make_file_list(places, targets, images, dataset_path, evaluation_prefix, evaluation_paths):
     combination_list2 = []
     file_list2 = []
+    for place in places:  # range(7):
+        for nmbr in images:  # range(1,143):
+            for target in targets:
+                combination_list2.append([place, target, nmbr])
     for e in evaluation_paths:
-        for place in places:  # range(7):
-            for nmbr in images:  # range(1,143):
-                for target in targets:
-                    combination_list2.append([place, target, nmbr])
         for combo in combination_list2:
             file1 = os.path.join(dataset_path, image_file_template % (combo[0], combo[1]))
             file2 = os.path.join(evaluation_prefix, e, image_file_template % (combo[0], combo[2]))
@@ -60,7 +69,7 @@ def make_file_list(places, targets, images, dataset_path, evaluation_prefix, eva
 
 
 def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_combos=False, limit=None):
-    print("First file loaded")
+    #print("First file loaded")
     indexes = dict([(0, []), (1, []), (2, []), (3, []), (4, []), (5, []), (6, []), (7, [])])
     for i, value in enumerate(chosen_positions):
         if limit == i:
@@ -78,7 +87,7 @@ def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_co
             if os.path.exists(os.path.join(dataset_path, image_file_template % (value, i)) + filetype_fm):
                 indexes[value].extend([i])
 
-    print("indexes Made")
+    #print("indexes Made")
     # make a combination list from all the chosen places
     combination_list = []
     added = []

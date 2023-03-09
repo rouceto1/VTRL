@@ -4,6 +4,7 @@ import numpy as np
 import marshal as pickle
 from matplotlib import image
 from matplotlib import pyplot as plt
+from .helper_functions import *
 
 annotation_file = "1-2-fast-grief.pt"
 GT_file = annotation_file + "_GT_.pickle"
@@ -87,11 +88,12 @@ def get_streak(disp):
     return streak
 
 
-def compute_to_file(data, gt, dist):
+def compute_to_file(estimates, gt, dist):
     line_out = os.path.join(dist, "line.pkl")
     streak_out = os.path.join(dist, "streak.pkl")
-    file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
-    disp, line, line_integral, streak = compute(displacement, gt_disp)
+    #file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
+
+    errors, line, line_integral, streak = compute(estimates, gt)
     with open(line_out, 'wb') as hand:
         pickle.dump(line, hand)
         print("Line written " + str(line_out))
@@ -129,10 +131,13 @@ def compute_with_plot(data, gt):
 
 
 def compute(displacement, gt):
-    displacement = displacement[~np.isnan(gt)]
-    gt = gt[~np.isnan(gt)]
+    print("^^^^^^ ---- this should work")
+
     disp = displacement - gt
+    print(displacement)
     print(gt)
+    print(disp)
+    # TODO gt same as estiamtes
     line = compute_AC_curve(filter_to_max(disp, 500))
     line_integral = get_integral_from_line(line[0], line[1])
     streak = get_streak(disp)
@@ -158,16 +163,19 @@ def get_integral_from_line(values, places=None):
     return total
 
 
-# noinspection PyShadowingNames
-def grade_type(eval_out, gt_file_in, dest):
-    print("loading")
-    with open(eval_out, 'rb') as handle:
-        things_out = pickle.load(handle)
-    print("loaded eval data")
-    with open(gt_file_in, 'rb') as handle:
-        gt_out = pickle.load(handle)
+def grade_type(_evaluation_prefix, dest, estimates_file=None, _GT_file=None, estimates=None):
+    print("recieve offset estiamtes")
+    if estimates is None:
+        with open(estimates_file, 'rb') as handle:
+            estimates = pickle.load(handle)
+    file_list, displacements, feature_count, histograms, hist_nn = estimates[0]
+
+    print("get gt for offset pairs")
+    gt = read_gt_file(file_list, os.path.join(_evaluation_prefix, _GT_file))
     print("loaded GT")
-    compute_to_file(things_out, gt_out, dest)
+
+    #SOLVED: redo the compute_to_file, the gt is already sorted to the data to compare it to
+    compute_to_file(displacements, gt, dest)
 
 
 if __name__ == "__main__":

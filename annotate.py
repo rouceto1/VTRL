@@ -4,20 +4,26 @@ from python.general_paths import *
 
 
 def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
-             _weights_file, _GT_file, _cache2, use_cache=False, limit=None):
-    file_list = make_file_list(range(7), [0], range(1, 143),
+             _weights_file, _GT_file, _cache2= None, use_cache=False, limit=None):
+    images = 143
+    if not limit is None:
+        images = limit
+        file_list = make_file_list([0], [0], range(1, images),
+                                   _dataset_path, _evaluation_prefix, _evaluation_paths)
+    else:
+        file_list = make_file_list(range(7), [0], range(1, images),
                                _dataset_path, _evaluation_prefix, _evaluation_paths)
 
-    gt = np.zeros(len(file_list), dtype=np.float64)
     displacements, feature_count, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN, filetype_FM,
                                                                    _weights_file, _dataset_path,
-                                                                   _cache2, use_cache, gt, limit)
+                                                                   _cache2, use_cache)
     annotations = []
     for i in range(len(displacements)):
-        if usefull_annotation(feature_count[i], histograms[i]):
-            out = [displacements[i]]
-        else:
-            out = [float('nan')]
+        #if usefull_annotation(feature_count[i], histograms[i]):
+        #    out = [displacements[i]]
+        #else:
+        #    out = [float('nan')]
+        out = [displacements[i]]
         out.append(feature_count[i])
         path = os.path.normpath(file_list[i][0])
         split_path = path.split(os.sep)
@@ -30,16 +36,16 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
         out.append(histograms[i])
         out.append(hist_nn[i])
         annotations.append(out)
-        if not limit is None:
-            if limit == i:
-                print("stopping after " + str(i))
-                break
+        #if not limit is None:
+        #    if limit == i:
+        #        print("stopping after " + str(i))
+        #        break
     gt_out = os.path.join(_evaluation_prefix, _GT_file)
     with open(gt_out, 'wb') as handle:
         pickle.dump(annotations, handle)
         print("GT written " + str(gt_out))
 
-
 if __name__ == "__main__":
     annotate(dataset_path, evaluation_prefix, evaluation_paths,
-             weights_file, cache2)
+             weights_file, GT_file, cache2, use_cache=False, limit=10)
+

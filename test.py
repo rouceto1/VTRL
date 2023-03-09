@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-from annotate import *
-from evaluate_to_file import *
-from teach import *
+from annotate import annotate
+from evaluate_to_file import evaluate_to_file
+from teach import teach
+from python.grade_results import *
 import argparse
 from python.helper_functions import *
 
@@ -41,21 +42,29 @@ cache2 = os.path.join(dataset_path, neural_network_file)
 eval_out_file = weights_file + "_eval.pickle"
 
 chosen_positions = np.loadtxt(os.path.join(dataset_path, chosen_positions_file), int)
-eval_out = os.path.join(dataset_path, eval_out_file)
+estimates_out = os.path.join(dataset_path, eval_out_file)
 cache = os.path.join(dataset_path, feature_matcher_file)
 
+LIMIT = 5  # LIMIT allows only first 5-1 images to be evaluated from each season of gathereing (there are 3 seasons) It is posilb etaht les images are going to be given since not all pair are in the dataset
 if __name__ == "__main__":
     print("Annotation:")
-    print("skipped")
-    #annotate(dataset_path, evaluation_prefix, evaluation_paths,
-    #         weights_file, GT_file + "_test", cache2, use_cache=False, limit=10)
+    annotate(dataset_path, evaluation_prefix, evaluation_paths,
+             weights_file, GT_file + "_test", cache2, use_cache=False, limit=LIMIT)
     print("-------")
     print("Teaching:")
-    teach(dataset_path, chosen_positions, weights_file + "_tests", cache, use_cache=False, limit=10)
+    #teach(dataset_path, chosen_positions, weights_file + "_tests", cache, use_cache=False, limit=50)
     print("-------")
     print("Evaluation:")
-    evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_file + "_tests", GT_file, eval_out,
-                     cache2, use_cache=False, limit=20)
+    evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_file + "", GT_file,
+                                 estimates_out + "_tests",
+                                 cache2, use_cache=False, limit=LIMIT)
     print("-------")
-    print("Grading:")
-    # grade_restuls()
+    print("Grading from file:")
+    grade_type(evaluation_prefix, "./tests", estimates_file=estimates_out, _GT_file=GT_file + "_test")
+
+    # evaluate so it has the same results as GT (diff should be 0)
+    estimates = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_file, GT_file,
+                                 estimates_out + "_tests_gt",
+                                 cache2, use_cache=False, limit=LIMIT)
+    print("Grading straight:")
+    grade_type(evaluation_prefix, "./tests", _GT_file=GT_file + "_test", estimates=estimates)

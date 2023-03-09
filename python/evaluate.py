@@ -11,8 +11,7 @@ def NN_eval(file_list_nn, weights_file, old=False):
         a, b, hist_in, dsp = neuralka.NNeval_from_python(np.array(file_list_nn), "strands", weights_file)
     else:
         #print("doing new")
-        aa, bb, hist_in, dsp = nn_ev.NNeval_from_python(np.array(file_list_nn), "strands",
-                                                        weights_file)
+        aa, bb, hist_in, dsp = nn_ev.NNeval_from_python(np.array(file_list_nn), "strands", weights_file)
     hist_in = np.float64(hist_in)
     return hist_in, dsp
 
@@ -29,26 +28,24 @@ evaluates combos by NN and then uses this output for FM evaluation
 
 
 def fm_nn_eval(file_list, filetype_nn, filetype_fm, weights_file,
-               dataset_path, cache_file, use_cache, gt, limit=None):
+               dataset_path, cache_file, use_cache, limit=None):
     count = len(file_list)
     if not limit is None:
         count = limit
-        print (limit)
-        gt = np.zeros(count, dtype=np.float64)
+    gt = np.zeros(count, dtype=np.float64)
     disp = np.zeros(count, dtype=np.float32)
     fcount = np.zeros(count, dtype=np.int32)
     file_list = np.array(file_list)[:count]
 
     if not os.path.exists(cache_file) or not use_cache:
-        print("cache not found")
         hist_nn, displacement = NN_eval(choose_proper_filetype(filetype_nn, file_list),
                                         weights_file,
                                         old=False)
         with open(cache_file, 'wb') as handle:
             pickle.dump(hist_nn, handle)
-            print("making chache" + str(cache_file))
+            print("evaluate making cache" + str(cache_file))
     else:
-        print("reading cache" + str(cache_file))
+        print("evaluate reading cache" + str(cache_file))
         with open(cache_file, 'rb') as handle:
             hist_nn = pickle.load(handle)
 
