@@ -50,8 +50,12 @@ def get_dataset(data_path, GT, conf):
         histograms = np.zeros((539, 63))
     elif "strand" in data_path:
         crp = conf["crop_size"]
+        if len(GT[0]) > 2:
+            t = 1
+        else:
+            t = -1
         dataset = Strands(crp, conf["fraction"], conf["smoothness"], GT,
-                          thre=-1)  # TODO: threshold does not work abd is currently
+                          thre=t)  # TODO: threshold selects if  iterator returns GT as well (0 > means there is going to be GT)
         histograms = np.zeros((len(GT), 63))
     return dataset, histograms
 

@@ -63,10 +63,15 @@ def eval_displacement(eval_model=None, model_path=None,
         errors = []
         results = []
         for batch in tqdm(train_loader):
-            source, target, gt = transform(batch[0].to(device)), transform(batch[1].to(device)), batch[2]
-            if abs(gt.numpy()[0]) > 256:
-                print("should not happen")
-                continue
+            if len(GT[0]) > 2:
+                source, target, gt = transform(batch[0].to(device)), transform(batch[1].to(device)), batch[2]
+                if abs(gt.numpy()[0]) > 256:
+                    print("should not happen")
+                    continue
+            else:
+                source, target = transform(batch[0].to(device)), transform(batch[1].to(device))
+                gt = 0
+
             histogram = get_histogram(source, target)
             shift_hist = histogram.cpu()
             if loader is None:
@@ -76,10 +81,12 @@ def eval_displacement(eval_model=None, model_path=None,
             ret = -(np.argmax(interpolated) - conf["width"] / 2)
             results.append(ret)
             displac_mult = 1024 / conf["width"]  ###TODO wtf is this magic
-            tmp_err = (ret - displ.numpy()[0]) / displac_mult
+            #tmp_err = (ret - gt.numpy()[0]) / displac_mult
+            tmp_err = (ret - gt) / displac_mult
             abs_err += abs(tmp_err)
             errors.append(tmp_err)
-            if abs(ret - gt.numpy()[0]) < conf["tolerance"]:
+            #if abs(ret - gt.numpy()[0]) < conf["tolerance"]:
+            if abs(ret - gt) < conf["tolerance"]:
                 valid += 1
             idx += 1
 
