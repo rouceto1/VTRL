@@ -21,6 +21,8 @@ parser.add_argument('--weights_folder', type=str, help="path of weights folder",
                     default="weights/")
 parser.add_argument('--weights_file', type=str, help="name of weights.pt",
                     default="model_eunord.pt")
+parser.add_argument('--weights_file2', type=str, help="name of weights.pt",
+                    default="model_tiny.pt")
 parser.add_argument('--file_out', type=str, help="name of pickle out",
                     default="_GT_.pickle")
 args = parser.parse_args()
@@ -37,6 +39,7 @@ evaluation_paths = args.evaluation_paths
 annotation_file = args.weights_file
 GT_file = annotation_file + args.file_out
 weights_file = os.path.join(pwd, args.weights_folder) + annotation_file
+weights_file2 = os.path.join(pwd, args.weights_folder) + args.weights_file2
 neural_network_file = annotation_file + "_NN_cache.pickle"
 cache2 = os.path.join(dataset_path, neural_network_file)
 eval_out_file = weights_file + "_eval.pickle"
@@ -52,7 +55,7 @@ if __name__ == "__main__":
     #         weights_file, GT_file + "_test", cache2, use_cache=False, limit=LIMIT)
     print("-------")
     print("Teaching:")
-    teach(dataset_path, chosen_positions, weights_file + "_tests", cache, use_cache=False, limit=50)
+    #teach(dataset_path, chosen_positions, weights_file + "_tests", cache, use_cache=False, limit=50)
     print("-------")
     print("Evaluation:")
     evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_file + "", GT_file,
@@ -60,10 +63,10 @@ if __name__ == "__main__":
                                  cache2, use_cache=False, limit=LIMIT)
     print("-------")
     print("Grading from file:")
-    grade_type(evaluation_prefix, "./tests", estimates_file=estimates_out, _GT_file=GT_file + "_test")
+    grade_type(evaluation_prefix, "./tests", estimates_file=estimates_out + "_tests", _GT_file=GT_file + "_test")
 
     # evaluate so it has the same results as GT (diff should be 0)
-    estimates = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_file, GT_file,
+    estimates = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_file2, GT_file,
                                  estimates_out + "_tests_gt",
                                  cache2, use_cache=False, limit=LIMIT)
     print("Grading straight:")

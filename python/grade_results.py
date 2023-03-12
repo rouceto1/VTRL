@@ -166,6 +166,7 @@ def get_integral_from_line(values, places=None):
 def grade_type(_evaluation_prefix, dest, estimates_file=None, _GT_file=None, estimates=None):
     print("recieve offset estiamtes")
     if estimates is None:
+        print( "from " + str(estimates_file))
         with open(estimates_file, 'rb') as handle:
             estimates = pickle.load(handle)
     file_list, displacements, feature_count, histograms, hist_nn = estimates[0]

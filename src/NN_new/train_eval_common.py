@@ -73,6 +73,7 @@ def get_model(model, model_path, eval_model, conf):
 
     if "tiny" in model_path:
         conf["emb_channels"] = 16
+        #TODO. find all possible changes in NN_config for tiny model and implement
         use256 = False
     else:
         conf["emb_channels"] = 256

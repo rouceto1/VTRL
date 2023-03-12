@@ -1,13 +1,12 @@
 #!/usr/bin/env python3.9
 from .train_eval_common import *
 
+
 conf = load_config("/home/rouceto1/git/VTRL/NN_config.yaml", 512)
-MODEL_TYPE = "siam"
-MODEL = "model_tiny"
 device = conf["device"]
 # MODEL = "model_47"
 res = int(conf["image_height"] * conf["size_frac"])
-transform = Resize(int(conf["image_height"] * conf["size_frac"]))
+transform = Resize(res)
 # transform = Resize(192)
 # crops_num = int((conf["width"] // conf["crop_size"]) * conf["crops_multiplier"])
 # crops_idx = np.linspace(0, conf["width"] - conf["crop_size"], crops_num, dtype=int) + conf["fraction"] // 2

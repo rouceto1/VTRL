@@ -180,8 +180,8 @@ class Siamese(t.nn.Module):
         return match_map
 
 
-def get_parametrized_model(lp, fs, ech, res, pad, device, legacy = False):
-    backbone = get_custom_CNN(lp, fs, ech, res, legacy = legacy)
+def get_parametrized_model(lp, fs, ech, res, pad, device, legacy=False):
+    backbone = get_custom_CNN(lp, fs, ech, res, legacy=legacy)
     model = Siamese(backbone, padding=pad).to(device)
     return model
 
@@ -193,6 +193,7 @@ def save_model(model, name, epoch, optimizer=None):
         'optimizer_state_dict': optimizer.state_dict() if optimizer is not None else None
     }, "./results_" + name + "/model_" + str(epoch) + ".pt")
     print("Model saved to: " + "./results_" + name + "/model_" + str(epoch) + ".pt")
+
 
 def save_model_to_file(model, name, epoch, file_path, optimizer=None):
     t.save({
