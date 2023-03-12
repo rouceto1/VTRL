@@ -48,8 +48,8 @@ cache = os.path.join(dataset_path, feature_matcher_file)
 LIMIT = 5  # LIMIT allows only first 5-1 images to be evaluated from each season of gathereing (there are 3 seasons) It is posilb etaht les images are going to be given since not all pair are in the dataset
 if __name__ == "__main__":
     print("Annotation:")
-    annotate(dataset_path, evaluation_prefix, evaluation_paths,
-             weights_file, GT_file + "_test", cache2, use_cache=False, limit=LIMIT)
+    #annotate(dataset_path, evaluation_prefix, evaluation_paths,
+    #         weights_file, GT_file + "_test", cache2, use_cache=False, limit=LIMIT)
     print("-------")
     print("Teaching:")
     teach(dataset_path, chosen_positions, weights_file + "_tests", cache, use_cache=False, limit=50)

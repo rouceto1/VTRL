@@ -65,11 +65,11 @@ def eval_loop(epoch, val_loader):
     global model
     model.eval()
     with torch.no_grad():
-        mae, acc = eval_displacement(eval_model=model, loader=val_loader)
+        mae, acc,_ ,_ = eval_displacement(eval_model=model, loader=val_loader, hist_padding=conf["histpad_teach"])
     return mae
 
 
-def teach_stuff(eval_model=None, data_path="grief", GT=None, model_path=None):
+def teach_stuff(train_data, data_path, eval_model=None,model_path=None):
     LOAD_EPOCH = 0
     lowest_err = 0
     global model
@@ -77,10 +77,10 @@ def teach_stuff(eval_model=None, data_path="grief", GT=None, model_path=None):
     model, conf = get_model(model, model_path, eval_model, conf)
     optimizer = AdamW(model.parameters(), lr=conf["lr"])
 
-    dataset, histograms = get_dataset(data_path, GT, conf)
+    dataset, histograms = get_dataset(data_path, train_data, conf, training=True)
     val, train = t.utils.data.random_split(dataset, [int(0.05 * len(dataset)), int(0.95 * len(dataset)) + 1])
     train_loader = DataLoader(train, conf["batch_size"], shuffle=True)
-    val_loader = DataLoader(val, conf["batch_size"], shuffle=False)
+    val_loader = DataLoader(val, 1, shuffle=False)
 
     for epoch in range(LOAD_EPOCH, conf["epochs"]):
         if epoch % conf["eval_rate"] == 0:
@@ -92,11 +92,11 @@ def teach_stuff(eval_model=None, data_path="grief", GT=None, model_path=None):
         train_loop(epoch, train_loader, optimizer)
 
 
-def NNteach_from_python(GT, data_path, weights_file, epochs):
+def NNteach_from_python(training_data, data_path, weights_file, epochs):
     global conf
     conf["epochs"] = epochs
     print ("trianing:" + str(weights_file))
-    teach_stuff(GT=GT, model_path=weights_file,data_path=data_path)
+    teach_stuff(train_data=training_data, model_path=weights_file,data_path=data_path)
     pass
 
 

@@ -3,10 +3,10 @@ batch_size: 32
 epochs: 128
 lr: 4.5 #e4.1
 eval_rate: 1 #e3
-crop_sizes: [40] #e56
+crop_sizes: [51] #e56
 fraction: 8 #e8
 smoothness: 2
-negative_frac: 1/3
+negative_frac: 0.33
 layer_pool: True
 filter_size: 3
 emb_channels: 16
@@ -17,5 +17,6 @@ crops_multiplier: 1
 batching: crops_multiplier
 eval_limit: 20000
 tolerance: 50
+
 #tolerance: 32
 

@@ -16,16 +16,16 @@ import statistics
 
 class StrandsImgPairDataset(Dataset):
 
-    def __init__(self, GT, training):
+    def __init__(self, training_input, training):
         super(StrandsImgPairDataset, self).__init__()
         self.width = 512
         self.height = 404
         self.train = training
-        self.GT = GT
-
-        if self.train < 0:
+        self.training_input = training_input
+        ## training_input = file, file, displacement, feature count
+        if not self.train:
             self.data = []
-            for i, pair in enumerate(self.GT):
+            for i, pair in enumerate(self.training_input):
                 # if i == 44:
                 # print(self.GT[i])
                 path1 = pair[0]
@@ -33,8 +33,8 @@ class StrandsImgPairDataset(Dataset):
                 self.data.append((path1, path2))
         else:
 
-            self.disp = GT[:, 2].astype(np.float32)
-            self.fcount = GT[:, 3].astype(np.float32).astype(np.int32)
+            self.disp = training_input[:, 2].astype(np.float32)
+            self.fcount = training_input[:, 3].astype(np.float32).astype(np.int32)
             # GT in format imagea | imageb | displacemetn | feature count | 63x histgram bin|
             ##print (GT[0])
             qualifieds = np.array(self.fcount) >= max(
@@ -50,7 +50,7 @@ class StrandsImgPairDataset(Dataset):
                 exit(0)
 
             self.data = []
-            for i, pair in enumerate(self.GT):
+            for i, pair in enumerate(self.training_input):
                 # if i == 44:
                 # print(self.GT[i])
                 path1 = pair[0]
@@ -65,7 +65,7 @@ class StrandsImgPairDataset(Dataset):
 
         source_img = read_image(self.data[idx][0], mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
         target_img = read_image(self.data[idx][1], mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
-        if self.train > 0:
+        if self.train:
             displ = self.data[idx][2]
             return source_img, target_img, displ, self.data[idx][3]
         else:
@@ -79,8 +79,8 @@ class Strands(StrandsImgPairDataset):
     # datapath path to the main folder???
     # dsp path to the file with displacements
     # seasosns array of names of the folders with iamfes.
-    def __init__(self, crop_width, fraction, smoothness, GT, thre=0.25):
-        super().__init__(GT=GT, training=thre)
+    def __init__(self, crop_width, fraction, smoothness, training_input, training=False):
+        super().__init__(training_input=training_input, training=training)
         self.crop_width = crop_width
         self.fraction = fraction
         self.smoothness = smoothness
@@ -88,33 +88,36 @@ class Strands(StrandsImgPairDataset):
         self.flip = K.geometry.transform.Hflip()
 
     def __getitem__(self, idx):
-        if self.train > 0:
+        if self.train:
             source, target, displ, data_idx = super().__getitem__(idx)
             # source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8) # for vlurring out the water mark
             # displ = displ*(512.0/self.width)
-            cropped_target, crop_start = self.crop_img(target)
+            cropped_target, crop_start, original_image = self.crop_img(target)
             if self.smoothness == 0:
                 heatmap = self.get_heatmap(crop_start)
             else:
                 heatmap = self.get_smooth_heatmap(crop_start)
-            return source, cropped_target, heatmap, data_idx
+            return source, cropped_target, heatmap, data_idx, original_image, displ
         else:
             source, target = super().__getitem__(idx)
             return source, target
 
     def crop_img(self, img, dspl=0):
-
-        lower_bound = self.crop_width
+        # lower and upper bound simoblise the MIDDLE of the possible crops
+        lower_bound = self.crop_width/2
         upper_bound = self.width - self.crop_width / 2
-
-        if dspl > 0:
+        if dspl == 0:
+            pass
+            #lower_bound = 0
+            #upper_bound = self.width
+        elif dspl > 0:
             upper_bound = int(upper_bound - dspl)
         elif dspl < 0:
             lower_bound = int(lower_bound - dspl)
-        # print("u  " , upper_bound , lower_bound, dspl, self.crop_width)
+        #print("u  ", upper_bound, lower_bound, dspl, self.crop_width)
         crop_center = random.randint(lower_bound, upper_bound)
         crop_start = crop_center - self.crop_width
-        return img[:, :, crop_start:crop_start + self.crop_width], crop_start
+        return img[:, :, crop_start:crop_start + self.crop_width], crop_start, img
 
     def get_heatmap(self, crop_start):
         frac = self.width // self.fraction

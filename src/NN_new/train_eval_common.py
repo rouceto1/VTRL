@@ -19,7 +19,7 @@ def get_pad(crop):
     return (crop - 8) // 16
 
 
-def load_config(conf_path):
+def load_config(conf_path, image_width=512, image_height=384):
     conf = yaml.safe_load(Path(conf_path).read_text())
     device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
     conf["device"] = device
@@ -33,13 +33,18 @@ def load_config(conf_path):
     conf["mask"] = MASK
     conf["pad"] = PAD
     conf["output_size"] = output_size
-    conf["crop_size"] = conf["width"] - 8
-    conf["histpad"] = (conf["crop_size"] - 8) // 16
+    conf["crop_size_eval"] = conf["width"] - 8
+    conf["crop_size_teach"] = conf["width"] - 8
+    conf["histpad_eval"] = (conf["crop_size_eval"] - 8) // 16
+    conf["histpad_teach"] = (conf["crop_size_teach"] - 8) // 16
     conf["batching"] = conf["crops_multiplier"]
+    conf["size_frac"] = conf["width"] / image_width
+    conf["image_height"] = image_height
     return conf
 
 
-def get_dataset(data_path, GT, conf):
+## training signifies if the data loading is done for training or testing
+def get_dataset(data_path, training_input, conf, training=False):
     if "nordland" in data_path:
         dataset = RectifiedNordland(conf["crop_size"], conf["fraction"], conf["smoothness"], data_path, dsp, [d0, d1],
                                     threshold=conf["threshold"])
@@ -49,14 +54,15 @@ def get_dataset(data_path, GT, conf):
     elif "carlevaris" in data_path:
         histograms = np.zeros((539, 63))
     elif "strand" in data_path:
-        crp = conf["crop_size"]
-        if len(GT[0]) > 2:
-            t = 1
+        if training:
+            crop = conf["crop_size_teach"]
         else:
-            t = -1
-        dataset = Strands(crp, conf["fraction"], conf["smoothness"], GT,
-                          thre=t)  # TODO: threshold selects if  iterator returns GT as well (0 > means there is going to be GT)
-        histograms = np.zeros((len(GT), 63))
+            crop = conf["crop_size_eval"]
+
+        ## training_input = file, file, [displacement, feature count] (d,f needed when training = True)
+        dataset = Strands(crop, conf["fraction"], conf["smoothness"], training_input,
+                          training=training)  # TODO: threshold selects if  iterator returns GT as well (0 > means there is going to be GT)
+        histograms = np.zeros((len(training_input), 63))
     return dataset, histograms
 
 
