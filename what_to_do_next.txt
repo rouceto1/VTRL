@@ -1,0 +1,5 @@
+training maybe working eats too much ram on optimiser. 
+
+evaluation of tini model doesnt werk proll bad paramters
+
+Check if grade resutls works....

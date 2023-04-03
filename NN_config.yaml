@@ -1,11 +1,11 @@
 name: siam #e siam_eu
 width: 512
 height: 324 #asi
-batch_size: 32
+batch_size: 2 #32
 epochs: 2 #was 128
 lr: 4.5 #e4.1
 eval_rate: 1 #e3
-crop_sizes: [51] #e56
+crop_sizes: [56] #e56
 fraction: 8 #e8
 smoothness: 2
 negative_frac: 0.33
