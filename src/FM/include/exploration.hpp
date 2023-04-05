@@ -16,7 +16,6 @@
 #include <iostream>
 #include <numeric>
 #include <chrono>
-#include "ros/ros.h"
 #include "histogram.hpp"
 #include "helper_functions.hpp"
 #include "filter.hpp"
