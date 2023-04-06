@@ -6,14 +6,15 @@ project(VTRL)
 add_compile_options(-std=c++17 -ggdb -O3)
 #add_compile_options(-std=c++17 -O3 -g)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+option(BUILD_SHARED_LIBS "Option to build set shared libs" ON)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
+#find_package(catkin REQUIRED COMPONENTS
 #  roscpp
 #  rospy
 #  std_msgs
-)
+#)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -139,7 +140,7 @@ add_library(
   filter src/FM/src/filter.cpp
 )
 add_library (
-  aligment SHARED src/FM/src/aligment.cpp
+  aligment src/FM/src/aligment.cpp
 )
 
 
