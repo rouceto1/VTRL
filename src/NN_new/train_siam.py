@@ -14,16 +14,11 @@ from .train_eval_common import *
 
 VISUALISE = True
 WANDB = False
-conf = load_config("/home/rouceto1/git/VTRL/NN_config.yaml")
+conf = load_config("./NN_config.yaml")
 device = conf["device"]
 batch_augmentations = batch_augmentations.to(device)
-
 loss = BCEWithLogitsLoss()
-
 model = None
-
-
-# in_example = (t.zeros((1, 3, 512, 512)).to(device).float(), t.zeros((1, 3, 512, 512)).to(device).float())
 
 
 def hard_negatives(batch, heatmaps):
@@ -65,11 +60,11 @@ def eval_loop(epoch, val_loader):
     global model
     model.eval()
     with torch.no_grad():
-        mae, acc,_ ,_ = eval_displacement(eval_model=model, loader=val_loader, hist_padding=conf["histpad_teach"])
+        mae, acc, _, _ = eval_displacement(eval_model=model, loader=val_loader, hist_padding=conf["histpad_teach"])
     return mae
 
 
-def teach_stuff(train_data, data_path, eval_model=None,model_path=None):
+def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
     LOAD_EPOCH = 0
     lowest_err = 0
     global model
@@ -81,23 +76,24 @@ def teach_stuff(train_data, data_path, eval_model=None,model_path=None):
     val, train = t.utils.data.random_split(dataset, [int(0.05 * len(dataset)), int(0.95 * len(dataset)) + 1])
     train_loader = DataLoader(train, conf["batch_size"], shuffle=True)
     val_loader = DataLoader(val, 1, shuffle=False)
-
+    if conf["epochs"] % conf["eval_rate"] != 0:
+        print("WARNING epochs and eval rate are not divisible")
     for epoch in range(LOAD_EPOCH, conf["epochs"]):
         if epoch % conf["eval_rate"] == 0:
             err = eval_loop(epoch, val_loader)
             if err < lowest_err:
                 lowest_err = err
                 best_model = copy.deepcopy(model)
-                save_model_to_file(model, conf["name"], err, optimizer)
         train_loop(epoch, train_loader, optimizer)
+
+    save_model_to_file(best_model, conf["name"], lowest_err, optimizer)
 
 
 def NNteach_from_python(training_data, data_path, weights_file, epochs):
     global conf
     conf["epochs"] = epochs
-    print ("trianing:" + str(weights_file))
-    teach_stuff(train_data=training_data, model_path=weights_file,data_path=data_path)
-    pass
+    print("trianing:" + str(weights_file))
+    teach_stuff(train_data=training_data, model_path=weights_file, data_path=data_path)
 
 
 if __name__ == '__main__':

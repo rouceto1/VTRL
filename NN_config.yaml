@@ -4,7 +4,7 @@ height: 324 #asi
 batch_size: 2 #32
 epochs: 2 #was 128
 lr: 4.5 #e4.1
-eval_rate: 1 #e3
+eval_rate: 1 #e3 ## should be whole divisor of epochs
 crop_sizes: [56] #e56
 fraction: 8 #e8
 smoothness: 2

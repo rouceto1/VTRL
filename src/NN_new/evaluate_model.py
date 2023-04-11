@@ -1,8 +1,7 @@
 #!/usr/bin/env python3.9
 from .train_eval_common import *
 
-
-conf = load_config("/home/rouceto1/git/VTRL/NN_config.yaml", 512)
+conf = load_config("./NN_config.yaml", 512)
 device = conf["device"]
 # MODEL = "model_47"
 res = int(conf["image_height"] * conf["size_frac"])
@@ -10,22 +9,11 @@ transform = Resize(res)
 # transform = Resize(192)
 # crops_num = int((conf["width"] // conf["crop_size"]) * conf["crops_multiplier"])
 # crops_idx = np.linspace(0, conf["width"] - conf["crop_size"], crops_num, dtype=int) + conf["fraction"] // 2
-
 model = None
 
 
-def get_histogram_old(src, tgt):
-    target_crops = []
-    for crop_idx in crops_idx:
-        target_crops.append(tgt[..., crop_idx:crop_idx + conf["crop_size"]])
-    target_crops = t.cat(target_crops, dim=0)
-    batched_source = src.repeat(crops_num // conf["batching"], 1, 1, 1)
-    histogram = model(batched_source, target_crops, padding=conf["pad"])  # , fourrier=True)
-    histogram = t.softmax(histogram, dim=1)
-    return histogram
-
-
 def get_histogram(src, tgt, padding):
+    ##maybe global model needed?? TODO
     histogram = model(src, tgt, padding)  # , fourrier=True)
     std, mean = t.std_mean(histogram, dim=-1, keepdim=True)
     histogram = (histogram - mean) / std
