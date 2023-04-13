@@ -1,17 +1,10 @@
-from tkinter import image_names
 import torch as t
 from torch.utils.data import Dataset, DataLoader
-import os
 from torchvision.io import read_image, decode_image
 import random
-import itertools
-from glob import glob
 import kornia as K
 import numpy as np
 import torchvision
-import pandas as pd
-from matplotlib.pyplot import imshow
-import statistics
 
 
 class StrandsImgPairDataset(Dataset):
@@ -21,7 +14,7 @@ class StrandsImgPairDataset(Dataset):
         self.width = 512
         self.height = 404
         self.train = training
-        self.training_input = training_input
+        self.training_input = training_input * self.width
         ## training_input = file, file, displacement, feature count
         if not self.train:
             self.data = []
@@ -33,8 +26,8 @@ class StrandsImgPairDataset(Dataset):
                 self.data.append((path1, path2))
         else:
 
-            self.disp = training_input[:, 2].astype(np.float32)
-            self.fcount = training_input[:, 3].astype(np.float32).astype(np.int32)
+            self.disp = self.training_input[:, 2].astype(np.float32)
+            self.fcount = self.training_input[:, 3].astype(np.float32).astype(np.int32)
             # GT in format imagea | imageb | displacemetn | feature count | 63x histgram bin|
             ##print (GT[0])
             qualifieds = np.array(self.fcount) >= max(

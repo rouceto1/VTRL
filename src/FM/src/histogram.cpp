@@ -181,8 +181,9 @@ int internalHistogram2D(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::Key
 
 }
 
-int internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, float &displacement, int numBins, int (&histogram)[63], std::vector<int> &hist_out , std::vector<cv::DMatch> matches, int granularity, int verticaLimit){
-  std::vector<cv::DMatch> inliers_matches;
+int internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, float &displacement, int numBins,
+                      int (&histogram)[63], std::vector<int> &hist_out , std::vector<cv::DMatch> matches,
+                      std::vector<cv::DMatch> &inliers_matches, int granularity, int verticaLimit){
 	//histogram assembly
   int auxMax = 0;
 	int sumDev,histMax;
@@ -213,22 +214,28 @@ int internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPo
         domDir = i;
         memcpy(bestHistogram,histogram,sizeof(int)*numBins);
       }
+
     }
   }
+  /*
   auxMax=0;
   for (int i =0;i<numBins;i++){
     if (auxMax < bestHistogram[i] && bestHistogram[i] != histMax){
       auxMax = bestHistogram[i];
     }
-  }
+  }*/
   sumDev = 0;
+  int histMax2 = 0;
   for( size_t i = 0; i < matches.size(); i++ ){
     int i1 = matches[i].queryIdx;
     int i2 = matches[i].trainIdx;
     
-    if ((int)((keypoints1[i1].pt.x-keypoints2[i2].pt.x + numBins/2*granularity+maxS)/granularity) == domDir && fabs(keypoints1[i1].pt.y-keypoints2[i2].pt.y)<verticaLimit)
+    if ((int)((keypoints1[i1].pt.x-keypoints2[i2].pt.x + numBins/2*granularity+maxS)/granularity) == domDir &&
+        fabs(keypoints1[i1].pt.y-keypoints2[i2].pt.y)<verticaLimit)
       {
+        histMax2++;
         sumDev += keypoints1[i1].pt.x-keypoints2[i2].pt.x;
+        //std::cout<< keypoints1[i1].pt << " " << keypoints2[i2].pt << std::endl;
         inliers_matches.push_back(matches[i]);
       }
   }
@@ -237,6 +244,8 @@ int internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPo
   }
 
   //std::cout << "test2" << std::endl;
+    //std::cout<< histMax << " " << histMax2 << " " << sumDev<< std::endl;
+
   if (histMax > 0) displacement = (float)sumDev/histMax;
   return inliers_matches.size();
 }

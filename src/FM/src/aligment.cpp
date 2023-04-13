@@ -65,7 +65,8 @@ void descriptorsAqusition(cv::Mat img,std::vector<cv::KeyPoint> &keypoints,
   resizeFeatures(descriptors,keypoints,settings.featureMaximum);
 }
 // inlier mathces are require  for this to work i guess ...
-float imageDisplacementUnsave( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, settings settings ,int &inliers_matches_count,std::vector<int> &bestHistogram, std::vector<std::vector <double> > *sortedHistogram){
+float imageDisplacementUnsave( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, settings settings ,
+                               int &inliers_matches_count,std::vector<int> &bestHistogram,std::vector<cv::DMatch> &inliers_matches, std::vector<std::vector <double> > *sortedHistogram){
   std::vector<cv::DMatch> matches;
   // matching descriptors
   if (descriptors1.rows*descriptors2.rows > 0){
@@ -78,21 +79,23 @@ float imageDisplacementUnsave( cv::Mat descriptors1, cv::Mat descriptors2,std::v
 
   //std::cout << "test5" << std::endl;
   if (matches.size() > 0){
-    inliers_matches_count = internalHistogram(keypoints1,keypoints2, displacement, numBins, histogram, bestHistogram , matches,   settings.granularity,settings.verticaLimit);
+    inliers_matches_count = internalHistogram(keypoints1,keypoints2, displacement, numBins, histogram, bestHistogram , matches,inliers_matches,   settings.granularity,settings.verticaLimit);
   }
   return displacement;
 }
 
 
-float imageDisplacement( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2,  float groundTruth,  int &fails,settings settings , std::ofstream& hist_file_out,int &inliers_matches_count, std::vector<int> &hist_out, std::vector<std::vector <double> > *sortedHistogram){
+float imageDisplacement( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2,
+                         float groundTruth,  int &fails,settings settings , std::ofstream& hist_file_out,int &inliers_matches_count,
+                         std::vector<int> &hist_out, std::vector<std::vector <double> > *sortedHistogram,std::vector<cv::DMatch> &inliers_matches){
   //use all features when numFeatures is 0
   float difference = 0;
   float displ= 999999;
   int bestHistogram[63];
   if (sortedHistogram == nullptr){
-    displ = imageDisplacementUnsave(descriptors1, descriptors2, keypoints1, keypoints2, settings, inliers_matches_count, hist_out);
+    displ = imageDisplacementUnsave(descriptors1, descriptors2, keypoints1, keypoints2, settings, inliers_matches_count, hist_out,inliers_matches);
     }else{
-    displ = imageDisplacementUnsave(descriptors1, descriptors2, keypoints1, keypoints2, settings, inliers_matches_count, hist_out, sortedHistogram);
+    displ = imageDisplacementUnsave(descriptors1, descriptors2, keypoints1, keypoints2, settings, inliers_matches_count, hist_out,inliers_matches, sortedHistogram);
   }
   //#pragma omp ordered
       difference = displ + groundTruth;//((offsetX[ims+numLocations*a]-offsetX[ims+numLocations*b]));
@@ -127,7 +130,14 @@ float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,i
   features = (descriptor1.rows+descriptor2.rows)/2;
   std::vector<cv::DMatch> inliers_matches;
   int inliers_matches_count;
-  displacement = imageDisplacement( descriptor1, descriptor2,kp1, kp2, GT, fails ,settings, hist_file_out, inliers_matches_count, hist_out, sortedHistogram);
+  //cv::Mat out;
+  displacement = imageDisplacement( descriptor1, descriptor2,kp1, kp2, GT, fails ,settings, hist_file_out, inliers_matches_count, hist_out, sortedHistogram,inliers_matches);
+    //cv::convertScaleAbs(img2,img2,2,50);
+  //cv::drawMatches(img1,kp1,img2,kp2,inliers_matches,out,Scalar(0,255,0),Scalar(0,0,255));
+   // cv::imshow("Window Name", out);
+    //std::cout<< displacement << std::endl;
+    //std::cout<< img1.rows << " "  << img1.cols << std::endl;
+    //cv::waitKey(0);
 
   return displacement;
 }
@@ -157,6 +167,7 @@ float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,i
   return displacement;
 }
 
+//// NORMALISES THE IMAGE DISPLACEMENT TO PERCENAGE OF THE IMAGE [-1,1]
 void evalOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count, int &fails, vector<double> histogram, float GT, vector<int> &histogram_out){
   int features;
   settings settings = default_config();
@@ -164,7 +175,7 @@ void evalOnFile(const char* f1, const char* f2, float &displacemnet, int &featur
   cv::Mat img1 = loadImage(f1);
   cv::Mat img2 = loadImage(f2);
   auto [sortedHistogram, bns] = histogram_single_sort(histogram,histogram.size(),img1.cols);
-  displacemnet = computeOnTwoImages(img1,img2, settings,features, fails,histogram_out, GT, &sortedHistogram);
+  displacemnet = computeOnTwoImages(img1,img2, settings,features, fails,histogram_out, GT, &sortedHistogram)/img1.cols;
   feature_count = features;
 }
 

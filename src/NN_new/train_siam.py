@@ -60,7 +60,7 @@ def eval_loop(epoch, val_loader):
     global model
     model.eval()
     with torch.no_grad():
-        mae, acc, _, _ = eval_displacement(eval_model=model, loader=val_loader, hist_padding=conf["histpad_teach"])
+        mae, acc, _, _ = eval_displacement(eval_model=model, loader=val_loader, hist_padding=conf["histpad_eval"])
     return mae
 
 

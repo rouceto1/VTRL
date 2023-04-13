@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from .model import load_model, get_parametrized_model, save_model_to_file
 from .utils import plot_displacement
-from ..NN.parser_strands import Strands
+from ..NN_new.parser_strands import Strands
 import yaml
 from pathlib import Path
 
@@ -34,7 +34,7 @@ def load_config(conf_path, image_width=512, image_height=384):
     conf["pad"] = PAD
     conf["output_size"] = output_size
     conf["crop_size_eval"] = conf["width"] - 8
-    conf["crop_size_teach"] = conf["width"] - 8
+    conf["crop_size_teach"] = conf["crop_sizes"][0]
     conf["histpad_eval"] = (conf["crop_size_eval"] - 8) // 16
     conf["histpad_teach"] = (conf["crop_size_teach"] - 8) // 16
     conf["batching"] = conf["crops_multiplier"]

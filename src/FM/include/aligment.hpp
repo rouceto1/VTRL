@@ -38,10 +38,10 @@ void descriptorsAqusition(cv::Mat img,std::vector<cv::KeyPoint> &keypoints, cv::
 void resultsOut(float displacement, int matchesSize, float difference, int (&bestHistogram)[63], std::ofstream& hist_file_out, int fails);
 
 //computes dispalcement on two images and saves it if it knows where
-float imageDisplacement( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2,  float groundTruth,  int &fails,struct settings settings,  std::ofstream& hist_file_out,int &inliers_matches_count,std::vector<std::vector <double> > *sortedHistogram = nullptr);
+float imageDisplacement( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2,  float groundTruth,  int &fails,struct settings settings,  std::ofstream& hist_file_out,int &inliers_matches_count, std::vector<cv::DMatch> &inliers_matches,std::vector<std::vector <double> > *sortedHistogram = nullptr);
 //used to compute diff on two images without saving
 
-float imageDisplacementUnsave( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, settings settings ,int &inliers_matches_count,std::vector<int> &bestHistogram,std::vector<std::vector <double> > *sortedHistogram=nullptr);
+float imageDisplacementUnsave( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPoint> keypoints2, settings settings ,int &inliers_matches_count,std::vector<int> &bestHistogram, std::vector<cv::DMatch> &inliers_matches,std::vector<std::vector <double> > *sortedHistogram=nullptr);
 
 
 

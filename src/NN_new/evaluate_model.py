@@ -14,6 +14,7 @@ model = None
 
 def get_histogram(src, tgt, padding):
     ##maybe global model needed?? TODO
+    tgt = tgt[...,4:conf["width"]-4]
     histogram = model(src, tgt, padding)  # , fourrier=True)
     std, mean = t.std_mean(histogram, dim=-1, keepdim=True)
     histogram = (histogram - mean) / std
@@ -43,7 +44,7 @@ def eval_displacement(eval_model=None, model_path=None,
         errors = []
         results = []
         for batch in tqdm(train_loader):
-            # bathch: source, cropped_target, heatmap, data_idx, original_image, displ
+            # batch: source, cropped_target, heatmap, data_idx, original_image, displ
             if len(batch) > 2:
                 source, target, gt = transform(batch[0].to(device)), transform(batch[4].to(device)), batch[5]
                 if abs(gt.numpy()[0]) > 256:
@@ -56,9 +57,9 @@ def eval_displacement(eval_model=None, model_path=None,
             shift_hist = histogram.cpu()
             if loader is None:
                 histograms[idx, :] = shift_hist.cpu().numpy()
-            f = interpolate.interp1d(np.linspace(0, conf["width"], conf["output_size"] - 1), shift_hist, kind="cubic")
+            f = interpolate.interp1d(np.linspace(0, conf["width"], conf["output_size"]), shift_hist, kind="cubic")
             interpolated = f(np.arange(conf["width"]))
-            ret = -(np.argmax(interpolated) - conf["width"] / 2)
+            ret = -(np.argmax(interpolated) - conf["width"] / 2)/conf["width"]
             results.append(ret)
             displac_mult = 1024 / conf["width"]  ###TODO wtf is this magic
             # tmp_err = (ret - gt.numpy()[0]) / displac_mult
