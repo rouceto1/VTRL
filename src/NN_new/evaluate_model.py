@@ -47,7 +47,7 @@ def eval_displacement(eval_model=None, model_path=None,
             # batch: source, cropped_target, heatmap, data_idx, original_image, displ
             if len(batch) > 2:
                 source, target, gt = transform(batch[0].to(device)), transform(batch[4].to(device)), batch[5]
-                if abs(gt.numpy()[0]) > 256:
+                if abs(gt.numpy()[0]) >= conf["width"]:
                     print("should not happen")
                     continue
             else:

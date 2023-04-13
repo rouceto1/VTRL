@@ -58,7 +58,7 @@ if __name__ == "__main__":
     teach(dataset_path, chosen_positions, weights_file + "_tests", cache, use_cache=False, limit=50)
     print("-------")
     print("Evaluation:")
-    evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_file + "", GT_file,
+    evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_file + "_tests", GT_file,
                                  estimates_out + "_tests",
                                  cache2, use_cache=False, limit=LIMIT)
     print("-------")

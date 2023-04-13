@@ -15,7 +15,7 @@ class StrandsImgPairDataset(Dataset):
         self.height = 404
         self.crop_width = crop_width
         self.train = training
-        self.training_input = training_input * self.width
+        self.training_input = training_input
         ## training_input = file, file, displacement, feature count
         if not self.train:
             self.data = []
@@ -27,13 +27,13 @@ class StrandsImgPairDataset(Dataset):
                 self.data.append((path1, path2))
         else:
 
-            self.disp = self.training_input[:, 2].astype(np.float32)
+            self.disp = self.training_input[:, 2].astype(np.float32) * self.width
             self.fcount = self.training_input[:, 3].astype(np.float32).astype(np.int32)
             # GT in format imagea | imageb | displacemetn | feature count | 63x histgram bin|
             ##print (GT[0])
             qualifieds = np.array(self.fcount) >= max( self.fcount) * 0.1  ## TODO the 0.1 as a paratmeters .. arashes hardoced shit
             # print(qualifieds)
-            qualifieds2 = abs(self.disp) < self.width- self.crop_width/2
+            qualifieds2 = abs(self.disp) < self.width - self.crop_width/2
             # print(qualifieds2)
             self.nonzeros = np.count_nonzero(np.logical_and(qualifieds, qualifieds2))
             print("[+] {} images were qualified out of {} images with {} images not being aligned at all".format(
@@ -89,24 +89,29 @@ class Strands(StrandsImgPairDataset):
             if self.smoothness == 0:
                 heatmap = self.get_heatmap(crop_start)
             else:
+                #TODO tady muze bejt fuckup
                 heatmap = self.get_smooth_heatmap(crop_start)
-            plt.plot(heatmap)
-            plt.show()
             return source, cropped_target, heatmap, data_idx, original_image, displ
         else:
+            #croping target when evalution is up to 504 pixels
             source, target = super().__getitem__(idx)
-            return source, target
+            return source, target[:,:,(self.width-self.crop_width)/2:(self.width-self.crop_width)/2+self.crop_width], target
 
     def crop_img(self, img, displac):
-        # crop - avoid asking for unavailable crop
-        if displac >= 0:
-            crops = [random.randint(0, int(self.width - self.crop_width - 1 - displac))]
-        else:
-            crops = [random.randint(int(0 - displac), int(self.width - self.crop_width - 1))]
-
-        crop_start = random.choice(crops)
-        crop_out = crop_start + displac
-        # crop_start = random.randint(0, self.width - self.crop_width - 1)
+        # lower and upper bound simoblise the MIDDLE of the possible crops
+        lower_bound = self.crop_width / 2
+        upper_bound = self.width - self.crop_width / 2
+        if displac == 0:
+            pass
+            # lower_bound = 0
+            # upper_bound = self.width
+        elif displac > 0:
+            upper_bound = int(upper_bound - displac)
+        elif displac < 0:
+            lower_bound = int(lower_bound - displac)
+        # print("u  ", upper_bound, lower_bound, dspl, self.crop_width)
+        crop_center = random.randint(lower_bound, upper_bound)
+        crop_start = int(crop_center - self.crop_width/2)
         return img[:, :, crop_start:crop_start + self.crop_width], crop_start, img
 
     def get_heatmap(self, crop_start):

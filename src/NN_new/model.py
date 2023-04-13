@@ -195,13 +195,13 @@ def save_model(model, name, epoch, optimizer=None):
     print("Model saved to: " + "./results_" + name + "/model_" + str(epoch) + ".pt")
 
 
-def save_model_to_file(model, name, epoch, file_path, optimizer=None):
+def save_model_to_file(model, name, epoch, optimizer=None):
     t.save({
         'epoch': epoch,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict() if optimizer is not None else None
-    }, file_path)
-    print("Model saved to: " + str(file_path))
+    }, "./weights/" + name+".pt")
+    print("Model saved to: " + "./weights/" +str(name)+".pt")
 
 
 def load_model(model, path, optimizer=None):

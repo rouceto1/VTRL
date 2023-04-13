@@ -131,7 +131,7 @@ float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,i
   std::vector<cv::DMatch> inliers_matches;
   int inliers_matches_count;
   //cv::Mat out;
-  displacement = imageDisplacement( descriptor1, descriptor2,kp1, kp2, GT, fails ,settings, hist_file_out, inliers_matches_count, hist_out, sortedHistogram,inliers_matches);
+  displacement = imageDisplacement( descriptor1, descriptor2,kp1, kp2, GT, fails ,settings, hist_file_out, inliers_matches_count, hist_out, sortedHistogram,inliers_matches)/img1.cols;
     //cv::convertScaleAbs(img2,img2,2,50);
   //cv::drawMatches(img1,kp1,img2,kp2,inliers_matches,out,Scalar(0,255,0),Scalar(0,0,255));
    // cv::imshow("Window Name", out);
@@ -175,7 +175,7 @@ void evalOnFile(const char* f1, const char* f2, float &displacemnet, int &featur
   cv::Mat img1 = loadImage(f1);
   cv::Mat img2 = loadImage(f2);
   auto [sortedHistogram, bns] = histogram_single_sort(histogram,histogram.size(),img1.cols);
-  displacemnet = computeOnTwoImages(img1,img2, settings,features, fails,histogram_out, GT, &sortedHistogram)/img1.cols;
+  displacemnet = computeOnTwoImages(img1,img2, settings,features, fails,histogram_out, GT, &sortedHistogram);
   feature_count = features;
 }
 
@@ -189,7 +189,6 @@ void evalOnFiles(const char ** filesFrom, const char ** filesTo, double ** histo
     int fcount = 0;
     vector<double> hist_vector (histogram_in[i], histogram_in[i] + hist_width);
     evalOnFile(filesFrom[i], filesTo[i],dsp,fcount, fails, hist_vector,gt[i], histogram_out);
-    //std::cout << i << "  "<< histogram_out.size() <<std::endl;
     if (histogram_out.size() == 0){
       fcount = 0;
       dsp = 0;

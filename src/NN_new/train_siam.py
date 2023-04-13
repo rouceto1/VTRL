@@ -66,7 +66,7 @@ def eval_loop(epoch, val_loader):
 
 def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
     LOAD_EPOCH = 0
-    lowest_err = 0
+    lowest_err = 9999999
     global model
     global conf
     model, conf = get_model(model, model_path, eval_model, conf)
@@ -86,7 +86,7 @@ def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
                 best_model = copy.deepcopy(model)
         train_loop(epoch, train_loader, optimizer)
 
-    save_model_to_file(best_model, conf["name"], lowest_err, optimizer)
+    save_model_to_file(model, conf["name"], lowest_err, optimizer)
 
 
 def NNteach_from_python(training_data, data_path, weights_file, epochs):
