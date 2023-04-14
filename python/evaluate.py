@@ -1,4 +1,4 @@
-import src.NN_old.NNET as neuralka
+#import src.NN_old.NNET as neuralka
 import src.NN_new.evaluate_model as nn_ev
 import sys
 from python.helper_functions import *
@@ -8,8 +8,10 @@ import src.FM.python.python_module as grief
 def NN_eval(file_list_nn, weights_file, old=False):
     if old:
         pass
+        hist_in = None
+        dsp = None
         #print("doing old")
-        a, b, hist_in, dsp = neuralka.NNeval_from_python(np.array(file_list_nn), "strands", weights_file)
+        #a, b, hist_in, dsp = neuralka.NNeval_from_python(np.array(file_list_nn), "strands", weights_file)
     else:
         #print("doing new")
         aa, bb, hist_in, dsp = nn_ev.NNeval_from_python(np.array(file_list_nn), "strands", weights_file)
@@ -29,9 +31,9 @@ evaluates combos by NN and then uses this output for FM evaluation
 
 
 def fm_nn_eval(file_list, filetype_nn, filetype_fm, weights_file,
-               dataset_path, cache_file, use_cache, limit=None):
+               cache_file, use_cache, limit=None):
     count = len(file_list)
-    if not limit is None:
+    if limit is not None:
         count = limit
     gt = np.zeros(count, dtype=np.float64)
     disp = np.zeros(count, dtype=np.float32)
@@ -69,7 +71,7 @@ def fm_eval(file_list, filetype_fm, limit=None):
     :return:
     """
     count = len(file_list)
-    if not limit is None:
+    if limit is not None:
         count = limit  # THIS IS TO LIMIT IT FOR DEBUGING PURPOUSES (maybe a fnction in the future?)
     disp = np.zeros(count, dtype=np.float32)
     fcount = np.zeros(count, dtype=np.int32)

@@ -1,15 +1,13 @@
 #!/usr/bin/env python3.9
 
 import copy
-
 from torch.nn import BCEWithLogitsLoss
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
-
+from tqdm import tqdm
 from .evaluate_model import eval_displacement
-# from .parser_nordland import RectifiedNordland
-from .utils import plot_samples, batch_augmentations
-
+from .utils import batch_augmentations
+from .model import save_model_to_file
 from .train_eval_common import *
 
 VISUALISE = True
@@ -41,7 +39,6 @@ def train_loop(epoch, train_loader, optimizer):
     model.train()
     loss_sum = 0
     print("Training model epoch", epoch)
-    generation = 0
     for batch in tqdm(train_loader):
         source, target, heatmap = batch[0].to(device), batch[1].to(device), batch[2].to(device)
         source = batch_augmentations(source)
@@ -49,17 +46,17 @@ def train_loop(epoch, train_loader, optimizer):
             batch, heatmap = hard_negatives(source, heatmap)
         out = model(source, target, padding=conf["pad"])
         optimizer.zero_grad()
-        l = loss(out, heatmap)
-        loss_sum += l.cpu().detach().numpy()
-        l.backward()
+        los = loss(out, heatmap)
+        loss_sum += los.cpu().detach().numpy()
+        los.backward()
         optimizer.step()
     print("Training of epoch", epoch, "ended with loss", loss_sum / len(train_loader))
 
 
-def eval_loop(epoch, val_loader):
+def eval_loop(val_loader):
     global model
     model.eval()
-    with torch.no_grad():
+    with t.no_grad():
         mae, acc, _, _ = eval_displacement(eval_model=model, loader=val_loader, padding=conf["pad_teach"])
     return mae
 
@@ -69,6 +66,7 @@ def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
     lowest_err = 9999999
     global model
     global conf
+    best_model = None
     model, conf = get_model(model, model_path, eval_model, conf, conf["pad_teach"])
     optimizer = AdamW(model.parameters(), lr=conf["lr"])
 
@@ -80,13 +78,13 @@ def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
         print("WARNING epochs and eval rate are not divisible")
     for epoch in range(LOAD_EPOCH, conf["epochs"]):
         if epoch % conf["eval_rate"] == 0:
-            err = eval_loop(epoch, val_loader)
+            err = eval_loop(val_loader)
             if err < lowest_err:
                 lowest_err = err
                 best_model = copy.deepcopy(model)
         train_loop(epoch, train_loader, optimizer)
 
-    save_model_to_file(model, conf["name"], lowest_err, optimizer)
+    save_model_to_file(best_model, conf["name"], lowest_err, optimizer)
 
 
 def NNteach_from_python(training_data, data_path, weights_file, epochs):
@@ -97,4 +95,5 @@ def NNteach_from_python(training_data, data_path, weights_file, epochs):
 
 
 if __name__ == '__main__':
-    teach_stuff()
+    pass
+    # teach_stuff()

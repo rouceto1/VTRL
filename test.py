@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from annotate import annotate
 from evaluate_to_file import evaluate_to_file
 from teach import teach
 from python.grade_results import *
@@ -48,11 +47,12 @@ chosen_positions = np.loadtxt(os.path.join(dataset_path, chosen_positions_file),
 estimates_out = os.path.join(dataset_path, eval_out_file)
 cache = os.path.join(dataset_path, feature_matcher_file)
 
-LIMIT = 5  # LIMIT allows only first 5-1 images to be evaluated from each season of gathereing (there are 3 seasons) It is posilb etaht les images are going to be given since not all pair are in the dataset
+LIMIT = 5  # LIMIT allows only first 5-1 images to be evaluated from each season of gathereing
+# (there are 3 seasons) It is posilb etaht les images are going to be given since not all pair are in the dataset
 if __name__ == "__main__":
     print("Annotation:")
-    #annotate(dataset_path, evaluation_prefix, evaluation_paths,
-    #weights_file, GT_file + "_test", cache2, use_cache=False, limit=LIMIT)
+    # annotate(dataset_path, evaluation_prefix, evaluation_paths,
+    # weights_file, GT_file + "_test", cache2, use_cache=False, limit=LIMIT)
     print("-------")
     print("Teaching:")
     teach(dataset_path, chosen_positions, weights_file + "_tests", cache, use_cache=False, limit=50)
@@ -60,8 +60,8 @@ if __name__ == "__main__":
     print("Evaluation:")
     weights_eval = os.path.join(pwd, args.weights_folder) + "siam.pt"
     evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, GT_file,
-                                 estimates_out + "_tests",
-                                 cache2, use_cache=False, limit=LIMIT)
+                     estimates_out + "_tests",
+                     cache2, use_cache=False, limit=LIMIT)
     print("-------")
     print("Grading from file:")
     grade_type(evaluation_prefix, "./tests", estimates_file=estimates_out + "_tests", _GT_file=GT_file + "_test")

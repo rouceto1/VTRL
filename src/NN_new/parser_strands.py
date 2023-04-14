@@ -1,11 +1,11 @@
 import torch as t
-from torch.utils.data import Dataset, DataLoader
-from torchvision.io import read_image, decode_image
+from torch.utils.data import Dataset
+from torchvision.io import read_image
 import random
 import kornia as K
 import numpy as np
 import torchvision
-import matplotlib.pyplot as plt
+
 
 class StrandsImgPairDataset(Dataset):
 
@@ -29,12 +29,10 @@ class StrandsImgPairDataset(Dataset):
 
             self.disp = self.training_input[:, 2].astype(np.float32) * self.width
             self.fcount = self.training_input[:, 3].astype(np.float32).astype(np.int32)
-            # GT in format imagea | imageb | displacemetn | feature count | 63x histgram bin|
             ##print (GT[0])
-            qualifieds = np.array(self.fcount) >= max( self.fcount) * 0.1  ## TODO the 0.1 as a paratmeters .. arashes hardoced shit
-            # print(qualifieds)
-            qualifieds2 = abs(self.disp) < self.width - self.crop_width/2
-            # print(qualifieds2)
+            qualifieds = np.array(self.fcount) >= max(
+                self.fcount) * 0.1  # TODO the 0.1 as a paratmeters .. arashes hardoced shit
+            qualifieds2 = abs(self.disp) < self.width - self.crop_width / 2
             self.nonzeros = np.count_nonzero(np.logical_and(qualifieds, qualifieds2))
             print("[+] {} images were qualified out of {} images with {} images not being aligned at all".format(
                 self.nonzeros, len(qualifieds), 0.1))
@@ -73,7 +71,7 @@ class Strands(StrandsImgPairDataset):
     # dsp path to the file with displacements
     # seasosns array of names of the folders with iamfes.
     def __init__(self, crop_width, fraction, smoothness, training_input, training=False):
-        super().__init__(training_input=training_input,crop_width=crop_width, training=training)
+        super().__init__(training_input=training_input, crop_width=crop_width, training=training)
 
         self.fraction = fraction
         self.smoothness = smoothness
@@ -89,15 +87,15 @@ class Strands(StrandsImgPairDataset):
             if self.smoothness == 0:
                 heatmap = self.get_heatmap(crop_start)
             else:
-                #TODO tady muze bejt fuckup
+                # TODO tady muze bejt fuckup
                 heatmap = self.get_smooth_heatmap(crop_start)
             return source, cropped_target, heatmap, data_idx, original_image, displ
         else:
-            #croping target when evalution is up to 504 pixels
+            # croping target when evalution is up to 504 pixels
             source, target = super().__getitem__(idx)
-            left = (self.width-self.crop_width)/2
-            right = (self.width-self.crop_width)/2+self.crop_width
-            return source, target[:,:,int(left):int(right)], target
+            left = (self.width - self.crop_width) / 2
+            right = (self.width - self.crop_width) / 2 + self.crop_width
+            return source, target[:, :, int(left):int(right)], target
 
     def crop_img(self, img, displac):
         # lower and upper bound simoblise the MIDDLE of the possible crops
@@ -113,7 +111,7 @@ class Strands(StrandsImgPairDataset):
             lower_bound = int(lower_bound - displac)
         # print("u  ", upper_bound, lower_bound, dspl, self.crop_width)
         crop_center = random.randint(lower_bound, upper_bound)
-        crop_start = int(crop_center - self.crop_width/2)
+        crop_start = int(crop_center - self.crop_width / 2)
         return img[:, :, crop_start:crop_start + self.crop_width], crop_start, img
 
     def get_heatmap(self, crop_start):
@@ -138,7 +136,8 @@ class Strands(StrandsImgPairDataset):
                     heatmap[j] = 1 - i * (1 / (self.smoothness + 1))
         return heatmap[surround // 2:-surround // 2]
 
+
 if __name__ == '__main__':
     data = StrandsImgPairDataset()
     print(len(data))
-    plot_img_pair(*data[100])
+    # plot_img_pair(*data[100])

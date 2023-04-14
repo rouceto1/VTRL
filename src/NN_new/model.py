@@ -1,11 +1,7 @@
-import random
-import torch
 import torch as t
-from torch.nn.functional import conv2d, conv1d
+from torch.nn.functional import conv2d
 import torch.nn as nn
-import math
 from torch.nn import functional as F
-from copy import deepcopy
 import os
 import errno
 
@@ -156,6 +152,9 @@ class Siamese(t.nn.Module):
             embed_srch: (torch.Tensor) The embedding of the search image.
         Returns:
             match_map: (torch.Tensor) The correlation between
+            :param embed_ref:
+            :param embed_srch:
+            :param padding:
         """
         if padding is None:
             padding = self.padding
@@ -200,8 +199,8 @@ def save_model_to_file(model, name, epoch, optimizer=None):
         'epoch': epoch,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict() if optimizer is not None else None
-    }, "./weights/" + name+".pt")
-    print("Model saved to: " + "./weights/" +str(name)+".pt")
+    }, "./weights/" + name + ".pt")
+    print("Model saved to: " + "./weights/" + str(name) + ".pt")
 
 
 def load_model(model, path, optimizer=None):
