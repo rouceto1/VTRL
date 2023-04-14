@@ -24,19 +24,19 @@ def load_config(conf_path, image_width=512, image_height=384):
     device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
     conf["device"] = device
     output_size = conf["width"] // conf["fraction"]
-    MASK = t.zeros(output_size)
+    #MASK = t.zeros(output_size)
     PAD = get_pad(conf["crop_sizes"][0])
-    MASK[:PAD] = t.flip(t.arange(0, PAD), dims=[0])
-    MASK[-PAD:] = t.arange(0, PAD)
-    MASK = output_size - 1 - MASK
-    MASK = (output_size - 1) / MASK.to(device)
-    conf["mask"] = MASK
+    #MASK[:PAD] = t.flip(t.arange(0, PAD), dims=[0])
+    #MASK[-PAD:] = t.arange(0, PAD)
+    #MASK = output_size - 1 - MASK
+    #MASK = (output_size - 1) / MASK.to(device)
+    #conf["mask"] = MASK
     conf["pad"] = PAD
     conf["output_size"] = output_size
     conf["crop_size_eval"] = conf["width"] - 8
     conf["crop_size_teach"] = conf["crop_sizes"][0]
-    conf["histpad_eval"] = (conf["crop_size_eval"] - 8) // 16
-    conf["histpad_teach"] = (conf["crop_size_teach"] - 8) // 16
+    conf["pad_eval"] = (conf["crop_size_eval"] - 8) // 16
+    conf["pad_teach"] = (conf["crop_size_teach"] - 8) // 16
     conf["batching"] = conf["crops_multiplier"]
     conf["size_frac"] = conf["width"] / image_width
     conf["image_height"] = image_height
@@ -66,7 +66,7 @@ def get_dataset(data_path, training_input, conf, training=False):
     return dataset, histograms
 
 
-def get_model(model, model_path, eval_model, conf):
+def get_model(model, model_path, eval_model, conf,pad):
     if eval_model is not None:
         model = eval_model
         return model, conf
@@ -79,7 +79,7 @@ def get_model(model, model_path, eval_model, conf):
         conf["emb_channels"] = 256
         use256 = True
     model = get_parametrized_model(conf["layer_pool"], conf["filter_size"], conf["emb_channels"], conf["residual"],
-                                   conf["pad"], conf["device"], legacy=use256)
+                                   pad, conf["device"], legacy=use256)
     if os.path.exists(model_path):
         model = load_model(model, model_path)
     return model, conf

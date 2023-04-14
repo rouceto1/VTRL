@@ -5,7 +5,7 @@ conf = load_config("./NN_config.yaml", 512)
 device = conf["device"]
 # MODEL = "model_47"
 res = int(conf["image_height"] * conf["size_frac"])
-transform = Resize(res)
+#transform = Resize(res)
 # transform = Resize(192)
 # crops_num = int((conf["width"] // conf["crop_size"]) * conf["crops_multiplier"])
 # crops_idx = np.linspace(0, conf["width"] - conf["crop_size"], crops_num, dtype=int) + conf["fraction"] // 2
@@ -13,17 +13,20 @@ model = None
 
 
 def get_histogram(src, tgt, padding):
+    global model
     ##maybe global model needed?? TODO
-    tgt = tgt[...,4:conf["width"]-4]
+    #tgt = tgt[...,4:conf["width"]-4]
     histogram = model(src, tgt, padding)  # , fourrier=True)
     std, mean = t.std_mean(histogram, dim=-1, keepdim=True)
+    if std == 0:
+        return t.softmax(histogram, dim=1)
     histogram = (histogram - mean) / std
     histogram = t.softmax(histogram, dim=1)
     return histogram
 
 
 def eval_displacement(eval_model=None, model_path=None,
-                      data_path="strand", loader=None, histograms=[], hist_padding=None):
+                      data_path="strand", loader=None, histograms=None, padding=None):
     '''
     :param eval_model: :param model_path: if model is given in eval_model model path is not used,
     :param data_path:
@@ -33,8 +36,7 @@ def eval_displacement(eval_model=None, model_path=None,
     '''
     global conf
     global model
-    model, conf = get_model(model, model_path, eval_model, conf)
-
+    model, conf = get_model(model, model_path, eval_model, conf, padding)
     train_loader = loader
     model.eval()
     with torch.no_grad():
@@ -45,19 +47,21 @@ def eval_displacement(eval_model=None, model_path=None,
         results = []
         for batch in tqdm(train_loader):
             # batch: source, cropped_target, heatmap, data_idx, original_image, displ
-            if len(batch) > 2:
-                source, target, gt = transform(batch[0].to(device)), transform(batch[4].to(device)), batch[5]
+            if len(batch) > 3:
+                output_size = conf["output_size"]
+                source, target, gt = (batch[0].to(device)), (batch[1].to(device)), batch[5]
                 if abs(gt.numpy()[0]) >= conf["width"]:
                     print("should not happen")
                     continue
             else:
-                source, target = transform(batch[0].to(device)), transform(batch[1].to(device))
+                output_size = conf["output_size"] - 1
+                source, target = (batch[0].to(device)), (batch[2].to(device))
                 gt = 0
-            histogram = get_histogram(source, target, hist_padding)
+            histogram = get_histogram(source, target, padding)
             shift_hist = histogram.cpu()
-            if loader is None:
+            if not histograms is None: # only run this when in pure eval
                 histograms[idx, :] = shift_hist.cpu().numpy()
-            f = interpolate.interp1d(np.linspace(0, conf["width"], conf["output_size"]), shift_hist, kind="cubic")
+            f = interpolate.interp1d(np.linspace(0, conf["width"], output_size), shift_hist, kind="cubic")
             interpolated = f(np.arange(conf["width"]))
             ret = -(np.argmax(interpolated) - conf["width"] / 2)/conf["width"]
             results.append(ret)
@@ -83,7 +87,7 @@ def NNeval_from_python(files, data_path, weights_file):
     dataset, histograms = get_dataset(data_path, files, conf)
     loader = DataLoader(dataset, 1, shuffle=False)
     return eval_displacement(data_path=data_path, model_path=weights_file, loader=loader,
-                             histograms=histograms, hist_padding=conf["histpad_eval"])
+                             histograms=histograms, padding=conf["pad_eval"])
 
 
 if __name__ == '__main__':

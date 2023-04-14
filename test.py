@@ -52,13 +52,14 @@ LIMIT = 5  # LIMIT allows only first 5-1 images to be evaluated from each season
 if __name__ == "__main__":
     print("Annotation:")
     #annotate(dataset_path, evaluation_prefix, evaluation_paths,
-    #         weights_file, GT_file + "_test", cache2, use_cache=False, limit=LIMIT)
+    #weights_file, GT_file + "_test", cache2, use_cache=False, limit=LIMIT)
     print("-------")
     print("Teaching:")
     teach(dataset_path, chosen_positions, weights_file + "_tests", cache, use_cache=False, limit=50)
     print("-------")
     print("Evaluation:")
-    evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_file + "_tests", GT_file,
+    weights_eval = os.path.join(pwd, args.weights_folder) + "siam.pt"
+    evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, GT_file,
                                  estimates_out + "_tests",
                                  cache2, use_cache=False, limit=LIMIT)
     print("-------")

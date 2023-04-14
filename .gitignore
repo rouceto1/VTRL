@@ -7,4 +7,5 @@ weights/
 *.jpg
 *.png
 *#*
+*.pkl
 build/

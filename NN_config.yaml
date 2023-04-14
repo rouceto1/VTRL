@@ -13,7 +13,6 @@ layer_pool: True
 filter_size: 3
 emb_channels: 16
 residual: 0 #e:0
-output_size: 64 #width//fraction
 crops_multiplier: 1
 batching: crops_multiplier
 eval_limit: 20000

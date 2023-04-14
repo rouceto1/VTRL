@@ -41,7 +41,7 @@ def fm_nn_eval(file_list, filetype_nn, filetype_fm, weights_file,
     if not os.path.exists(cache_file) or not use_cache:
         hist_nn, displacement = NN_eval(choose_proper_filetype(filetype_nn, file_list),
                                         weights_file,
-                                        old=True)
+                                        old=False)
         with open(cache_file, 'wb') as handle:
             pickle.dump(hist_nn, handle)
             print("evaluate making cache" + str(cache_file))

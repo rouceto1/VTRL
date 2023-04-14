@@ -60,7 +60,7 @@ def eval_loop(epoch, val_loader):
     global model
     model.eval()
     with torch.no_grad():
-        mae, acc, _, _ = eval_displacement(eval_model=model, loader=val_loader, hist_padding=conf["histpad_eval"])
+        mae, acc, _, _ = eval_displacement(eval_model=model, loader=val_loader, padding=conf["pad_teach"])
     return mae
 
 
@@ -69,7 +69,7 @@ def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
     lowest_err = 9999999
     global model
     global conf
-    model, conf = get_model(model, model_path, eval_model, conf)
+    model, conf = get_model(model, model_path, eval_model, conf, conf["pad_teach"])
     optimizer = AdamW(model.parameters(), lr=conf["lr"])
 
     dataset, histograms = get_dataset(data_path, train_data, conf, training=True)

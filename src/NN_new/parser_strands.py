@@ -95,7 +95,9 @@ class Strands(StrandsImgPairDataset):
         else:
             #croping target when evalution is up to 504 pixels
             source, target = super().__getitem__(idx)
-            return source, target[:,:,(self.width-self.crop_width)/2:(self.width-self.crop_width)/2+self.crop_width], target
+            left = (self.width-self.crop_width)/2
+            right = (self.width-self.crop_width)/2+self.crop_width
+            return source, target[:,:,int(left):int(right)], target
 
     def crop_img(self, img, displac):
         # lower and upper bound simoblise the MIDDLE of the possible crops
@@ -135,27 +137,6 @@ class Strands(StrandsImgPairDataset):
                 if 0 <= j < heatmap.size(0):
                     heatmap[j] = 1 - i * (1 / (self.smoothness + 1))
         return heatmap[surround // 2:-surround // 2]
-
-    def get_heatmapd(self, crop_start, displacement):
-        frac = self.width // self.fraction - 1
-        heatmap = t.zeros(frac).long()
-        idx = int((crop_start - displacement + self.crop_width // 2) / self.fraction)
-        if 0 <= idx < 31:
-            heatmap[idx] = 1
-        return heatmap
-
-    def get_smooth_heatmapd(self, crop_start, displacement):
-        surround = self.smoothness * 2
-        frac = self.width // self.fraction - 1
-        heatmap = t.zeros(frac + surround)
-        idx = int((crop_start - displacement + self.crop_width // 2) / self.fraction) + 3
-        idxs = t.tensor([-1, +1])
-        for i in range(self.smoothness):
-            for j in idx + i * idxs:
-                if 0 <= j < heatmap.size(0):
-                    heatmap[j] = 1 - i * (1 / self.smoothness)
-        return heatmap[surround // 2:-surround // 2]  ##qadded one cos why the fuck not
-
 
 if __name__ == '__main__':
     data = StrandsImgPairDataset()
