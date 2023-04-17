@@ -2,7 +2,7 @@ name: siam #e siam_eu
 width: 512
 height: 324 #asi
 batch_size: 2 #32
-epochs: 5 #prolly indexes from 0! ALso prolly does not WORK
+epochs: 1 #prolly indexes from 0! ALso prolly does not WORK
 lr: 4.5 #e4.1
 eval_rate: 1 #e3 ## should be whole divisor of epochs
 crop_sizes: [56] #e56
@@ -17,7 +17,10 @@ crops_multiplier: 1
 batching: crops_multiplier
 eval_limit: 20000
 tolerance: 50
-
+use_cache: False
+save_cache: False
+limit: 5
+old: False
 train:
   help:
 eval:

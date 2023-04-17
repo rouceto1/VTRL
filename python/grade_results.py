@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-import os
-import numpy as np
 import marshal as pickle
 from matplotlib import image
 from matplotlib import pyplot as plt
@@ -134,6 +132,8 @@ def compute(displacement, gt):
     print("^^^^^^ ---- this should work")
 
     disp = displacement - gt
+    plt.plot(disp)
+    plt.show()
     print(displacement)
     print(gt)
     print(disp)
@@ -152,7 +152,7 @@ def compute_AC_curve(error):
     return [disp, np.array(range(length)) / length]
 
 
-## TODO this is probably incorect since it just summs all the errors therefore not normalised
+# TODO this is probably incorect since it just summs all the errors therefore not normalised
 def get_integral_from_line(values, places=None):
     if places is None:
         places = [0]

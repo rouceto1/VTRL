@@ -1,34 +1,13 @@
 #!/usr/bin/env python3.9
 import numpy as np
 import os
-import torch as t
 
 from .model import load_model, get_parametrized_model
 from ..NN_new.parser_strands import Strands
-import yaml
-from pathlib import Path
 
 
-def get_pad(crop):
-    return (crop - 8) // 16
 
 
-def load_config(conf_path, image_width=512, image_height=384):
-    conf = yaml.safe_load(Path(conf_path).read_text())
-    device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
-    conf["device"] = device
-    output_size = conf["width"] // conf["fraction"]
-    PAD = get_pad(conf["crop_sizes"][0])
-    conf["pad"] = PAD
-    conf["output_size"] = output_size
-    conf["crop_size_eval"] = conf["width"] - 8
-    conf["crop_size_teach"] = conf["crop_sizes"][0]
-    conf["pad_eval"] = get_pad(conf["crop_size_eval"])
-    conf["pad_teach"] = get_pad(conf["crop_size_teach"])
-    conf["batching"] = conf["crops_multiplier"]
-    conf["size_frac"] = conf["width"] / image_width
-    conf["image_height"] = image_height
-    return conf
 
 
 ## training signifies if the data loading is done for training or testing

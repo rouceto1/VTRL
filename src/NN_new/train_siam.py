@@ -9,15 +9,9 @@ from .evaluate_model import eval_displacement
 from .utils import batch_augmentations
 from .model import save_model_to_file
 from .train_eval_common import *
-
-VISUALISE = True
-WANDB = False
-conf = load_config("./NN_config.yaml")
-device = conf["device"]
-batch_augmentations = batch_augmentations.to(device)
+import torch as t
 loss = BCEWithLogitsLoss()
 model = None
-
 
 def hard_negatives(batch, heatmaps):
     if batch.shape[0] == conf["batch_size"] - 1:
@@ -36,12 +30,13 @@ def hard_negatives(batch, heatmaps):
 
 def train_loop(epoch, train_loader, optimizer):
     global model
+    global batch_aug
     model.train()
     loss_sum = 0
     print("Training model epoch", epoch)
     for batch in tqdm(train_loader):
         source, target, heatmap = batch[0].to(device), batch[1].to(device), batch[2].to(device)
-        source = batch_augmentations(source)
+        source = batch_aug(source)
         if conf["negative_frac"] > 0.01:
             batch, heatmap = hard_negatives(source, heatmap)
         out = model(source, target, padding=conf["pad"])
@@ -87,9 +82,13 @@ def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
     save_model_to_file(best_model, conf["name"], lowest_err, optimizer)
 
 
-def NNteach_from_python(training_data, data_path, weights_file, epochs):
+def NNteach_from_python(training_data, data_path, weights_file, config):
     global conf
-    conf["epochs"] = epochs
+    global device
+    conf = config
+    device = conf["device"]
+    global batch_aug
+    batch_aug = batch_augmentations.to(device)
     print("trianing:" + str(weights_file))
     teach_stuff(train_data=training_data, model_path=weights_file, data_path=data_path)
 

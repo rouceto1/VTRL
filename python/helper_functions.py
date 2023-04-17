@@ -2,7 +2,9 @@ import numpy as np
 import copy
 import os
 import pickle as pickle
-
+import yaml
+import torch as t
+from pathlib import Path
 filetype_FM = ".bmp"
 filetype_NN = ".png"
 image_file_template = "place_%d/%05d"
@@ -112,3 +114,23 @@ def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_co
         file_list.append([file1, file2])
     file_list = np.array(file_list)
     return file_list
+
+def get_pad(crop):
+    return (crop - 8) // 16
+
+def load_config(conf_path, image_width=512, image_height=384):
+    conf = yaml.safe_load(Path(conf_path).read_text())
+    device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
+    conf["device"] = device
+    output_size = conf["width"] // conf["fraction"]
+    PAD = get_pad(conf["crop_sizes"][0])
+    conf["pad"] = PAD
+    conf["output_size"] = output_size
+    conf["crop_size_eval"] = conf["width"] - 8
+    conf["crop_size_teach"] = conf["crop_sizes"][0]
+    conf["pad_eval"] = get_pad(conf["crop_size_eval"])
+    conf["pad_teach"] = get_pad(conf["crop_size_teach"])
+    conf["batching"] = conf["crops_multiplier"]
+    conf["size_frac"] = conf["width"] / image_width
+    conf["image_height"] = image_height
+    return conf

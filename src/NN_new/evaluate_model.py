@@ -3,11 +3,8 @@ from .train_eval_common import *
 from tqdm import tqdm
 from scipy import interpolate
 from torch.utils.data import DataLoader
-
-conf = load_config("./NN_config.yaml", 512)
-device = conf["device"]
 model = None
-
+import torch as t
 
 def get_histogram(src, tgt, padding):
     global model
@@ -30,8 +27,8 @@ def eval_displacement(eval_model=None, model_path=None,
     :param loader:
     :return:
     """
-    global conf
-    global model
+    global conf, device, model
+    global device
     model, conf = get_model(model, model_path, eval_model, conf, padding)
     train_loader = loader
     model.eval()
@@ -77,9 +74,12 @@ def eval_displacement(eval_model=None, model_path=None,
         return abs_err / idx, valid * 100 / idx, histograms, results
 
 
-def NNeval_from_python(files, data_path, weights_file):
+def NNeval_from_python(files, data_path, weights_file, config=None):
     print("evaluating:" + str(weights_file))
     global conf
+    global device
+    conf = config
+    device = conf["device"]
     dataset, histograms = get_dataset(data_path, files, conf)
     loader = DataLoader(dataset, 1, shuffle=False)
     return eval_displacement(model_path=weights_file, loader=loader,

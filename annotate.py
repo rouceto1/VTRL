@@ -4,10 +4,10 @@ from python.general_paths import *
 
 
 def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
-             _weights_file, _GT_file, _cache2=None, use_cache=False, limit=None):
+             _weights_file, _GT_file, _cache2=None, conf=None):
     images = 143
-    if limit is not None:
-        images = limit
+    if conf["limit"] is not None:
+        images = conf["limit"]
         file_list = make_file_list([0], [0], range(1, images),
                                    _dataset_path, _evaluation_prefix, _evaluation_paths)
     else:
@@ -15,7 +15,7 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
                                    _dataset_path, _evaluation_prefix, _evaluation_paths)
 
     displacements, feature_count, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN, filetype_FM,
-                                                                   _weights_file, _cache2, use_cache)
+                                                                   _weights_file, _cache2, conf)
     annotations = []
     for i in range(len(displacements)):
         # if usefull_annotation(feature_count[i], histograms[i]):
@@ -45,5 +45,6 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
 
 
 if __name__ == "__main__":
+    config = load_config("NN_config_test.yaml", 512)
     annotate(dataset_path, evaluation_prefix, evaluation_paths,
-             weights_file, GT_file, cache2, use_cache=False, limit=10)
+             weights_file, GT_file, cache2, config)
