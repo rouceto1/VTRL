@@ -100,7 +100,7 @@ def compute_to_file(estimates, gt, dist):
         print("streak " + str(streak_out))
 
 
-def compute_with_plot(data, gt):
+def compute_with_plot(data, gt): ## TODO full redo of this...
     file_list, histogram_FM, histogram_NN, feature_count, displacement, gt_disp = load_data(data, gt)
     disp, line, line_integral, streak = compute(displacement, gt_disp)
     print("Results (disp,line,line_integral):")

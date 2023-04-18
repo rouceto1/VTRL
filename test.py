@@ -50,21 +50,21 @@ cache = os.path.join(dataset_path, feature_matcher_file)
 
 config = load_config("NN_config_test.yaml", 512)
 
-LIMIT = 5  # LIMIT allows only first 5-1 images to be evaluated from each season of gathereing
+#LIMIT = 5  # LIMIT allows only first 5-1 images to be evaluated from each season of gathereing
 # (there are 3 seasons) It is possible that less images are going to be given since not all pair are in the dataset
 if __name__ == "__main__":
     print("Annotation:")
-    #annotate(dataset_path, evaluation_prefix, evaluation_paths,
-    #weights_file, GT_file + "_test", cache2,conf=config)
+    annotate(dataset_path, evaluation_prefix, evaluation_paths,
+    weights_file, GT_file + "_test", cache2, conf=config)
     print("-------")
     print("Teaching:")
-    #teach(dataset_path, chosen_positions, weights_file + "_tests", cache, conf=config)
+    teach(dataset_path, chosen_positions, weights_file + "_tests", cache, conf=config)
     print("-------")
     print("Evaluation to file:")
     weights_eval = os.path.join(pwd, args.weights_folder) + "siam.pt"
-    #evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, GT_file,
-    #                 estimates_out + "_tests",
-    #                 cache2, config)
+    evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, GT_file,
+                     estimates_out + "_tests",
+                     cache2, config)
     print("-------")
     print("Grading from file:")
     grade_type(evaluation_prefix, "./tests", estimates_file=estimates_out + "_tests", _GT_file=GT_file + "_test")

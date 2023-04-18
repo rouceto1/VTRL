@@ -14,11 +14,11 @@ loss = BCEWithLogitsLoss()
 model = None
 
 def hard_negatives(batch, heatmaps):
-    if batch.shape[0] == conf["batch_size"] - 1:
-        num = int(conf["batch_size"] * conf["negative_frac"])
+    if batch.shape[0] == conf["batch_size_train"] - 1:
+        num = int(conf["batch_size_train"] * conf["negative_frac"])
         if num % 2 == 1:
             num -= 1
-        indices = t.tensor(np.random.choice(np.arange(0, conf["batch_size"]), num), device=device)
+        indices = t.tensor(np.random.choice(np.arange(0, conf["batch_size_train"]), num), device=device)
         heatmaps[indices, :] = 0.0
         tmp_t = t.clone(batch[indices[:num // 2]])
         batch[indices[:num // 2]] = batch[indices[num // 2:]]
@@ -50,9 +50,10 @@ def train_loop(epoch, train_loader, optimizer):
 
 def eval_loop(val_loader):
     global model
+    global conf
     model.eval()
     with t.no_grad():
-        mae, acc, _, _ = eval_displacement(eval_model=model, loader=val_loader, padding=conf["pad_teach"])
+        mae, acc, _, _ = eval_displacement(eval_model=model, loader=val_loader, conf=conf, padding=conf["pad_teach"])
     return mae
 
 
@@ -67,8 +68,8 @@ def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
 
     dataset, histograms = get_dataset(data_path, train_data, conf, training=True)
     val, train = t.utils.data.random_split(dataset, [int(0.05 * len(dataset)), int(0.95 * len(dataset)) + 1])
-    train_loader = DataLoader(train, conf["batch_size"], shuffle=True)
-    val_loader = DataLoader(val, 1, shuffle=False)
+    train_loader = DataLoader(train, conf["batch_size_train"], shuffle=True)
+    val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False)
     if conf["epochs"] % conf["eval_rate"] != 0:
         print("WARNING epochs and eval rate are not divisible")
     for epoch in range(LOAD_EPOCH, conf["epochs"]):

@@ -10,7 +10,7 @@ def get_histogram(src, tgt, padding):
     global model
     histogram = model(src, tgt, padding)  # , fourrier=True)
     std, mean = t.std_mean(histogram, dim=-1, keepdim=True)
-    if std == 0:
+    if any(std == 0):
         return t.softmax(histogram, dim=1)
     histogram = (histogram - mean) / std
     histogram = t.softmax(histogram, dim=1)
@@ -18,7 +18,7 @@ def get_histogram(src, tgt, padding):
 
 
 def eval_displacement(eval_model=None, model_path=None,
-                      loader=None, histograms=None, padding=None):
+                      loader=None, histograms=None, conf=None, padding=None):
     """
     :param model_path:
     :param histograms:
@@ -27,10 +27,10 @@ def eval_displacement(eval_model=None, model_path=None,
     :param loader:
     :return:
     """
-    global conf, device, model
-    global device
+    global model
     model, conf = get_model(model, model_path, eval_model, conf, padding)
     train_loader = loader
+    device = conf["device"]
     model.eval()
     with t.no_grad():
         abs_err = 0
@@ -52,8 +52,14 @@ def eval_displacement(eval_model=None, model_path=None,
                 gt = 0
             histogram = get_histogram(source, target, padding)
             shift_hist = histogram.cpu()
+            tmp_idx = 0
             if histograms is not None:  # only run this when in pure eval
-                histograms[idx, :] = shift_hist.cpu().numpy()
+                for hist in shift_hist:
+                    histograms[idx+tmp_idx, :] = hist.cpu().numpy()
+                    tmp_idx += 1
+            else:
+                for hist in shift_hist:
+                    tmp_idx += 1
             f = interpolate.interp1d(np.linspace(0, conf["width"], output_size), shift_hist, kind="cubic")
             interpolated = f(np.arange(conf["width"]))
             ret = -(np.argmax(interpolated) - conf["width"] / 2) / conf["width"]
@@ -66,7 +72,8 @@ def eval_displacement(eval_model=None, model_path=None,
             # if abs(ret - gt.numpy()[0]) < conf["tolerance"]:
             if abs(ret - gt) < conf["tolerance"]:
                 valid += 1
-            idx += 1
+            idx += tmp_idx
+
 
             if idx > conf["eval_limit"]:
                 break
@@ -81,9 +88,9 @@ def NNeval_from_python(files, data_path, weights_file, config=None):
     conf = config
     device = conf["device"]
     dataset, histograms = get_dataset(data_path, files, conf)
-    loader = DataLoader(dataset, 1, shuffle=False)
+    loader = DataLoader(dataset, conf["batch_size_eval"], shuffle=False)
     return eval_displacement(model_path=weights_file, loader=loader,
-                             histograms=histograms, padding=conf["pad_eval"])
+                             histograms=histograms, conf=conf, padding=conf["pad_eval"])
 
 
 if __name__ == '__main__':

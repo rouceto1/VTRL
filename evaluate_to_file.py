@@ -5,7 +5,7 @@ from python.general_paths import *
 
 
 def evaluate(_dataset_path, _evaluation_prefix, _evaluation_paths, _weights_file, _GT_file,
-             _cache2,conf):
+             _cache2, conf):
     # make file list against first images (original map)
     images = 143
     # TODO: limiting things on the file_tile list level. Code in multiple places could be substituted

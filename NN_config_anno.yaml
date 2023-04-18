@@ -2,7 +2,7 @@ name: siam #e siam_eu
 width: 512
 height: 324 #asi
 batch_size_eval: 1 #32
-batch_size_train: 2
+batch_size_train: 2 #32
 epochs: 1 #prolly indexes from 0! ALso prolly does not WORK
 lr: 4.5 #e4.1
 eval_rate: 1 #e3 ## should be whole divisor of epochs
@@ -20,7 +20,7 @@ eval_limit: 20000
 tolerance: 50
 use_cache: False
 save_cache: False
-limit: 5
+limit: null
 old: False
 train:
   help:

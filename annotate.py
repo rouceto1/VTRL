@@ -6,13 +6,12 @@ from python.general_paths import *
 def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
              _weights_file, _GT_file, _cache2=None, conf=None):
     images = 143
-    if conf["limit"] is not None:
+    if False:
         images = conf["limit"]
-        file_list = make_file_list([0], [0], range(1, images),
+        file_list = make_file_list_ai([0],  range(1, images),
                                    _dataset_path, _evaluation_prefix, _evaluation_paths)
     else:
-        file_list = make_file_list(range(7), [0], range(1, images),
-                                   _dataset_path, _evaluation_prefix, _evaluation_paths)
+        file_list = make_file_list_ai(range(8), range(1, images), _evaluation_prefix, _evaluation_paths)
 
     displacements, feature_count, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN, filetype_FM,
                                                                    _weights_file, _cache2, conf)
@@ -45,6 +44,11 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
 
 
 if __name__ == "__main__":
-    config = load_config("NN_config_test.yaml", 512)
+    weights_file = '/home/rouceto1/git/VTRL/weights/model_eunord.pt'
+    GT_file = 'model_eunord.pt_GT_.pickle'
+
+    evaluation_prefix = '/home/rouceto1/git/VTRL/datasets/strands_crop'
+    evaluation_paths = ['testing_Dec', 'testing_Feb', 'testing_Nov']
+    config = load_config("NN_config_anno.yaml", 512)
     annotate(dataset_path, evaluation_prefix, evaluation_paths,
-             weights_file, GT_file, cache2, config)
+             weights_file, GT_file, cache2, conf=config)

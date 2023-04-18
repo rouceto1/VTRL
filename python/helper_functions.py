@@ -4,13 +4,14 @@ import os
 import pickle as pickle
 import yaml
 import torch as t
+import itertools as it
 from pathlib import Path
 filetype_FM = ".bmp"
 filetype_NN = ".png"
 image_file_template = "place_%d/%05d"
 chosen_positions_file = "input.txt"
 feature_matcher_file = "FM_out.pickle"
-
+import glob
 
 # adds file extension to all files in the list
 def choose_proper_filetype(filetype, lst):
@@ -69,6 +70,18 @@ def make_file_list(places, targets, images, dataset_path, evaluation_prefix, eva
                 file_list2.append([file1, file2])
     return file_list2
 
+def make_file_list_ai(places, images, evaluation_prefix, evaluation_paths):
+    out = []
+    for place in places:
+        files = []
+        for subfolder in evaluation_paths:
+            for time in images:
+                file = os.path.join(evaluation_prefix, subfolder, image_file_template % (place, time))
+                if os.path.exists(os.path.join(evaluation_prefix, subfolder, image_file_template % (place, time))+".png"):
+                    files.append(file)
+        combinations = list(it.combinations(files, 2))
+        out.extend(combinations)
+    return out
 
 def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_combos=False, limit=None):
     #print("First file loaded")
