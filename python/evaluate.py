@@ -39,13 +39,14 @@ def fm_nn_eval(file_list, filetype_nn, filetype_fm, weights_file, cache_file, co
     fcount = np.zeros(count, dtype=np.int32)
     file_list = np.array(file_list)[:count]
 
-    if not os.path.exists(cache_file) or not conf["use_cache"]:
+    if not conf["use_cache"]:
         hist_nn, displacement = NN_eval(choose_proper_filetype(filetype_nn, file_list),
                                         weights_file,
                                         conf)
-        with open(cache_file, 'wb') as handle:
-            pickle.dump(hist_nn, handle)
-            print("evaluate making cache" + str(cache_file))
+        if conf["save_cache"]:
+            with open(cache_file, 'wb') as handle:
+                pickle.dump(hist_nn, handle)
+                print("evaluate making cache" + str(cache_file))
     else:
         print("evaluate reading cache" + str(cache_file))
         with open(cache_file, 'rb') as handle:

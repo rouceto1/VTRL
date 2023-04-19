@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from evaluate_to_file import evaluate_to_file
+from evaluate_to_file import evaluate_to_file, evaluate
 from teach import teach
 from annotate import annotate
 from python.grade_results import *
@@ -53,27 +53,29 @@ config = load_config("NN_config_test.yaml", 512)
 #LIMIT = 5  # LIMIT allows only first 5-1 images to be evaluated from each season of gathereing
 # (there are 3 seasons) It is possible that less images are going to be given since not all pair are in the dataset
 if __name__ == "__main__":
-    print("Annotation:")
-    annotate(dataset_path, evaluation_prefix, evaluation_paths,
-    weights_file, GT_file + "_test", cache2, conf=config)
-    print("-------")
+    #print("Annotation:")
+    #annotate(dataset_path, evaluation_prefix, evaluation_paths,
+    #weights_file, GT_file + "_test", cache2, conf=config)
+    #print("-------")
     print("Teaching:")
-    teach(dataset_path, chosen_positions, weights_file + "_tests", cache, conf=config)
+    weights_eval = os.path.join(pwd, args.weights_folder) + "siam_test.pt"
+    teach(dataset_path, chosen_positions, weights_eval, cache, conf=config)
     print("-------")
     print("Evaluation to file:")
-    weights_eval = os.path.join(pwd, args.weights_folder) + "siam.pt"
-    evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, GT_file,
-                     estimates_out + "_tests",
-                     cache2, config)
+
+    #evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, GT_file,
+    #                 estimates_out + "_tests",
+    #                 cache2, config)
     print("-------")
     print("Grading from file:")
-    grade_type(evaluation_prefix, "./tests", estimates_file=estimates_out + "_tests", _GT_file=GT_file + "_test")
+    #grade_type(evaluation_prefix, "./tests", estimates_file=estimates_out + "_tests", _GT_file=GT_file + "_test")
     print("-------")
     print("Evaluation straight:")
     # evaluate so it has the same results as GT (diff should be 0)
-    estimates = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, GT_file,
-                                 estimates_out + "_tests_gt",
-                                 cache2, config)
+    #estimates = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, GT_file,
+    #                             estimates_out + "_tests_gt",
+    #                             cache2, config)
     print("-------")
     print("Grading straight:")
-    grade_type(evaluation_prefix, "./tests", _GT_file=GT_file + "_test", estimates=estimates)
+    grade_type(evaluation_prefix, "./tests", _GT_file=GT_file + "_test", estimates=[evaluate(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, GT_file,
+                    cache2, config)])

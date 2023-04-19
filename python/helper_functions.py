@@ -6,12 +6,13 @@ import yaml
 import torch as t
 import itertools as it
 from pathlib import Path
+
 filetype_FM = ".bmp"
 filetype_NN = ".png"
 image_file_template = "place_%d/%05d"
 chosen_positions_file = "input.txt"
 feature_matcher_file = "FM_out.pickle"
-import glob
+
 
 # adds file extension to all files in the list
 def choose_proper_filetype(filetype, lst):
@@ -42,7 +43,8 @@ def read_gt_file(file_list, gt_exact_file):
             if second:
                 first = place in gt_single and time in gt_single
                 if first:
-                    # SOLVED: this adds more things than it shoudl. Prolly bad variable --SOLVED-- was isse with file list making
+                    # SOLVED: this adds more things than it shoudl. Prolly bad variable --SOLVED-- was isse with file
+                    # list making
                     gt_out.append(gt_single[0])
     return gt_out
 
@@ -70,21 +72,24 @@ def make_file_list(places, targets, images, dataset_path, evaluation_prefix, eva
                 file_list2.append([file1, file2])
     return file_list2
 
-def make_file_list_ai(places, images, evaluation_prefix, evaluation_paths):
+
+def make_file_list_annotation(places, images, evaluation_prefix, evaluation_paths):
     out = []
     for place in places:
         files = []
         for subfolder in evaluation_paths:
             for time in images:
                 file = os.path.join(evaluation_prefix, subfolder, image_file_template % (place, time))
-                if os.path.exists(os.path.join(evaluation_prefix, subfolder, image_file_template % (place, time))+".png"):
+                if os.path.exists(
+                        os.path.join(evaluation_prefix, subfolder, image_file_template % (place, time)) + ".png"):
                     files.append(file)
         combinations = list(it.combinations(files, 2))
         out.extend(combinations)
     return out
 
+
 def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_combos=False, limit=None):
-    #print("First file loaded")
+    # print("First file loaded")
     indexes = dict([(0, []), (1, []), (2, []), (3, []), (4, []), (5, []), (6, []), (7, [])])
     for i, value in enumerate(chosen_positions):
         if limit == i:
@@ -102,7 +107,7 @@ def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_co
             if os.path.exists(os.path.join(dataset_path, image_file_template % (value, i)) + filetype_fm):
                 indexes[value].extend([i])
 
-    #print("indexes Made")
+    # print("indexes Made")
     # make a combination list from all the chosen places
     combination_list = []
     added = []
@@ -128,8 +133,10 @@ def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_co
     file_list = np.array(file_list)
     return file_list
 
+
 def get_pad(crop):
     return (crop - 8) // 16
+
 
 def load_config(conf_path, image_width=512, image_height=384):
     conf = yaml.safe_load(Path(conf_path).read_text())

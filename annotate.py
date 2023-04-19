@@ -6,12 +6,12 @@ from python.general_paths import *
 def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
              _weights_file, _GT_file, _cache2=None, conf=None):
     images = 143
-    if False:
+    if conf["limit"] is not None:
         images = conf["limit"]
-        file_list = make_file_list_ai([0],  range(1, images),
+        file_list = make_file_list([0], [0], range(1, images),
                                    _dataset_path, _evaluation_prefix, _evaluation_paths)
     else:
-        file_list = make_file_list_ai(range(8), range(1, images), _evaluation_prefix, _evaluation_paths)
+        file_list = make_file_list_annotation(range(8), range(1, images), _evaluation_prefix, _evaluation_paths)
 
     displacements, feature_count, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN, filetype_FM,
                                                                    _weights_file, _cache2, conf)

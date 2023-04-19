@@ -97,7 +97,7 @@ float imageDisplacement( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<
     }else{
     displ = imageDisplacementUnsave(descriptors1, descriptors2, keypoints1, keypoints2, settings, inliers_matches_count, hist_out,inliers_matches, sortedHistogram);
   }
-  //#pragma omp ordered
+  #pragma omp ordered
       difference = displ + groundTruth;//((offsetX[ims+numLocations*a]-offsetX[ims+numLocations*b]));
   if (fabs(difference) > 35) fails++;
 
@@ -181,7 +181,7 @@ void evalOnFile(const char* f1, const char* f2, float &displacemnet, int &featur
 
 void evalOnFiles(const char ** filesFrom, const char ** filesTo, double ** histogram_in, double ** hist_out,double * gt, float *displacement, int *feature_count, int hist_width,int files){
   int fails = 0;
-  //#pragma omp parallel for ordered schedule(dynamic)
+  #pragma omp parallel for ordered schedule(dynamic)
   for (int i = 0; i < files; i++){
     //std::cout << i << " " << files <<std::endl; 
     vector<int> histogram_out;

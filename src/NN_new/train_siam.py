@@ -10,8 +10,10 @@ from .utils import batch_augmentations
 from .model import save_model_to_file
 from .train_eval_common import *
 import torch as t
+
 loss = BCEWithLogitsLoss()
 model = None
+
 
 def hard_negatives(batch, heatmaps):
     if batch.shape[0] == conf["batch_size_train"] - 1:
@@ -58,7 +60,6 @@ def eval_loop(val_loader):
 
 
 def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
-    LOAD_EPOCH = 0
     lowest_err = 9999999
     global model
     global conf
@@ -72,7 +73,7 @@ def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
     val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False)
     if conf["epochs"] % conf["eval_rate"] != 0:
         print("WARNING epochs and eval rate are not divisible")
-    for epoch in range(LOAD_EPOCH, conf["epochs"]):
+    for epoch in range(conf["epochs"]):
         if epoch % conf["eval_rate"] == 0:
             err = eval_loop(val_loader)
             if err < lowest_err:
@@ -80,7 +81,7 @@ def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
                 best_model = copy.deepcopy(model)
         train_loop(epoch, train_loader, optimizer)
 
-    save_model_to_file(best_model, conf["name"], lowest_err, optimizer)
+    save_model_to_file(best_model, model_path, lowest_err, optimizer)
 
 
 def NNteach_from_python(training_data, data_path, weights_file, config):

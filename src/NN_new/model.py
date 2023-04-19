@@ -194,13 +194,13 @@ def save_model(model, name, epoch, optimizer=None):
     print("Model saved to: " + "./results_" + name + "/model_" + str(epoch) + ".pt")
 
 
-def save_model_to_file(model, name, epoch, optimizer=None):
+def save_model_to_file(model, file_path, epoch, optimizer=None):
     t.save({
         'epoch': epoch,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict() if optimizer is not None else None
-    }, "./weights/" + name + ".pt")
-    print("Model saved to: " + "./weights/" + str(name) + ".pt")
+    }, file_path)
+    print("Model saved to: " + file_path)
 
 
 def load_model(model, path, optimizer=None):
@@ -212,23 +212,3 @@ def load_model(model, path, optimizer=None):
         return model, optimizer
     else:
         return model
-
-
-def jit_save(model, name, epoch, arb_in, args):
-    # save model arguments
-    filename = "./results_" + name + "/model.info"
-    if not os.path.exists(os.path.dirname(filename)):
-        try:
-            os.makedirs(os.path.dirname(filename))
-        except OSError as exc:  # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
-    with open(filename, "w") as f:
-        f.write(str(args))
-
-    # save actual model
-    t.jit.save(t.jit.trace(model, arb_in), "./results_" + name + "/model_" + str(epoch) + ".jit")
-
-
-def jit_load(path, device):
-    return t.jit.load(path, map_location=device)

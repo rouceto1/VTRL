@@ -4,14 +4,15 @@ import src.NN_new.train_siam as nn_train
 
 
 def teach(_dataset_path, _chosen_positions, _weights_file, _cache=None, conf=None):
-    if not os.path.exists(_cache) or not conf["use_cache"]:
+    if not conf["use_cache"]:
         file_list = make_combos_for_teaching(_chosen_positions, _dataset_path,
                                              filetype_FM, limit=conf["limit"]*10)
         #print("evaluating FM")
         files_with_displacement = fm_eval(file_list, filetype_FM)
-        with open(_cache, 'wb') as handle:
-            pickle.dump(files_with_displacement, handle)
-        print("teach making new cache " + _cache)
+        if conf["save_cache"] and _cache is not None:
+            with open(_cache, 'wb') as handle:
+                pickle.dump(files_with_displacement, handle)
+            print("teach making new cache " + _cache)
     else:
         print("teach reading cache " + _cache)
         with open(_cache, 'rb') as handle:

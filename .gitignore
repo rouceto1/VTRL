@@ -9,3 +9,4 @@ weights/
 *#*
 *.pkl
 build/
+experiments/*

@@ -4,8 +4,8 @@ from python.evaluate import *
 from python.general_paths import *
 
 
-def evaluate(_dataset_path, _evaluation_prefix, _evaluation_paths, _weights_file, _GT_file,
-             _cache2, conf):
+def evaluate(_dataset_path, _evaluation_prefix, _evaluation_paths, _weights_file, _GT_file=None,
+             _cache2=None, conf=None):
     # make file list against first images (original map)
     images = 143
     # TODO: limiting things on the file_tile list level. Code in multiple places could be substituted
@@ -14,8 +14,7 @@ def evaluate(_dataset_path, _evaluation_prefix, _evaluation_paths, _weights_file
         file_list = make_file_list([0], [0], range(1, images),
                                    _dataset_path, _evaluation_prefix, _evaluation_paths)
     else:
-        file_list = make_file_list(range(7), [0], range(1, images),
-                                   _dataset_path, _evaluation_prefix, _evaluation_paths)
+        file_list = make_file_list_annotation(range(8), range(1, images), _evaluation_prefix, _evaluation_paths)
 
     displacements, feature_count, histograms, hist_nn = fm_nn_eval(
         file_list, filetype_NN, filetype_FM, os.path.join(_dataset_path, _weights_file),
@@ -23,8 +22,8 @@ def evaluate(_dataset_path, _evaluation_prefix, _evaluation_paths, _weights_file
     return file_list, displacements, feature_count, histograms, hist_nn
 
 
-def evaluate_to_file(_dataset_path, _evaluation_prefix, _evaluation_paths, _weights_file, _GT_file, _estimates_out,
-                     _cache2, conf):
+def evaluate_to_file(_dataset_path, _evaluation_prefix, _evaluation_paths, _weights_file, _GT_file=None, _estimates_out=None,
+                     _cache2=None, conf=None):
     out = [evaluate(_dataset_path, _evaluation_prefix, _evaluation_paths, _weights_file, _GT_file,
                     _cache2, conf)]
     with open(_estimates_out, 'wb') as handle:
