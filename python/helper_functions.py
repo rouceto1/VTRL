@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import copy
 import os
@@ -115,26 +117,26 @@ def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=N
     # make a combination list from all the chosen places
     combination_list = []
     added = []
+    file_list = []
     if conf["all_combos"] is True:
         for key in indexes:
-            for val in indexes[key]:
-                for val2 in indexes[key]:
-                    if val != val2:
-                        if val2 not in added:
-                            combination_list.append([key, val, val2])
-                            added.append(val)
-                            #TODO: fix this shit
+            position = list(itertools.combinations(indexes[key],2))
+            combination_list.append(position)
+            for pose in position:
+                file1 = os.path.join(dataset_path, image_file_template % (key, pose[0]))
+                file2 = os.path.join(dataset_path, image_file_template % (key, pose[1]))
+                file_list.append([file1, file2])
     else:
         for key in indexes:
             for val in indexes[key]:
                 if not val == indexes[key][0]:
                     combination_list.append([key, indexes[key][0], val])
 
-    file_list = []
-    for combo in combination_list:
-        file1 = os.path.join(dataset_path, image_file_template % (combo[0], combo[1]))
-        file2 = os.path.join(dataset_path, image_file_template % (combo[0], combo[2]))
-        file_list.append([file1, file2])
+    if conf["all_combos"] is not True:
+        for combo in combination_list:
+            file1 = os.path.join(dataset_path, image_file_template % (combo[0], combo[1]))
+            file2 = os.path.join(dataset_path, image_file_template % (combo[0], combo[2]))
+            file_list.append([file1, file2])
     file_list = np.array(file_list)
     return file_list
 
