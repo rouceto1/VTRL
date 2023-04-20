@@ -6,7 +6,7 @@ import src.NN_new.train_siam as nn_train
 def teach(_dataset_path, _chosen_positions, _weights_file, _cache=None, conf=None):
     if not conf["use_cache"]:
         file_list = make_combos_for_teaching(_chosen_positions, _dataset_path,
-                                             filetype_FM, limit=conf["limit"]*10)
+                                             filetype_FM, conf=conf)
         #print("evaluating FM")
         files_with_displacement = fm_eval(file_list, filetype_FM)
         if conf["save_cache"] and _cache is not None:

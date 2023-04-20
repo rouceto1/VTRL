@@ -88,8 +88,12 @@ def make_file_list_annotation(places, images, evaluation_prefix, evaluation_path
     return out
 
 
-def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_combos=False, limit=None):
+def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_combos=False, conf=None):
     # print("First file loaded")
+    if conf["limit"] is not None:
+        limit = conf["limit"]*10
+    else:
+        limit = -1
     indexes = dict([(0, []), (1, []), (2, []), (3, []), (4, []), (5, []), (6, []), (7, [])])
     for i, value in enumerate(chosen_positions):
         if limit == i:

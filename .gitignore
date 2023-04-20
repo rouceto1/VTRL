@@ -10,3 +10,5 @@ weights/
 *.pkl
 build/
 experiments/*
+*.pickle
+
