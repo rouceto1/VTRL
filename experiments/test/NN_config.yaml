@@ -21,6 +21,7 @@ tolerance: 50
 use_cache: False
 save_cache: False
 limit: null
+all_combos: True
 old: False
 train:
   help:

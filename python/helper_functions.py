@@ -88,7 +88,7 @@ def make_file_list_annotation(places, images, evaluation_prefix, evaluation_path
     return out
 
 
-def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_combos=False, conf=None):
+def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=None):
     # print("First file loaded")
     if conf["limit"] is not None:
         limit = conf["limit"]*10
@@ -115,7 +115,7 @@ def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_co
     # make a combination list from all the chosen places
     combination_list = []
     added = []
-    if all_combos:
+    if conf["all_combos"] is True:
         for key in indexes:
             for val in indexes[key]:
                 for val2 in indexes[key]:
@@ -123,6 +123,7 @@ def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, all_co
                         if val2 not in added:
                             combination_list.append([key, val, val2])
                             added.append(val)
+                            #TODO: fix this shit
     else:
         for key in indexes:
             for val in indexes[key]:
