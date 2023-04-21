@@ -192,7 +192,7 @@ cv::Mat plotGraph(std::vector<double> & vals, int YRange[2], int gt, int estimat
     return image;
 }
 void progress_bar(int var, int max,int fails){
-  if (var%50 ==0){
+  if (var%500 ==0){
     float progress = float(var)/float(max);
     int barWidth = 30;
     std::cout << "[";
