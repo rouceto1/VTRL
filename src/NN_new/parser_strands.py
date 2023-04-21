@@ -110,7 +110,11 @@ class Strands(StrandsImgPairDataset):
         elif displac < 0:
             lower_bound = int(lower_bound - displac)
         # print("u  ", upper_bound, lower_bound, dspl, self.crop_width)
-        crop_center = random.randint(lower_bound, upper_bound)
+        try:
+            crop_center = random.randint(lower_bound, upper_bound)
+        except:
+            print(lower_bound, upper_bound)
+            print(displac)
         crop_start = int(crop_center - self.crop_width / 2)
         return img[:, :, crop_start:crop_start + self.crop_width], crop_start, img
 
