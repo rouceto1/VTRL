@@ -68,7 +68,8 @@ def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
     optimizer = AdamW(model.parameters(), lr=conf["lr"])
 
     dataset, histograms = get_dataset(data_path, train_data, conf, training=True)
-    val, train = t.utils.data.random_split(dataset, [int(0.05 * len(dataset)), int(0.95 * len(dataset))])
+    train_size = int(len(dataset) * 0.95)
+    val, train = t.utils.data.random_split(dataset, [len(dataset) - train_size, train_size])
     train_loader = DataLoader(train, conf["batch_size_train"], shuffle=True)
     val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False)
     if conf["epochs"] % conf["eval_rate"] != 0:
