@@ -37,7 +37,7 @@ dataset_path = os.path.join(pwd, args.dataset_path)
 evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
 evaluation_paths = args.evaluation_paths
 annotation_file = args.weights_file
-GT_file = annotation_file + args.file_out
+GT_file = os.path.join(evaluation_prefix,"GT.pickle")
 weights_file = os.path.join(pwd, args.weights_folder) + annotation_file
 weights_file2 = os.path.join(pwd, args.weights_folder) + args.weights_file2
 neural_network_file = annotation_file + "_NN_cache.pickle"
@@ -72,10 +72,9 @@ if __name__ == "__main__":
     print("-------")
     print("Evaluation straight:")
     # evaluate so it has the same results as GT (diff should be 0)
-    #estimates = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, GT_file,
-    #                             estimates_out + "_tests_gt",
-    #                             cache2, config)
+    estimates = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, GT_file,
+                                 estimates_out + "_tests_gt",
+                                 cache2, config)
     print("-------")
     print("Grading straight:")
-    grade_type(evaluation_prefix, "./tests", _GT_file=GT_file + "_test", estimates=[evaluate(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, GT_file,
-                    cache2, config)])
+    grade_type(evaluation_prefix, "./tests", _GT_file=GT_file, estimates=estimates)

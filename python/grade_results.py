@@ -89,7 +89,7 @@ def get_streak(disp):
 def compute_to_file(estimates, gt, dist):
     line_out = os.path.join(dist, "line.pkl")
     streak_out = os.path.join(dist, "streak.pkl")
-    #file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
+    # file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
 
     errors, line, line_integral, streak = compute(estimates, gt)
     with open(line_out, 'wb') as hand:
@@ -100,7 +100,7 @@ def compute_to_file(estimates, gt, dist):
         print("streak " + str(streak_out))
 
 
-def compute_with_plot(data, gt): ## TODO full redo of this...
+def compute_with_plot(data, gt):  # TODO full redo of this...
     file_list, histogram_FM, histogram_NN, feature_count, displacement, gt_disp = load_data(data, gt)
     disp, line, line_integral, streak = compute(displacement, gt_disp)
     print("Results (disp,line,line_integral):")
@@ -115,8 +115,8 @@ def compute_with_plot(data, gt): ## TODO full redo of this...
         for i in [0, 1]:
             add_img_to_plot(axarr[i], file_list[location][i])
         # print(file_list[location])
-        r1 = range(-630, 630, 1260 // 63)  ##for FM since it is using full imagees
-        r2 = range(-504, 504, 1008 // 63)  ##for NN since it is using reduced images
+        r1 = range(-630, 630, 1260 // 63)  #for FM since it is using full imagees
+        r2 = range(-504, 504, 1008 // 63)  #for NN since it is using reduced images
         axarr[2].axvline(x=gt_disp[location], ymin=0, ymax=1, c="b", ls="--")
         axarr[2].axvline(x=displacement[location], ymin=0, ymax=1, c="k", ls="--")
         axarr[2].plot(r1, histogram_FM[location] / max(histogram_FM[location]), c="r")
@@ -163,10 +163,10 @@ def get_integral_from_line(values, places=None):
     return total
 
 
-def grade_type( dest, estimates_file=None, _GT_file=None, estimates=None):
+def grade_type(dest, estimates_file=None, _GT_file=None, estimates=None):
     print("recieve offset estiamtes")
     if estimates is None:
-        print( "from " + str(estimates_file))
+        print("from " + str(estimates_file))
         with open(estimates_file, 'rb') as handle:
             estimates = pickle.load(handle)
     file_list, displacements, feature_count, histograms, hist_nn = estimates[0]
@@ -175,7 +175,7 @@ def grade_type( dest, estimates_file=None, _GT_file=None, estimates=None):
     gt = read_gt_file(file_list, _GT_file)
     print("loaded GT")
 
-    #SOLVED: redo the compute_to_file, the gt is already sorted to the data to compare it to
+    # SOLVED: redo the compute_to_file, the gt is already sorted to the data to compare it to
     compute_to_file(displacements, gt, dest)
 
 

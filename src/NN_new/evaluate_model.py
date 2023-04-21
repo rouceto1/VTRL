@@ -18,7 +18,7 @@ def get_histogram(src, tgt, padding):
 
 
 def eval_displacement(eval_model=None, model_path=None,
-                      loader=None, histograms=None, conf=None, padding=None):
+                      loader=None, histograms=None, conf=None, batch_size=1    ,padding=None):
     """
     :param model_path:
     :param histograms:
@@ -49,7 +49,8 @@ def eval_displacement(eval_model=None, model_path=None,
             else:
                 output_size = conf["output_size"] - 1
                 source, target = (batch[0].to(device)), (batch[2].to(device))
-                gt = 0
+                gt = [0] * batch_size
+
             histogram = get_histogram(source, target, padding)
             shift_hist = histogram.cpu()
             tmp_idx = 0
@@ -60,19 +61,22 @@ def eval_displacement(eval_model=None, model_path=None,
             else:
                 for hist in shift_hist:
                     tmp_idx += 1
-            f = interpolate.interp1d(np.linspace(0, conf["width"], output_size), shift_hist, kind="cubic")
-            interpolated = f(np.arange(conf["width"]))
-            ret = -(np.argmax(interpolated) - conf["width"] / 2) / conf["width"]
-            results.append(ret)
-            displac_mult = 1024 / conf["width"]  # TODO wtf is this magic
-            # tmp_err = (ret - gt.numpy()[0]) / displac_mult
-            tmp_err = (ret - gt) / displac_mult
-            abs_err += abs(tmp_err)
-            errors.append(tmp_err)
-            # if abs(ret - gt.numpy()[0]) < conf["tolerance"]:
-            if abs(ret - gt) < conf["tolerance"]:
-                valid += 1
-            idx += tmp_idx
+            for i, h in enumerate(shift_hist):
+                if type(gt) == int:
+                    gt_list = [gt]
+                else:
+                    gt_list = gt
+                f = interpolate.interp1d(np.linspace(0, conf["width"], output_size), h, kind="cubic")
+                interpolated = f(np.arange(conf["width"]))
+                ret = -(np.argmax(interpolated) - conf["width"] / 2) / conf["width"]
+                results.append(ret)
+                tmp_err = (ret - gt_list[i])
+                abs_err += abs(tmp_err)
+                errors.append(tmp_err)
+                # if abs(ret - gt.numpy()[0]) < conf["tolerance"]:
+                if abs(ret - gt_list[i]) < conf["tolerance"]:
+                    valid += 1
+                idx += 1
 
 
             if idx > conf["eval_limit"]:
@@ -90,7 +94,7 @@ def NNeval_from_python(files, data_path, weights_file, config=None):
     dataset, histograms = get_dataset(data_path, files, conf)
     loader = DataLoader(dataset, conf["batch_size_eval"], shuffle=False)
     return eval_displacement(model_path=weights_file, loader=loader,
-                             histograms=histograms, conf=conf, padding=conf["pad_eval"])
+                             histograms=histograms, conf=conf,batch_size=conf["batch_size_eval"], padding=conf["pad_eval"])
 
 
 if __name__ == '__main__':
