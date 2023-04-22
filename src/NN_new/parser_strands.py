@@ -5,7 +5,8 @@ import random
 import kornia as K
 import numpy as np
 import torchvision
-
+import cv2
+import torchvision.transforms as transforms
 
 class StrandsImgPairDataset(Dataset):
 
@@ -100,24 +101,34 @@ class Strands(StrandsImgPairDataset):
 
     def crop_img(self, img, displac):
         # lower and upper bound simoblise the MIDDLE of the possible crops
-        lower_bound = self.crop_width / 2
-        upper_bound = self.width - self.crop_width / 2
         if displac == 0:
-            pass
-            # lower_bound = 0
-            # upper_bound = self.width
+            lower_bound = self.crop_width / 2
+            upper_bound = self.width - self.crop_width / 2
         elif displac > 0:
-            upper_bound = int(upper_bound - displac)
+            lower_bound = self.crop_width / 2
+            upper_bound = self.width - self.crop_width/2 - displac
         elif displac < 0:
-            lower_bound = int(lower_bound - displac)
+            lower_bound = self.crop_width/2 + abs(displac)
+            upper_bound = self.width - self.crop_width / 2
         # print("u  ", upper_bound, lower_bound, dspl, self.crop_width)
         try:
             crop_center = random.randint(lower_bound, upper_bound)
         except:
+
+            self.plot_crop_bound(img, lower_bound, upper_bound, abs(displac / 2 - self.width / 2), displac)
             print(lower_bound, upper_bound)
             print(displac)
         crop_start = int(crop_center - self.crop_width / 2)
         return img[:, :, crop_start:crop_start + self.crop_width], crop_start, img
+
+    def plot_crop_bound(self,im,x1,x2,x3,x4):
+        image = im.numpy().transpose(1, 2, 0)
+        cv2.line(image, (int(x1), 0), (int(x1), 300), (255, 0, 0), 1)
+        cv2.line(image, (int(x2), 0), (int(x2), 300), (255, 255, 0), 1)
+        cv2.line(image, (int(x3), 0), (int(x3), 300), (255, 255, 255), 1)
+        #cv2.line(image, (int(x4), 0), (int(x4), 300), (255, 255, 255), 1)
+        cv2.imshow('image', image)
+        cv2.waitKey(0)
 
     def get_heatmap(self, crop_start):
         frac = self.width // self.fraction
