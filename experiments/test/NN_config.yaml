@@ -1,7 +1,7 @@
 name: siam #e siam_eu
 width: 512
 height: 324 #asi
-batch_size_eval: 20 #32
+batch_size_eval: 1 #32
 batch_size_train: 50
 epochs: 1 #prolly indexes from 0! Also prolly does not WORK
 lr: 4.5 #e4.1

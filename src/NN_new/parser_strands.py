@@ -27,12 +27,12 @@ class StrandsImgPairDataset(Dataset):
                 self.data.append((path1, path2))
         else:
 
-            self.disp = self.training_input[:, 2].astype(np.float32) * self.width
+            self.disp = int(self.training_input[:, 2].astype(np.float32) * self.width)
             self.fcount = self.training_input[:, 3].astype(np.float32).astype(np.int32)
             ##print (GT[0])
             qualifieds = np.array(self.fcount) >= max(
                 self.fcount) * 0.1  # TODO the 0.1 as a paratmeters .. arashes hardoced shit
-            qualifieds2 = abs(self.disp) < self.width - self.crop_width / 2
+            qualifieds2 = abs(self.disp) < int(self.width - self.crop_width / 2)
             self.nonzeros = np.count_nonzero(np.logical_and(qualifieds, qualifieds2))
             print("[+] {} images were qualified out of {} images with {} images not being aligned at all".format(
                 self.nonzeros, len(qualifieds), 0.1))
