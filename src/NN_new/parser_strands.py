@@ -27,7 +27,8 @@ class StrandsImgPairDataset(Dataset):
                 self.data.append((path1, path2))
         else:
 
-            self.disp = int(self.training_input[:, 2].astype(np.float32) * self.width)
+            temp = self.training_input[:, 2].astype(np.float32) * self.width
+            self.disp = temp.astype(int)
             self.fcount = self.training_input[:, 3].astype(np.float32).astype(np.int32)
             ##print (GT[0])
             qualifieds = np.array(self.fcount) >= max(
