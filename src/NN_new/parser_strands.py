@@ -112,9 +112,11 @@ class Strands(StrandsImgPairDataset):
             upper_bound = self.width - self.crop_width / 2
         # print("u  ", upper_bound, lower_bound, dspl, self.crop_width)
         try:
-            crop_center = random.randint(lower_bound, upper_bound)
+            if lower_bound>upper_bound:
+                crop_center = random.randint(upper_bound, lower_bound)
+            else:
+                crop_center = random.randint(lower_bound, upper_bound)
         except:
-
             self.plot_crop_bound(img, lower_bound, upper_bound, abs(displac / 2 - self.width / 2), displac)
             print(lower_bound, upper_bound)
             print(displac)
