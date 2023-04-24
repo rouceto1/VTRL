@@ -17,10 +17,8 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
                                                                    _weights_file, _cache2, conf)
     annotations = []
     for i in range(len(displacements)):
-        # if usefull_annotation(feature_count[i], histograms[i]):
-        #    out = [displacements[i]]
-        # else:
-        #    out = [float('nan')]
+        if not usefull_annotation(feature_count[i], histograms[i]):
+            continue
         out = [displacements[i], feature_count[i]]
         path = os.path.normpath(file_list[i][0])
         split_path = path.split(os.sep)
@@ -33,10 +31,6 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
         out.append(histograms[i])
         out.append(hist_nn[i])
         annotations.append(out)
-        # if not limit is None:
-        #    if limit == i:
-        #        print("stopping after " + str(i))
-        #        break
     gt_out = os.path.join(_evaluation_prefix, _GT_file)
     with open(gt_out, 'wb') as handle:
         pickle.dump(annotations, handle)
