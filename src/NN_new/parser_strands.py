@@ -34,7 +34,7 @@ class StrandsImgPairDataset(Dataset):
             ##print (GT[0])
             qualifieds = np.array(self.fcount) >= max(
                 self.fcount) * 0.1  # TODO the 0.1 as a paratmeters .. arashes hardoced shit
-            qualifieds2 = abs(self.disp) < int(self.width - self.crop_width / 2)
+            qualifieds2 = abs(self.disp) < int(self.width - self.crop_width)
             self.nonzeros = np.count_nonzero(np.logical_and(qualifieds, qualifieds2))
             print("[+] {} images were qualified out of {} images with {} images not being aligned at all".format(
                 self.nonzeros, len(qualifieds), 0.1))
@@ -111,15 +111,7 @@ class Strands(StrandsImgPairDataset):
             lower_bound = self.crop_width/2 + abs(displac)
             upper_bound = self.width - self.crop_width / 2
         # print("u  ", upper_bound, lower_bound, dspl, self.crop_width)
-        try:
-            if lower_bound>upper_bound:
-                crop_center = random.randint(upper_bound, lower_bound)
-            else:
-                crop_center = random.randint(lower_bound, upper_bound)
-        except:
-            self.plot_crop_bound(img, lower_bound, upper_bound, abs(displac / 2 - self.width / 2), displac)
-            print(lower_bound, upper_bound)
-            print(displac)
+        crop_center = random.randint(lower_bound, upper_bound)
         crop_start = int(crop_center - self.crop_width / 2)
         return img[:, :, crop_start:crop_start + self.crop_width], crop_start, img
 
