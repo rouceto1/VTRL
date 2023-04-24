@@ -29,30 +29,27 @@ def read_gt_file(file_list, gt_exact_file):
     with open(gt_exact_file, 'rb') as handle:
         gt_in = pickle.load(handle)
     gt_out = []
-    test = 0
     for file_pair in file_list:
-        test = test + 1
-        path = os.path.normpath(file_pair[0])
-        split_path = path.split(os.sep)
-        path2 = os.path.normpath(file_pair[1])
-        split_path2 = path2.split(os.sep)
+        split_path = os.path.normpath(file_pair[0]).split(os.sep)
+        split_path2 = os.path.normpath(file_pair[1]).split(os.sep)
         time = split_path[-1]
         place = split_path[-3] + "/" + split_path[-2]
         time2 = split_path2[-1]
         place2 = split_path2[-3] + "/" + split_path2[-2]
         for gt_single in gt_in:
-            second = place2 in gt_single and time2 in gt_single
+            second = (place2 is gt_single[2] and time2 is gt_single[3]) or (place2 is gt_single[4] and time2 is gt_single[5])
             if second:
-                first = place in gt_single and time in gt_single
-                if first:
-                    # SOLVED: this adds more things than it shoudl. Prolly bad variable --SOLVED-- was isse with file
-                    # list making
-                    gt_out.append(gt_single[0])
+                if (place is gt_single[2] and time is gt_single[3]) :
+                    break
+                    gt_out.append(gt_single[0]) #TODO this might be flipped
+                elif (place is gt_single[4] and time is gt_single[5]):
+                    gt_out.append(-gt_single[0])
+                    break
     return gt_out
 
 
 def usefull_annotation(feature_count, histogram):
-    if feature_count > 800:
+    if feature_count > 0:
         return True
     return False
 
@@ -116,13 +113,14 @@ def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=N
     # print("indexes Made")
     # make a combination list from all the chosen places
     combination_list = []
-    added = []
+    cout = 0
     file_list = []
     if conf["all_combos"] is True:
         for key in indexes:
             position = list(itertools.combinations(indexes[key],2))
             combination_list.append(position)
             for pose in position:
+                cout += 1
                 file1 = os.path.join(dataset_path, image_file_template % (key, pose[0]))
                 file2 = os.path.join(dataset_path, image_file_template % (key, pose[1]))
                 file_list.append([file1, file2])
@@ -131,13 +129,13 @@ def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=N
             for val in indexes[key]:
                 if not val == indexes[key][0]:
                     combination_list.append([key, indexes[key][0], val])
-
-    if conf["all_combos"] is not True:
         for combo in combination_list:
             file1 = os.path.join(dataset_path, image_file_template % (combo[0], combo[1]))
             file2 = os.path.join(dataset_path, image_file_template % (combo[0], combo[2]))
             file_list.append([file1, file2])
+
     file_list = np.array(file_list)
+    print("In total to teach on: " + str(cout))
     return file_list
 
 

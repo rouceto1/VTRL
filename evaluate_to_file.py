@@ -7,14 +7,11 @@ from python.general_paths import *
 def evaluate(_dataset_path, _evaluation_prefix, _evaluation_paths, _weights_file, _GT_file=None,
              _cache2=None, conf=None):
     # make file list against first images (original map)
-    images = 143
+    images = 150
     # TODO: limiting things on the file_tile list level. Code in multiple places could be substituted
     if conf["limit"] is not None:
         images = conf["limit"]
-        file_list = make_file_list([0], [0], range(1, images),
-                                   _dataset_path, _evaluation_prefix, _evaluation_paths)
-    else:
-        file_list = make_file_list_annotation(range(8), range(1, images), _evaluation_prefix, _evaluation_paths)
+    file_list = make_file_list_annotation(range(8), range(1, images), _evaluation_prefix, _evaluation_paths)
 
     displacements, feature_count, histograms, hist_nn = fm_nn_eval(
         file_list, filetype_NN, filetype_FM, os.path.join(_dataset_path, _weights_file),
