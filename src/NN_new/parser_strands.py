@@ -31,6 +31,7 @@ class StrandsImgPairDataset(Dataset):
             temp = self.training_input[:, 2].astype(np.float32) * self.width
             self.disp = temp.astype(int)
             self.fcount = self.training_input[:, 3].astype(np.float32).astype(np.int32)
+
             ##print (GT[0])
             qualifieds = np.array(self.fcount) >= max(
                 self.fcount) * 0.1  # TODO the 0.1 as a paratmeters .. arashes hardoced shit

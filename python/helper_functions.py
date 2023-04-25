@@ -46,8 +46,8 @@ def read_gt_file(file_list, gt_in):
     return gt_out
 
 
-def usefull_annotation(feature_count, histogram):
-    if feature_count > 0:
+def usefull_annotation(feature_count_l,feature_count_r, histogram):
+    if feature_count_l > 5 and feature_count_l > 5:
         return True
     return False
 
@@ -71,6 +71,7 @@ def make_file_list(places, targets, images, dataset_path, evaluation_prefix, eva
 
 def make_file_list_annotation(places, images, evaluation_prefix, evaluation_paths):
     out = []
+    count = 0
     for place in places:
         files = []
         for subfolder in evaluation_paths:
@@ -79,6 +80,7 @@ def make_file_list_annotation(places, images, evaluation_prefix, evaluation_path
                 if os.path.exists(
                         os.path.join(evaluation_prefix, subfolder, image_file_template % (place, time)) + ".png"):
                     files.append(file)
+                    count+=1
         combinations = list(it.combinations(files, 2))
         out.extend(combinations)
     return out

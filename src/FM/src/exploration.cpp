@@ -106,13 +106,15 @@ void init(int argc, char ** argv){
 int computeOnFiles(int ims, char (&f1)[1000],char (&f2)[1000] ,  float GT = 0.0, std::vector< vector <double> > *sortedHistogram = nullptr){
   //numPictures++;
   int displacement = 99999;
-  int features;
+  int features_l;
+    int features_r;
   if (METHOD !=ORIGINAL)
-    displacement = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features, numFails[numFeatures/100], hist_file_out,GT, sortedHistogram);
+    displacement = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features_l,features_r, numFails[numFeatures/100], hist_file_out,GT, sortedHistogram);
   else
-    displacement = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features, numFails[numFeatures/100], hist_file_out,GT);
+    displacement = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features_l,features_r, numFails[numFeatures/100], hist_file_out,GT);
   totalTests++;
-  numFeats[numFeatures/100]+=features;
+  numFeats[numFeatures/100]+=features_r;
+    numFeats[numFeatures/100]+=features_l;
   progress_bar(ims,numLocations,numFails[numFeatures/100]);
   return 0;
 }

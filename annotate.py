@@ -8,18 +8,18 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
     images = 143
     if conf["limit"] is not None:
         images = conf["limit"]
-        file_list = make_file_list([0], [0], range(1, images),
-                                   _dataset_path, _evaluation_prefix, _evaluation_paths)
-    else:
-        file_list = make_file_list_annotation(range(8), range(1, images), _evaluation_prefix, _evaluation_paths)
 
-    displacements, feature_count, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN, filetype_FM,
+    file_list = make_file_list_annotation(range(8), range(1, images), _evaluation_prefix, _evaluation_paths)
+
+    displacements, feature_count_l,feature_count_r, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN, filetype_FM,
                                                                    _weights_file, _cache2, conf)
     annotations = []
+    count = 0
     for i in range(len(displacements)):
-        if not usefull_annotation(feature_count[i], histograms[i]):
+        if not usefull_annotation(feature_count_l[i],feature_count_r[i], histograms[i]) or abs(displacements[i]) > 2:
+            print(feature_count_r[i],feature_count_l[i],displacements[i])
             continue
-        out = [displacements[i], feature_count[i]]
+        out = [displacements[i], feature_count_l[i],feature_count_r[i]]
         path = os.path.normpath(file_list[i][0])
         split_path = path.split(os.sep)
         out.append(split_path[-3] + "/" + split_path[-2])
@@ -31,7 +31,9 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
         out.append(histograms[i])
         out.append(hist_nn[i])
         annotations.append(out)
+        count +=1
     gt_out = os.path.join(_evaluation_prefix, _GT_file)
+    print("GT genreted with entries: " + str(count))
     with open(gt_out, 'wb') as handle:
         pickle.dump(annotations, handle)
         print("GT written " + str(gt_out))

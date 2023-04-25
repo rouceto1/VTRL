@@ -46,15 +46,15 @@ float imageDisplacementUnsave( cv::Mat descriptors1, cv::Mat descriptors2,std::v
 
 
 // one serves as a dummy if no output file or internal information is given. or both
-float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features, int  &fails,
+float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features_l,int &features_r, int  &fails,
                          float GT = 0.0,std::vector< vector <double> > *sortedHistogram = nullptr);
-float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features, int  &fails,
+float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features_l,int &features_r, int  &fails,
                          std::ofstream& hist_file_out, std::vector<int> &hist_out,
                          float GT = 0.0,std::vector< vector <double> > *sortedHistogram = nullptr);
-float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features, int  &fails,
+float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features_l,int &features_r, int  &fails,
                          std::vector<int> &hist_out,
                          float GT =0.0, std::vector< vector <double> > *sortedHistogram = nullptr);
-float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features, int  &fails,
+float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,int &features_l,int &features_r, int  &fails,
                          std::ofstream& hist_file_out,
                          float GT = 0.0,std::vector< vector <double> > *sortedHistogram= nullptr);
 
@@ -66,11 +66,11 @@ bool compare_response(cv::KeyPoint first, cv::KeyPoint second);
 struct settings default_config ();
 
 float pBindTst(int a);
-void teachOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count, int &fails);
-void evalOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count, int &fails, vector<double> histogram, float GT, vector<double> histogram_out);
+void teachOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count_l,int &feature_count_r, int &fails);
+void evalOnFile(const char* f1, const char* f2, float &displacemnet, int &feature_count_l,int &feature_count_r, int &fails, vector<double> histogram, float GT, vector<double> histogram_out);
 
 extern "C"{
-  void teachOnFiles(const char ** filesFrom, const char ** filesTo, float *displacement, int *feature_count, int files );
+  void teachOnFiles(const char ** filesFrom, const char ** filesTo, float *displacement, int *feature_count_l,int *feature_count_r, int files );
 
-  void evalOnFiles(const char ** filesFrom, const char ** filesTo,double ** histogram_in, double ** hist_out, double * gt, float *displacement, int *feature_count, int hist_width,int files);
+  void evalOnFiles(const char ** filesFrom, const char ** filesTo,double ** histogram_in, double ** hist_out, double * gt, float *displacement, int *feature_count_l,int *feature_count_r, int hist_width,int files);
 }

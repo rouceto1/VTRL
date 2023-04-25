@@ -28,11 +28,12 @@ lib.evalOnFiles.argtypes = [
     np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'),  # numpy float array
     np.ctypeslib.ndpointer(dtype=np.float32, ndim=1, flags='C_CONTIGUOUS'),
     np.ctypeslib.ndpointer(dtype=np.int32, ndim=1, flags='C_CONTIGUOUS'),
+    np.ctypeslib.ndpointer(dtype=np.int32, ndim=1, flags='C_CONTIGUOUS'),
     ct.c_int
 ]
 
 
-def cpp_teach_on_files(combinations, displacement, feature_count, length):
+def cpp_teach_on_files(combinations, displacement, feature_count_l, feature_count_r, length):
     """
     objective: to get displacement and feature counts on 'length' of given image pairs
     """
@@ -47,11 +48,12 @@ def cpp_teach_on_files(combinations, displacement, feature_count, length):
         c1[i] = param[0].encode('utf-8')
         c2[i] = param[1].encode('utf-8')
 
-    lib.teachOnFiles(c1, c2, displacement, feature_count, length)
-    return displacement, feature_count
+    lib.teachOnFiles(c1, c2, displacement, feature_count_l, feature_count_r, length)
+    return displacement, feature_count_l, feature_count_r
 
 
-def cpp_eval_on_files(combinations, displacement, feature_count, length, hist_in, hist_out, GT):
+##CAN RETURN LARGE DISPLACEMENTS IF NO MATCHES ARE FOUND. These should be in thousnends of percents larger then possible
+def cpp_eval_on_files(combinations, displacement, feature_count_l, feature_count_r, length, hist_in, hist_out, GT):
     """
     objective: to get displacement and feature counts on 'length' of given image pairs
     includes using given histogram(or probabilty distribution) to prefer specific alignments
@@ -74,5 +76,5 @@ def cpp_eval_on_files(combinations, displacement, feature_count, length, hist_in
           + np.arange(hist_out.shape[0]) * hist_out.strides[0]).astype(np.uintp)
     # length = ct.c_int(hist_in.shape[0])
     width = ct.c_int(hist_in.shape[1])
-    lib.evalOnFiles(c1, c2, hi, ho, GT, displacement, feature_count, width, length)
-    return displacement, feature_count, hist_out
+    lib.evalOnFiles(c1, c2, hi, ho, GT, displacement, feature_count_l, feature_count_r, width, length)
+    return displacement, feature_count_l, feature_count_r, hist_out
