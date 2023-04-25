@@ -25,9 +25,7 @@ def choose_proper_filetype(filetype, lst):
     return file_lst
 
 
-def read_gt_file(file_list, gt_exact_file):
-    with open(gt_exact_file, 'rb') as handle:
-        gt_in = pickle.load(handle)
+def read_gt_file(file_list, gt_in):
     gt_out = []
     for file_pair in file_list:
         split_path = os.path.normpath(file_pair[0]).split(os.sep)
@@ -40,8 +38,8 @@ def read_gt_file(file_list, gt_exact_file):
             second = (place2 is gt_single[2] and time2 is gt_single[3]) or (place2 is gt_single[4] and time2 is gt_single[5])
             if second:
                 if (place is gt_single[2] and time is gt_single[3]) :
+                    gt_out.append(gt_single[0])  # TODO this might be flipped
                     break
-                    gt_out.append(gt_single[0]) #TODO this might be flipped
                 elif (place is gt_single[4] and time is gt_single[5]):
                     gt_out.append(-gt_single[0])
                     break
@@ -55,7 +53,6 @@ def usefull_annotation(feature_count, histogram):
 
 
 # makes the file list from all images to all targets images
-
 def make_file_list(places, targets, images, dataset_path, evaluation_prefix, evaluation_paths):
     combination_list2 = []
     file_list2 = []
@@ -85,6 +82,15 @@ def make_file_list_annotation(places, images, evaluation_prefix, evaluation_path
         combinations = list(it.combinations(files, 2))
         out.extend(combinations)
     return out
+
+def make_file_list_from_gt(evaluation_prefix,gt):
+    file_list = []
+    for entry in gt:
+        set = []
+        set.append(os.path.join(evaluation_prefix, entry[2],entry[3]))
+        set.append(os.path.join(evaluation_prefix, entry[4], entry[5]))
+        file_list.append(set)
+    return file_list
 
 
 def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=None):

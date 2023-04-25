@@ -163,7 +163,7 @@ def get_integral_from_line(values, places=None):
     return total
 
 
-def grade_type(dest, estimates_file=None, _GT_file=None, estimates=None):
+def grade_type(dest, estimates_file=None, _GT=None, estimates=None):
     print("recieve offset estiamtes")
     if estimates is None:
         print("from " + str(estimates_file))
@@ -172,7 +172,7 @@ def grade_type(dest, estimates_file=None, _GT_file=None, estimates=None):
     file_list, displacements, feature_count, histograms, hist_nn = estimates[0]
 
     print("get gt for offset pairs")
-    gt = read_gt_file(file_list, _GT_file)
+    gt = read_gt_file(file_list, _GT)
     print("loaded GT")
 
     # SOLVED: redo the compute_to_file, the gt is already sorted to the data to compare it to

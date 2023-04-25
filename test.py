@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-from evaluate_to_file import evaluate_to_file, evaluate
-from teach import teach
-from annotate import annotate
+from evaluate_to_file import *
+from teach import *
+from annotate import *
 from python.grade_results import *
 import argparse
 from python.helper_functions import *
@@ -77,4 +77,6 @@ if __name__ == "__main__":
                                  cache2, config)
     print("-------")
     print("Grading straight:")
-    grade_type(evaluation_prefix, "./tests", _GT_file=GT_file, estimates=estimates)
+    with open(GT_file, 'rb') as handle:
+        gt_in = pickle.load(handle)
+    grade_type(evaluation_prefix, "./tests", _GT=gt_in, estimates=estimates)
