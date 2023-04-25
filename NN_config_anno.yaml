@@ -16,7 +16,7 @@ emb_channels: 16
 residual: 0 #e:0
 crops_multiplier: 1
 batching: crops_multiplier
-eval_limit: 20000
+eval_limit: 200000000000000000000
 tolerance: 50
 use_cache: False
 save_cache: False
