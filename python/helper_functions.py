@@ -89,8 +89,8 @@ def make_file_list_from_gt(evaluation_prefix,gt):
     file_list = []
     for entry in gt:
         set = []
-        set.append(os.path.join(evaluation_prefix, entry[2],entry[3]))
-        set.append(os.path.join(evaluation_prefix, entry[4], entry[5]))
+        set.append(os.path.join(evaluation_prefix, entry[3],entry[4]))
+        set.append(os.path.join(evaluation_prefix, entry[5], entry[6]))
         file_list.append(set)
     return file_list
 

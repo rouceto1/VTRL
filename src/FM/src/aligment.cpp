@@ -187,7 +187,7 @@ void evalOnFile(const char* f1, const char* f2, float &displacemnet, int &featur
 
 void evalOnFiles(const char ** filesFrom, const char ** filesTo, double ** histogram_in, double ** hist_out,double * gt, float *displacement, int *feature_count_left,int *feature_count_right, int hist_width,int files){
   int fails = 0;
-  //#pragma omp parallel for ordered schedule(dynamic)
+  #pragma omp parallel for ordered schedule(dynamic)
   for (int i = 0; i < files; i++){
     //std::cout << i << " " << files <<std::endl; 
     vector<int> histogram_out;
@@ -210,10 +210,7 @@ void evalOnFiles(const char ** filesFrom, const char ** filesTo, double ** histo
       feature_count_right[i]=fcount_r;
     displacement[i] = dsp;
     progress_bar(i,files,fails);
-    if (fcount_l > 5 and fcount_r > 5){
-        std::cout << dsp;
 
-    }
     //hist_out[i] = histogram_out.data();
 
     // std::cout << "ev: " << i  << " "<<  fcount << " "  <<dsp << std::endl;
@@ -225,7 +222,7 @@ void evalOnFiles(const char ** filesFrom, const char ** filesTo, double ** histo
 
 void teachOnFiles(const char ** filesFrom, const char ** filesTo, float *displacement,  int *feature_count_l,int *feature_count_r, int files ){
   int fails = 0;
-//#pragma omp parallel for ordered schedule(dynamic)
+#pragma omp parallel for ordered schedule(dynamic)
   for (int i = 0; i < files; i++){
     float dsp = 0;
     int fcount_l = 0;

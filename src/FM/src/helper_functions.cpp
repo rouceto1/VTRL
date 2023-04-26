@@ -212,7 +212,7 @@ void progress_bar(int var, int max,int fails){
       else if (i == pos) std::cout << ">";
       else std::cout << " ";
     }
-      std::cout << "] " << int(progress * 100.0) <<"% " << var << "/" << max <<  "  fails:"<< fails << "  Elapsed time: " << elapsed_minutes << "m " << elapsed_seconds << "s" << "  Remaining time: " << remaining_minutes << "m " << remaining_seconds << "s" << "\r";
+      std::cout << "] " << int(progress * 100.0) <<"% " << var << "/" << max <<  "  fails:"<< fails << " Elapsed: " << elapsed_minutes << ":" << elapsed_seconds << " Left: " << remaining_minutes << ":" << remaining_seconds << "\r";
       std::cout.flush();
   }
 }

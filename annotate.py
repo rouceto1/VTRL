@@ -15,9 +15,11 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
                                                                    _weights_file, _cache2, conf)
     annotations = []
     count = 0
+    err = 0
     for i in range(len(displacements)):
         if not usefull_annotation(feature_count_l[i],feature_count_r[i], histograms[i]) or abs(displacements[i]) > 2:
             print(feature_count_r[i],feature_count_l[i],displacements[i])
+            err+=1
             continue
         out = [displacements[i], feature_count_l[i],feature_count_r[i]]
         path = os.path.normpath(file_list[i][0])
@@ -33,17 +35,17 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
         annotations.append(out)
         count +=1
     gt_out = os.path.join(_evaluation_prefix, _GT_file)
-    print("GT genreted with entries: " + str(count))
+    print("GT genreted with entries: " + str(count) + " and failed: " + str(err))
     with open(gt_out, 'wb') as handle:
         pickle.dump(annotations, handle)
         print("GT written " + str(gt_out))
 
 
 if __name__ == "__main__":
-    weights_file = '/home/rouceto1/git/VTRL/weights/model_eunord.pt'
+    weights_file = './weights/model_eunord.pt'
     GT_file = 'model_eunord.pt_GT_.pickle'
 
-    evaluation_prefix = '/home/rouceto1/git/VTRL/datasets/strands_crop'
+    evaluation_prefix = './datasets/strands_crop'
     evaluation_paths = ['testing_Dec', 'testing_Feb', 'testing_Nov']
     config = load_config("NN_config_anno.yaml", 512)
     annotate(dataset_path, evaluation_prefix, evaluation_paths,
