@@ -2,6 +2,8 @@
 #include "helper_functions.hpp"
 
 /*for benchmarking purposes*/
+time_t start_time = time(0);
+time_t end_time;
 int getElapsedTime()
 {
   static int lastTime;
@@ -195,6 +197,14 @@ void progress_bar(int var, int max,int fails){
   if (var%500 ==0){
     float progress = float(var)/float(max);
     int barWidth = 30;
+      end_time = time(0);
+      double elapsed_time = difftime(end_time, start_time);
+      double remaining_time = elapsed_time * (max - var) / var;
+
+      int elapsed_minutes = int(elapsed_time / 60);
+      int elapsed_seconds = int(elapsed_time) % 60;
+      int remaining_minutes = int(remaining_time / 60);
+      int remaining_seconds = int(remaining_time) % 60;
     std::cout << "[";
     int pos = barWidth * progress;
     for (int i = 0; i < barWidth; ++i) {
@@ -202,8 +212,8 @@ void progress_bar(int var, int max,int fails){
       else if (i == pos) std::cout << ">";
       else std::cout << " ";
     }
-    std::cout << "] " << int(progress * 100.0) <<"% " << var << "/" << max <<  "  fails:"<< fails <<  "\r";
-    std::cout.flush();
+      std::cout << "] " << int(progress * 100.0) <<"% " << var << "/" << max <<  "  fails:"<< fails << "  Elapsed time: " << elapsed_minutes << "m " << elapsed_seconds << "s" << "  Remaining time: " << remaining_minutes << "m " << remaining_seconds << "s" << "\r";
+      std::cout.flush();
   }
 }
 
