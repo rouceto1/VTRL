@@ -43,7 +43,7 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
 
 if __name__ == "__main__":
     weights_file = './weights/model_eunord.pt'
-    GT_file = 'model_eunord.pt_GT_.pickle'
+    GT_file = 'GT.pickle'
 
     evaluation_prefix = './datasets/strands_crop'
     evaluation_paths = ['testing_Dec', 'testing_Feb', 'testing_Nov']
