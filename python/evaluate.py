@@ -38,6 +38,7 @@ def fm_nn_eval(file_list, filetype_nn, filetype_fm, weights_file, cache_file, co
     disp = np.zeros(count, dtype=np.float32)
     fcount_l = np.zeros(count, dtype=np.int32)
     fcount_r = np.zeros(count, dtype=np.int32)
+    matches = np.zeros(count, dtype=np.int32)
     file_list = np.array(file_list)[:count]
 
     if not conf["use_cache"]:
@@ -55,11 +56,11 @@ def fm_nn_eval(file_list, filetype_nn, filetype_fm, weights_file, cache_file, co
 
     hist_out = np.zeros((count, 63), dtype=np.float64)
     displacements, feature_count_l,feature_count_r, histograms = grief.cpp_eval_on_files(choose_proper_filetype(filetype_fm, file_list),
-                                                                       disp, fcount_l,fcount_r, count, hist_nn, hist_out, gt)
+                                                                       disp, fcount_l,fcount_r, matches, count, hist_nn, hist_out, gt)
     # FM_out = np.array([disp, fcount], dtype=np.float64).T
     # file_list = np.array(file_list)[:count]
     np.set_printoptions(threshold=sys.maxsize)
-    return displacements, feature_count_l,feature_count_r, histograms, hist_nn #DONE: add feature count_r
+    return displacements, feature_count_l,feature_count_r, matches, histograms, hist_nn #DONE: add feature count_r
 
 
 ##

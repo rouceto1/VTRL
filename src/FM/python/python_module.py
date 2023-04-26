@@ -29,6 +29,7 @@ lib.evalOnFiles.argtypes = [
     np.ctypeslib.ndpointer(dtype=np.float32, ndim=1, flags='C_CONTIGUOUS'),
     np.ctypeslib.ndpointer(dtype=np.int32, ndim=1, flags='C_CONTIGUOUS'),
     np.ctypeslib.ndpointer(dtype=np.int32, ndim=1, flags='C_CONTIGUOUS'),
+    np.ctypeslib.ndpointer(dtype=np.int32, ndim=1, flags='C_CONTIGUOUS'),
     ct.c_int
 ]
 
@@ -53,7 +54,7 @@ def cpp_teach_on_files(combinations, displacement, feature_count_l, feature_coun
 
 
 ##CAN RETURN LARGE DISPLACEMENTS IF NO MATCHES ARE FOUND. These should be in thousnends of percents larger then possible
-def cpp_eval_on_files(combinations, displacement, feature_count_l, feature_count_r, length, hist_in, hist_out, GT):
+def cpp_eval_on_files(combinations, displacement, feature_count_l, feature_count_r, matches, length, hist_in, hist_out, GT):
     """
     objective: to get displacement and feature counts on 'length' of given image pairs
     includes using given histogram(or probabilty distribution) to prefer specific alignments
@@ -76,5 +77,5 @@ def cpp_eval_on_files(combinations, displacement, feature_count_l, feature_count
           + np.arange(hist_out.shape[0]) * hist_out.strides[0]).astype(np.uintp)
     # length = ct.c_int(hist_in.shape[0])
     width = ct.c_int(hist_in.shape[1])
-    lib.evalOnFiles(c1, c2, hi, ho, GT, displacement, feature_count_l, feature_count_r, width, length)
+    lib.evalOnFiles(c1, c2, hi, ho, GT, displacement, feature_count_l, feature_count_r, matches, width, length)
     return displacement, feature_count_l, feature_count_r, hist_out

@@ -46,8 +46,8 @@ def read_gt_file(file_list, gt_in):
     return gt_out
 
 
-def usefull_annotation(feature_count_l,feature_count_r, histogram):
-    if feature_count_l > 50 and feature_count_r > 50:
+def usefull_annotation(feature_count_l,feature_count_r, matches, histogram):
+    if feature_count_l > 50 and feature_count_r > 50 and matches > 15:
         return True
     return False
 

@@ -108,10 +108,11 @@ int computeOnFiles(int ims, char (&f1)[1000],char (&f2)[1000] ,  float GT = 0.0,
   int displacement = 99999;
   int features_l;
     int features_r;
+    int inliers;
   if (METHOD !=ORIGINAL)
-    displacement = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features_l,features_r, numFails[numFeatures/100], hist_file_out,GT, sortedHistogram);
+    displacement = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features_l,features_r, inliers,numFails[numFeatures/100], hist_file_out,GT, sortedHistogram);
   else
-    displacement = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features_l,features_r, numFails[numFeatures/100], hist_file_out,GT);
+    displacement = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features_l,features_r, inliers,numFails[numFeatures/100], hist_file_out,GT);
   totalTests++;
   numFeats[numFeatures/100]+=features_r;
     numFeats[numFeatures/100]+=features_l;

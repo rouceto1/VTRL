@@ -11,17 +11,20 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
 
     file_list = make_file_list_annotation(range(8), range(1, images), _evaluation_prefix, _evaluation_paths)
 
-    displacements, feature_count_l,feature_count_r, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN, filetype_FM,
-                                                                   _weights_file, _cache2, conf)
+    displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN,
+                                                                                               filetype_FM,
+                                                                                               _weights_file, _cache2,
+                                                                                               conf)
     annotations = []
     count = 0
     err = 0
     for i in range(len(displacements)):
-        if not usefull_annotation(feature_count_l[i],feature_count_r[i], histograms[i]) or abs(displacements[i]) > 2:
-            print(feature_count_r[i],feature_count_l[i],displacements[i])
-            err+=1
+        if not usefull_annotation(feature_count_l[i], feature_count_r[i], matches[i], histograms[i]) or abs(
+                displacements[i]) > 2:
+            print(feature_count_r[i], feature_count_l[i], matches[i], displacements[i])
+            err += 1
             continue
-        out = [displacements[i], feature_count_l[i],feature_count_r[i]]
+        out = [displacements[i], feature_count_l[i], feature_count_r[i], matches[i]]
         path = os.path.normpath(file_list[i][0])
         split_path = path.split(os.sep)
         out.append(split_path[-3] + "/" + split_path[-2])
@@ -33,7 +36,7 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
         out.append(histograms[i])
         out.append(hist_nn[i])
         annotations.append(out)
-        count +=1
+        count += 1
     gt_out = os.path.join(_evaluation_prefix, _GT_file)
     print("GT genreted with entries: " + str(count) + " and failed: " + str(err))
     with open(gt_out, 'wb') as handle:
