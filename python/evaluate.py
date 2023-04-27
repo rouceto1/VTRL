@@ -78,8 +78,9 @@ def fm_eval(file_list, filetype_fm, limit=None):
     disp = np.zeros(count, dtype=np.float32)
     fcount_l = np.zeros(count, dtype=np.int32)
     fcount_r = np.zeros(count, dtype=np.int32)
+    matches = np.zeros(count, dtype=np.int32)
     grief.cpp_teach_on_files(choose_proper_filetype(filetype_fm, file_list),
-                             disp, fcount_l,fcount_r, count)
+                             disp, fcount_l,fcount_r, matches, count)
     fm_out = np.array([disp, fcount_l, fcount_r], dtype=np.float32).T
     # file_list.append(disp)
     file_list = np.array(file_list)[:count]

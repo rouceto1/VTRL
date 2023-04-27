@@ -17,6 +17,8 @@ lib.teachOnFiles.argtypes = [
     ct.POINTER(ct.c_char_p),  # cosnt char **
     np.ctypeslib.ndpointer(dtype=np.float32, ndim=1, flags='C_CONTIGUOUS'),  # numpy float array
     np.ctypeslib.ndpointer(dtype=np.int32, ndim=1, flags='C_CONTIGUOUS'),
+    np.ctypeslib.ndpointer(dtype=np.int32, ndim=1, flags='C_CONTIGUOUS'),
+    np.ctypeslib.ndpointer(dtype=np.int32, ndim=1, flags='C_CONTIGUOUS'),
     ct.c_int
 ]
 lib.evalOnFiles.restype = None
@@ -34,7 +36,7 @@ lib.evalOnFiles.argtypes = [
 ]
 
 
-def cpp_teach_on_files(combinations, displacement, feature_count_l, feature_count_r, length):
+def cpp_teach_on_files(combinations, displacement, feature_count_l, feature_count_r, matches, length):
     """
     objective: to get displacement and feature counts on 'length' of given image pairs
     """
@@ -49,7 +51,7 @@ def cpp_teach_on_files(combinations, displacement, feature_count_l, feature_coun
         c1[i] = param[0].encode('utf-8')
         c2[i] = param[1].encode('utf-8')
 
-    lib.teachOnFiles(c1, c2, displacement, feature_count_l, feature_count_r, length)
+    lib.teachOnFiles(c1, c2, displacement, feature_count_l, feature_count_r, matches, length)
     return displacement, feature_count_l, feature_count_r
 
 
