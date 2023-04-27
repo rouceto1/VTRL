@@ -7,7 +7,7 @@ from python.general_paths import *
 # TODO: remove this function
 def evaluate(_dataset_path, _weights_file, _evaluation_prefix=None, _evaluation_paths=None, file_list=None,
              _cache2=None, conf=None):
-    displacements, feature_count_l,feature_count_r, matcehs, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN, filetype_FM,
+    displacements, feature_count_l,feature_count_r, matches, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN, filetype_FM,
                                                                    os.path.join(_dataset_path, _weights_file),
                                                                    _cache2, conf=conf)
     return file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn

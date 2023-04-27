@@ -35,19 +35,19 @@ def read_gt_file(file_list, gt_in):
         time2 = split_path2[-1]
         place2 = split_path2[-3] + "/" + split_path2[-2]
         for gt_single in gt_in:
-            second = (place2 is gt_single[2] and time2 is gt_single[3]) or (place2 is gt_single[4] and time2 is gt_single[5])
+            second = (place2 == gt_single[4] and time2 == gt_single[5]) or (place2 == gt_single[6] and time2 == gt_single[7])
             if second:
-                if (place is gt_single[2] and time is gt_single[3]) :
+                if (place == gt_single[4] and time == gt_single[5]) :
                     gt_out.append(gt_single[0])  # TODO this might be flipped
                     break
-                elif (place is gt_single[4] and time is gt_single[5]):
+                elif (place == gt_single[6] and time == gt_single[7]):
                     gt_out.append(-gt_single[0])
                     break
     return gt_out
 
 
 def usefull_annotation(feature_count_l,feature_count_r, matches, histogram):
-    if feature_count_l > 50 and feature_count_r > 50 and matches > 15:
+    if matches > 5:
         return True
     return False
 
@@ -89,8 +89,8 @@ def make_file_list_from_gt(evaluation_prefix,gt):
     file_list = []
     for entry in gt:
         set = []
-        set.append(os.path.join(evaluation_prefix, entry[3],entry[4]))
-        set.append(os.path.join(evaluation_prefix, entry[5], entry[6]))
+        set.append(os.path.join(evaluation_prefix, entry[4],entry[5]))
+        set.append(os.path.join(evaluation_prefix, entry[6], entry[7]))
         file_list.append(set)
     return file_list
 

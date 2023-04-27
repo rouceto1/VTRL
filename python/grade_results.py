@@ -130,7 +130,6 @@ def compute_with_plot(data, gt):  # TODO full redo of this...
 
 def compute(displacement, gt):
     print("^^^^^^ ---- this should work")
-
     disp = displacement - gt
     plt.plot(disp)
     plt.show()
@@ -169,7 +168,7 @@ def grade_type(dest, estimates_file=None, _GT=None, estimates=None):
         print("from " + str(estimates_file))
         with open(estimates_file, 'rb') as handle:
             estimates = pickle.load(handle)
-    file_list, displacements, feature_count_l, feature_count_r, histograms, hist_nn = estimates[0]
+    file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = estimates[0]
 
     print("get gt for offset pairs")
     gt = read_gt_file(file_list, _GT)

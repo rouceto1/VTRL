@@ -41,9 +41,9 @@ config = load_config(os.path.join(experiments_path, "NN_config.yaml"), 512)
 
 if __name__ == "__main__":
     print("Teaching:")
-    #file_list_teach = teach(dataset_path, chosen_positions, weights_eval, conf=config)
-    #estimates_grade = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval,
-    #                                   _estimates_out=estimates_train_out, conf=config)
+    file_list_teach = teach(dataset_path, chosen_positions, weights_eval, conf=config)
+    estimates_grade = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval,
+                                       _estimates_out=estimates_train_out, conf=config)
     print("-------")
     print("Grading:")
     # evaluate so it has the same results as GT (diff should be 0)
