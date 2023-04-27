@@ -86,7 +86,7 @@ def get_streak(disp):
     return streak
 
 
-def compute_to_file(estimates, gt, dist):
+def compute_to_file(estimates, gt, matches, dist):
     line_out = os.path.join(dist, "line.pkl")
     streak_out = os.path.join(dist, "streak.pkl")
     # file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
@@ -127,15 +127,23 @@ def compute_with_plot(data, gt):  # TODO full redo of this...
         plt.close()
     return line, line_integral
 
+def filter_unsecusfull_matching(disp,gt,threshold):
+    count = sum(x > threshold for x in disp)
+    #disp[abs(disp) > threshold] = 0
+    disp_out = disp[(abs(disp) <= threshold) ]
+    gt = gt[(abs(disp) <= threshold) ]
+    return disp_out,gt, count
 
 def compute(displacement, gt):
     print("^^^^^^ ---- this should work")
+    displacement ,gt, count = filter_unsecusfull_matching(displacement,np.array(gt),1500)
     disp = displacement - gt
     plt.plot(disp)
     plt.show()
     print(displacement)
     print(gt)
     print(disp)
+    print (count)
     # TODO gt same as estiamtes
     line = compute_AC_curve(filter_to_max(disp, 500))
     line_integral = get_integral_from_line(line[0], line[1])
@@ -175,7 +183,7 @@ def grade_type(dest, estimates_file=None, _GT=None, estimates=None):
     print("loaded GT")
 
     # SOLVED: redo the compute_to_file, the gt is already sorted to the data to compare it to
-    compute_to_file(displacements, gt, dest)
+    compute_to_file(displacements, gt,matches, dest)
 
 
 if __name__ == "__main__":
