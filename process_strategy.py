@@ -56,4 +56,4 @@ if __name__ == "__main__":
     print("Grading straight:")
     with open(GT_file, 'rb') as handle:
         gt_in = pickle.load(handle)
-    grade_type(experiments_path, _GT=gt_in, estimates=estimates)
+    grade_type(experiments_path, chosen_positions, _GT=gt_in, estimates=estimates)
