@@ -32,23 +32,24 @@ evaluation_paths = args.evaluation_paths
 evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
 
 GT_file = os.path.join(evaluation_prefix, "GT.pickle")
-experiments_path = os.path.join(pwd, "experiments/test")
-chosen_positions = np.loadtxt(os.path.join(experiments_path, "input.txt"), int)
-weights_eval = os.path.join(experiments_path, "weights.pt")
-estimates_grade_out = os.path.join(experiments_path, "estimates.pickle")
-estimates_train_out = os.path.join(experiments_path, "train.pickle")
-config = load_config(os.path.join(experiments_path, "NN_config.yaml"), 512)
+paths = ["one", "two","three","four","five","six","seven","eight"]
+for exp in paths:
+    experiments_path = os.path.join(pwd, "experiments",exp)
+    chosen_positions = np.loadtxt(os.path.join(experiments_path, "input.txt"), int)
+    weights_eval = os.path.join(experiments_path, "weights.pt")
+    estimates_grade_out = os.path.join(experiments_path, "estimates.pickle")
+    estimates_train_out = os.path.join(experiments_path, "train.pickle")
+    config = load_config(os.path.join(experiments_path, "NN_config.yaml"), 512)
 
-if __name__ == "__main__":
     print("Teaching:")
     file_list_teach = teach(dataset_path, chosen_positions, weights_eval, conf=config)
     estimates_grade = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval,
                                        _estimates_out=estimates_train_out, conf=config)
-    print("-------")
-    print("Grading:")
+    #print("-------")
+    #print("Grading:")
     # evaluate so it has the same results as GT (diff should be 0)
-    with open(GT_file, 'rb') as handle:
-        gt_in = pickle.load(handle)
-    estimates_grade = evaluate_for_GT(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, _GT=gt_in,
-                                      _estimates_out=estimates_grade_out, conf=config)
-    grade_type(experiments_path, _GT=gt_in, estimates=estimates_grade)
+    #with open(GT_file, 'rb') as handle:
+    #    gt_in = pickle.load(handle)
+    #estimates_grade = evaluate_for_GT(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, _GT=gt_in,
+    #                                  _estimates_out=estimates_grade_out, conf=config)
+    #grade_type(experiments_path, _GT=gt_in, estimates=estimates_grade)
