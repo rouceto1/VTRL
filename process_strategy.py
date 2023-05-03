@@ -31,29 +31,30 @@ dataset_path = os.path.join(pwd, args.dataset_path)
 evaluation_paths = args.evaluation_paths
 evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
 
-GT_file = os.path.join(evaluation_prefix,"GT.pickle")
-experiments_path = os.path.join(pwd, "experiments/test")
-chosen_positions = np.loadtxt(os.path.join(experiments_path, "input.txt"), int)
-weights_eval = os.path.join(experiments_path, "weights.pt")
-estimates_out = os.path.join(experiments_path, "estimates.pickle")
-config = load_config( os.path.join(experiments_path,"NN_config.yaml"), 512)
+GT_file = os.path.join(evaluation_prefix, "GT.pickle")
 
-#LIMIT = 5  # LIMIT allows only first 5-1 images to be evaluated from each season of gathereing
-# (there are 3 seasons) It is possible that less images are going to be given since not all pair are in the dataset
+def process(paths,REDO=False):
+    estimates_grade = None
+    for exp in paths:
+        print(exp)
+        experiments_path = os.path.join(pwd, "experiments",exp)
+        chosen_positions = np.loadtxt(os.path.join(experiments_path, "input.txt"), int)
+        weights_eval = os.path.join(experiments_path, "weights.pt")
+        estimates_grade_out = os.path.join(experiments_path, "estimates.pickle")
+        estimates_train_out = os.path.join(experiments_path, "train.pickle")
+        config = load_config(os.path.join(experiments_path, "NN_config.yaml"), 512)
+        if not os.path.exists(weights_eval) or REDO:
+            file_list_teach = teach(dataset_path, chosen_positions, weights_eval, conf=config)
+        if not os.path.exists(estimates_train_out) or REDO:
+            estimates_grade = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval,
+                                           _estimates_out=estimates_train_out, conf=config)
+        if not os.path.exists(estimates_grade_out) or REDO:
+            with open(GT_file, 'rb') as handle:
+                gt_in = pickle.load(handle)
+            estimates_grade = evaluate_for_GT(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, _GT=gt_in,
+                                          _estimates_out=estimates_grade_out, conf=config)
+        if not os.path.exists(os.path.join(experiments_path, "input.png")) or REDO:
+            grade_type(experiments_path, _GT=gt_in,estimates_file=estimates_grade_out, estimates=estimates_grade)
 if __name__ == "__main__":
-    print("Teaching:")
-    file_list_teach = teach(dataset_path, chosen_positions, weights_eval, conf=config)
-    estimates = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval,
-                                 _estimates_out=estimates_out,
-                                  conf=config)
-    print("-------")
-    print("Evaluation straight:")
-    # evaluate so it has the same results as GT (diff should be 0)
-    estimates = evaluate_for_GT(dataset_path, evaluation_prefix, evaluation_paths, weights_eval, _GT=gt_in,
-                                 _estimates_out=estimates_out,
-                                  conf=config)
-    print("-------")
-    print("Grading straight:")
-    with open(GT_file, 'rb') as handle:
-        gt_in = pickle.load(handle)
-    grade_type(experiments_path, chosen_positions, _GT=gt_in, estimates=estimates)
+    REDO = True
+    process(["test"],REDO)
