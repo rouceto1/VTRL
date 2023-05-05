@@ -47,7 +47,7 @@ def get_streak(disp):
         poses.append(i / 100)
         for dis in abs(disp):
             if dis < i / 100.0:
-                temp += 1 / 100
+                temp += 1 / len(disp)
             else:
                 if temp > length:
                     length = temp
@@ -107,10 +107,9 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     plot1 = plt.subplot2grid((2, 2), (0, 0), colspan=1)
     plot2 = plt.subplot2grid((2, 2), (0, 1), rowspan=1, colspan=1)
     plot3 = plt.subplot2grid((2, 2), (1, 0), colspan=2)
-
-    plot1.plot(disp, label='diff')
-    plot1.plot(displacement_filtered, label='displacement')
-    plot1.plot(gt_filtered, label='gt')
+    plot1.plot(disp, label='diff', linewidth=0.2)
+    plot1.plot(displacement_filtered, label='displacement', linewidth=0.2)
+    plot1.plot(gt_filtered, label='gt', linewidth=0.2)
     plot1.legend()
     plot1.set_title("raw displacements")
 
@@ -128,7 +127,7 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     # plot3.ylabel("Place visited", fontsize=18)
     # plot3.xlabel("Timestamp [s]", fontsize=18)
     plt.tight_layout()
-    plt.savefig(os.path.join(save, "input.png"))
+    plt.savefig(os.path.join(save, "input.png"),dpi=600)
     plt.show()
 
 

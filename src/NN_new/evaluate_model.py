@@ -92,7 +92,7 @@ def NNeval_from_python(files, data_path, weights_file, config=None):
     conf = config
     device = conf["device"]
     dataset, histograms = get_dataset(data_path, files, conf)
-    loader = DataLoader(dataset, conf["batch_size_eval"], shuffle=False)
+    loader = DataLoader(dataset, conf["batch_size_eval"], shuffle=False, pin_memory=True, num_workers=10)
     return eval_displacement(model_path=weights_file, loader=loader,
                              histograms=histograms, conf=conf,batch_size=conf["batch_size_eval"], padding=conf["pad_eval"])
 

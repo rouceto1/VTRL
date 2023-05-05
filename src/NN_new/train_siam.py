@@ -70,8 +70,8 @@ def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
     dataset, histograms = get_dataset(data_path, train_data, conf, training=True)
     train_size = int(len(dataset) * 0.95)
     val, train = t.utils.data.random_split(dataset, [len(dataset) - train_size, train_size])
-    train_loader = DataLoader(train, conf["batch_size_train"], shuffle=True)
-    val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False)
+    train_loader = DataLoader(train, conf["batch_size_train"], shuffle=True,pin_memory=True,num_workers=10)
+    val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False,pin_memory=True,num_workers=10)
     if conf["epochs"] % conf["eval_rate"] != 0:
         print("WARNING epochs and eval rate are not divisible")
     for epoch in range(conf["epochs"]):

@@ -27,17 +27,15 @@ def choose_proper_filetype(filetype, lst):
     return file_lst
 
 def read_gt_file(file_list, gt_in):
-    print("a")
     files = pd.DataFrame.from_records(file_list, columns=["A", "B"])
     files[["A_month", "A_place", "A_time"]] = files.A.str.split("/", expand=True).iloc[:, -3:]
     files[["B_month", "B_place", "B_time"]] = files.B.str.split("/", expand=True).iloc[:, -3:]
     files.drop(["A", "B"], axis="columns", inplace=True)
-    for c in tqdm(files.columns):
+    for c in files.columns:
         files[c] = files[c].astype("category")
         files[c] = files[c].cat.as_ordered()
     files = files.reset_index()
     files = files.set_index(list(files.columns[1:]))
-    print("b")
     gt = pd.DataFrame.from_records(gt_in)
     gt = gt.iloc[:, [0, 4, 5, 6, 7]]
     gt.columns=["displacement", "A_date", "A_time", "B_date", "B_time"]
@@ -45,7 +43,6 @@ def read_gt_file(file_list, gt_in):
     #gt["B_time"] = gt.B_time + ".png"
     gt[["A_month", "A_place"]] = gt.A_date.str.split("/", expand=True)
     gt[["B_month", "B_place"]] = gt.B_date.str.split("/", expand=True)
-    print("c")
     new_ind = [f"{pic}_{key}" for pic in ["A", "B"] for key in ["month", "place", "time"]]
     for c in new_ind:
         gt[c] = gt[c].astype("category")
