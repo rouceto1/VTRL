@@ -8,6 +8,7 @@ import yaml
 import torch as t
 import itertools as it
 from pathlib import Path
+from tqdm import tqdm
 
 filetype_FM = ".bmp"
 filetype_NN = ".png"
@@ -27,7 +28,7 @@ def choose_proper_filetype(filetype, lst):
 
 def read_gt_file(file_list, gt_in):
     gt_out = []
-    for file_pair in file_list:
+    for file_pair in tqdm(file_list):
         split_path = os.path.normpath(file_pair[0]).split(os.sep)
         split_path2 = os.path.normpath(file_pair[1]).split(os.sep)
         time = split_path[-1]
