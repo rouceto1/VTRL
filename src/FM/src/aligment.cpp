@@ -101,7 +101,7 @@ float imageDisplacement( cv::Mat descriptors1, cv::Mat descriptors2,std::vector<
   }
 
   //std::cout<< displ<< std::endl;
-  #pragma omp ordered
+    //#pragma omp ordered
       difference = displ + groundTruth;//((offsetX[ims+numLocations*a]-offsetX[ims+numLocations*b]));
   if (fabs(difference) > 35) fails++;
 
@@ -210,6 +210,7 @@ void evalOnFiles(const char ** filesFrom, const char ** filesTo, double ** histo
       vector<int> tmp_vec(hist_width,0);
       histogram_out = tmp_vec;
     }
+    #pragma omp ordered
     for (int w = 0; w < hist_width; w ++){
       hist_out[i][w] = histogram_out[w];
     }
