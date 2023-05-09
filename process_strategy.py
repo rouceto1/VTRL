@@ -69,5 +69,5 @@ def process(paths, REDO=[False, False, False, False]):
 
 
 if __name__ == "__main__":
-    REDO = [True, True, True, True]
+    REDO = [False, False, False, True]
     process(["test"], REDO)
