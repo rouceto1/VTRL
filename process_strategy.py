@@ -70,3 +70,4 @@ def process(paths, REDO=[False, False, False, False]):
 if __name__ == "__main__":
     REDO = [False, False, False, True]
     process(["test"], REDO)
+

@@ -116,13 +116,13 @@ def make_file_list_annotation(places, images, evaluation_prefix, evaluation_path
 def make_file_list_from_gt(evaluation_prefix,gt):
     file_list = []
     for i in range(10000):
-        sample_list = random.choices(gt, k=2)
+        sample_list = random.choices(gt)[0]
         set = []
         set.append(os.path.join(evaluation_prefix, sample_list[4],sample_list[5]))
         set.append(os.path.join(evaluation_prefix, sample_list[6], sample_list[7]))
         file_list.append(set)
 
-    print("only running 10k": + str(len(file_list)))
+    print("only running 10k " + str(len(file_list)))
     return file_list
 
 
