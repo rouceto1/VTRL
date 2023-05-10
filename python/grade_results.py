@@ -127,7 +127,7 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     # plot3.ylabel("Place visited", fontsize=18)
     # plot3.xlabel("Timestamp [s]", fontsize=18)
     plt.tight_layout()
-    plt.savefig(os.path.join(save, "input.png"),dpi=600)
+    plt.savefig(os.path.join(save, "input.png"), dpi=600)
     pos = plot3.get_position()
     x = pos.x0 + 0.4
     y = pos.y0 + 0.4

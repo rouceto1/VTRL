@@ -39,14 +39,13 @@ notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 def process(paths, REDO=[False, False, False, False]):
     estimates_grade = None
     for exp in paths:
-        # try:
         print(exp)
         experiments_path = os.path.join(pwd, "experiments", exp)
         chosen_positions = np.loadtxt(os.path.join(experiments_path, "input.txt"), int)
         weights_eval = os.path.join(experiments_path, "weights.pt")
         estimates_grade_out = os.path.join(experiments_path, "estimates.pickle")
         estimates_train_out = os.path.join(experiments_path, "train.pickle")
-        config = load_config(os.path.join(experiments_path, "NN_config.yaml"), 512)
+        config = load_config(os.path.join(pwd, "experiments", "NN_config.yaml"), 512)
         if not os.path.exists(weights_eval) or REDO[0]:
             file_list_teach = teach(dataset_path, chosen_positions, weights_eval, conf=config)
         if not os.path.exists(estimates_train_out) or REDO[1]:
@@ -63,8 +62,7 @@ def process(paths, REDO=[False, False, False, False]):
                 gt_in = pickle.load(handle)
             grade_type(experiments_path, positions=chosen_positions, _GT=gt_in, estimates_file=estimates_grade_out,
                        estimates=estimates_grade)
-    # except:
-    #    notify.send('Something failed: ' + exp)
+        notify.send('One finished: ' + exp)
     notify.send('Finished')
 
 
