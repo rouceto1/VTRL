@@ -10,7 +10,7 @@ import torch as t
 import itertools as it
 from pathlib import Path
 from tqdm import tqdm
-
+import random
 filetype_FM = ".bmp"
 filetype_NN = ".png"
 image_file_template = "place_%d/%05d"
@@ -121,6 +121,8 @@ def make_file_list_from_gt(evaluation_prefix,gt):
         set.append(os.path.join(evaluation_prefix, sample_list[4],sample_list[5]))
         set.append(os.path.join(evaluation_prefix, sample_list[6], sample_list[7]))
         file_list.append(set)
+
+    print("only running 10k": + str(len(file_list)))
     return file_list
 
 
