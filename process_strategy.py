@@ -46,11 +46,12 @@ def process(paths, REDO=[True, False, False, False]):
         estimates_grade_out = os.path.join(experiments_path, "estimates.pickle")
         estimates_train_out = os.path.join(experiments_path, "train.pickle")
         config = load_config(os.path.join(pwd, "experiments", "NN_config.yaml"), 512)
+
         if not os.path.exists(weights_eval) or REDO[0]:
-            file_list_teach = teach(dataset_path, chosen_positions, experiments_path, conf=config)
-        if not os.path.exists(estimates_train_out) or REDO[1]:
-            estimates_grade = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval,
-                                               _estimates_out=estimates_train_out, conf=config)
+            file_list_teach = teach(dataset_path, chosen_positions, weights_eval, conf=config)
+        #if not os.path.exists(estimates_train_out) or REDO[1]:
+        #    estimates_grade = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval,
+        #                                       _estimates_out=estimates_train_out, conf=config)
         if not os.path.exists(estimates_grade_out) or REDO[2]:
             with open(GT_file, 'rb') as handle:
                 gt_in = pickle.load(handle)
