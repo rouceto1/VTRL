@@ -6,7 +6,7 @@ from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from .evaluate_model import eval_displacement
-from .utils import batch_augmentations
+from .utils import batch_augmentations, plot_samples, plot_similarity, plot_displacement
 from .model import save_model_to_file
 from .train_eval_common import *
 import torch as t
@@ -30,14 +30,15 @@ def hard_negatives(batch, heatmaps):
         return batch, heatmaps
 
 
-def train_loop(epoch, train_loader, optimizer):
+def train_loop(epoch, train_loader, optimizer, out_folder):
     global model
     global batch_aug
     model.train()
     loss_sum = 0
+    count = 0
     print("Training model epoch", epoch)
     for batch in tqdm(train_loader):
-        source, target, heatmap = batch[0].to(device), batch[1].to(device), batch[2].to(device)
+        source, target, heatmap, uncropped_target = batch[0].to(device), batch[1].to(device), batch[2].to(device),batch[4].to(device)
         source = batch_aug(source)
         if conf["negative_frac"] > 0.01:
             batch, heatmap = hard_negatives(source, heatmap)
@@ -47,10 +48,19 @@ def train_loop(epoch, train_loader, optimizer):
         loss_sum += los.cpu().detach().numpy()
         los.backward()
         optimizer.step()
+        count = count + 1
+        if count < 5:
+            plot_samples(source[0].cpu(),
+                         uncropped_target[0].cpu(),
+                         heatmap[0].cpu(),
+                         prediction=out[0].cpu(),
+                         name=str(epoch) + "_" + str(count),
+                         dir=out_folder)
+
     print("Training of epoch", epoch, "ended with loss", loss_sum / len(train_loader))
 
 
-def eval_loop(val_loader):
+def eval_loop(val_loader, epoch):
     global model
     global conf
     model.eval()
@@ -59,7 +69,7 @@ def eval_loop(val_loader):
     return mae
 
 
-def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
+def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path=None):
     lowest_err = 9999999
     global model
     global conf
@@ -70,30 +80,31 @@ def teach_stuff(train_data, data_path, eval_model=None, model_path=None):
     dataset, histograms = get_dataset(data_path, train_data, conf, training=True)
     train_size = int(len(dataset) * 0.95)
     val, train = t.utils.data.random_split(dataset, [len(dataset) - train_size, train_size])
-    train_loader = DataLoader(train, conf["batch_size_train"], shuffle=True,pin_memory=True,num_workers=10)
-    val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False,pin_memory=True,num_workers=10)
+    train_loader = DataLoader(train, conf["batch_size_train"], shuffle=True, pin_memory=True, num_workers=10)
+    val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False, pin_memory=True, num_workers=10)
     if conf["epochs"] % conf["eval_rate"] != 0:
         print("WARNING epochs and eval rate are not divisible")
     for epoch in range(conf["epochs"]):
         if epoch % conf["eval_rate"] == 0:
-            err = eval_loop(val_loader)
+            err = eval_loop(val_loader,   epoch)
             if err < lowest_err:
                 lowest_err = err
                 best_model = copy.deepcopy(model)
-        train_loop(epoch, train_loader, optimizer)
+        train_loop(epoch, train_loader, optimizer, out)
 
     save_model_to_file(best_model, model_path, lowest_err, optimizer)
 
 
-def NNteach_from_python(training_data, data_path, weights_file, config):
+def NNteach_from_python(training_data, data_path, experiments_path, config):
     global conf
     global device
     conf = config
     device = conf["device"]
     global batch_aug
     batch_aug = batch_augmentations.to(device)
-    print("trianing:" + str(weights_file))
-    teach_stuff(train_data=training_data, model_path=weights_file, data_path=data_path)
+    print("trianing:" + str(experiments_path))
+    teach_stuff(train_data=training_data, model_path=experiments_path + "weights.pt", out=experiments_path,
+                data_path=data_path)
 
 
 if __name__ == '__main__':

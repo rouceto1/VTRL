@@ -34,7 +34,7 @@ def make_places_list(total_per_place, percentage_to_explore, block_size, whole_p
         hole = random.randint(0, int(hole_size * 2))
         current_block = current_pose + hole
         if current_block + block_size >= total_per_place:
-            print("generated only " + str(i) + " out of " + str(block_size) + " :%" + str(i / block_size))
+            print("generated only " + str(i*block_size) + " out of " + str(picked_places_count) + " :%" + str(i*block_size / picked_places_count))
             break
         batch_starts.append(current_block)
         current_pose = current_block + block_size
@@ -85,7 +85,7 @@ def strategy_creator(name, experiments_path, percentage_to_explore, total_per_pl
 import itertools
 
 
-def make_mltiple_strategies():
+def make_multiple_strategies():
     percentage_to_explore_list = np.arange(0.1, 0.9, 0.2)
     block_size_list = range(1, 10, 2)
     whole_place_at_once_list = [False, True]
@@ -102,7 +102,7 @@ def make_mltiple_strategies():
 
 
 if __name__ == "__main__":
-    names, strategies = make_mltiple_strategies()
+    names, strategies = make_multiple_strategies()
     for index, strategy in enumerate(strategies):
         strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],
                          whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],
