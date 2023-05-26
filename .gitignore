@@ -11,4 +11,4 @@ weights/
 build/
 experiments/*
 *.pickle
-
+*.output
