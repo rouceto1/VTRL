@@ -239,7 +239,7 @@ void teachOnFiles(const char ** filesFrom, const char ** filesTo, float *displac
       int inliers_m_count = 0;
     teachOnFile(filesFrom[i], filesTo[i],dsp,fcount_l,fcount_r,inliers_m_count, fails );
       feature_count_l[i]=fcount_l;
-      feature_count_r[i]=fcount_l;
+      feature_count_r[i]=fcount_r;
       inliers_matches_count[i] = inliers_m_count;
     displacement[i] = dsp;
     progress_bar(i,files,fails);

@@ -36,7 +36,7 @@ GT_file = os.path.join(evaluation_prefix, "GT.pickle")
 notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 
 
-def process(paths, REDO=[False, False, False, False]):
+def process(paths, REDO=[True, False, False, False]):
     estimates_grade = None
     for exp in paths:
         print(exp)
@@ -68,6 +68,6 @@ def process(paths, REDO=[False, False, False, False]):
 
 
 if __name__ == "__main__":
-    REDO = [False, False, False, True]
+    REDO = [True, True, True, True]
     process(["test"], REDO)
 

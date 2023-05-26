@@ -47,21 +47,33 @@ batch_augmentations = t.nn.Sequential(
     # K.augmentation.RandomErasing(p=AUG_P, scale=(0.1, 0.5))
 )
 
-
 def plot_samples(source, target, heatmap, prediction=None, name=0, dir="results/0/"):
     if prediction is None:
-        f, axarr = plt.subplots(2)
+        f, axarr = plt.subplots(3)
         target_fullsize = t.zeros_like(source)
         target_width = target.size(-1)
         source_width = source.size(-1)
         heatmap_width = heatmap.size(-1)
         heatmap_idx = t.argmax(heatmap)
-        target_fullsize_start = int(heatmap_idx * (source_width/heatmap_width) - target_width//2)
-        target_fullsize[:, :, max(target_fullsize_start, 0):target_fullsize_start+target_width] = target
+        #target_fullsize_start = int(heatmap_idx * (source_width/heatmap_width) - target_width//2)
+        #target_fullsize[:, :, max(target_fullsize_start, 0):target_fullsize_start+target_width] = target
         axarr[0].imshow(source.permute(1, 2, 0))
-        axarr[1].imshow(target_fullsize.permute(1, 2, 0))
+        axarr[1].imshow(target.repeat([3, 1, 1]).permute(1, 2, 0))
+
+        resized_indices = np.arange(0, heatmap.size(-1)) * (source_width / heatmap_width)
+        pred = np.interp(np.arange(0, source_width), resized_indices, heatmap.numpy())
+        axarr[2].plot(np.arange(-256, 256), pred)
+        axarr[2].set_xlim((0, source_width - 1))
+        axarr[2].set_xlabel("Displacement [px]")
+        axarr[2].set_ylabel("Likelihood [-]")
+        axarr[2].set_xlim((-256, 256))
+        axarr[2].grid()
+        axarr[2].legend(["prediction", "target"])
         plt.show()
     else:
+        if len(target.shape) < 3:
+            print("This is shit")
+            return
         f, axarr = plt.subplots(3)
         target_fullsize = t.zeros_like(source)
         target_width = target.size(-1)
@@ -70,15 +82,19 @@ def plot_samples(source, target, heatmap, prediction=None, name=0, dir="results/
         heatmap_idx = t.argmax(heatmap)
         fx = interpolate.interp1d(np.linspace(0, 512, 64), heatmap, kind="linear")
         heatmap_plot = fx(np.arange(512))
-        target_fullsize_start = int(heatmap_idx * (source_width/heatmap_width) - target_width//2)
-        target_fullsize[:, :, max(target_fullsize_start, 0):max(target_fullsize_start, 0)+target_width] = target
+        #target_fullsize_start = int(heatmap_idx * (source_width/heatmap_width) - target_width//2)
+        #target_fullsize[:, :, max(target_fullsize_start, 0):max(target_fullsize_start, 0)+target_width] = target
         axarr[0].imshow(source.permute(1, 2, 0), aspect="auto")
-        axarr[1].imshow(target_fullsize.permute(1, 2, 0), aspect="auto")
+        axarr[1].imshow(target.permute(1, 2, 0), aspect="auto")
+
         resized_indices = np.arange(0, prediction.size(-1)) * (source_width/heatmap_width)
-        pred = np.interp(np.arange(0, source_width), resized_indices, prediction.numpy())
+        pred = np.interp(np.arange(0, source_width), resized_indices, prediction.detach().numpy())
         predicted_max = np.argmax(pred)
+        #t.sigmoid(pred)
         # axarr[2].axvline(x=predicted_max, ymin=0, ymax=1, c="r")
-        axarr[2].plot(np.arange(-256, 256), pred)
+        #axarr[2].plot(np.arange(-256, 256), pred)
+        print (pred)
+        print(heatmap_plot)
         axarr[2].plot(np.arange(-256, 256), heatmap_plot)
         axarr[2].set_xlim((0, source_width - 1))
         axarr[2].set_xlabel("Displacement [px]")
@@ -88,10 +104,8 @@ def plot_samples(source, target, heatmap, prediction=None, name=0, dir="results/
         axarr[2].legend(["prediction", "target"])
         f.suptitle("Training example")
         f.tight_layout()
-        Path(dir).mkdir(parents=True, exist_ok=True)
-        plt.savefig(dir + str(name) + "png")
+        plt.savefig(os.path.join(dir, str(name)+".png"))
         plt.close()
-
 
 def plot_displacement(source, target, prediction, displacement=None, importance=None, name=0, dir="results/0/"):
     if importance is None:
@@ -127,8 +141,7 @@ def plot_displacement(source, target, prediction, displacement=None, importance=
         axarr[3].set_xlim((0, source_width - 1))
     f.suptitle("Evaluation example")
     f.tight_layout()
-    Path(dir).mkdir(parents=True, exist_ok=True)
-    plt.savefig(dir + str(name) + ".png")
+    plt.savefig(os.path.join(dir, str(name) + ".png"))
     plt.close()
 
 
