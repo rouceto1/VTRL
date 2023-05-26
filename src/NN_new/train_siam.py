@@ -1,16 +1,14 @@
 #!/usr/bin/env python3.9
-
 import copy
 from torch.nn import BCEWithLogitsLoss
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from .evaluate_model import eval_displacement
-from .utils import batch_augmentations, plot_samples, plot_similarity, plot_displacement
+from .utils import batch_augmentations, plot_samples, plot_similarity, plot_displacement, plot_heatmap, plot_histogram
 from .model import save_model_to_file
 from .train_eval_common import *
 import torch as t
-
 loss = BCEWithLogitsLoss()
 model = None
 
@@ -30,42 +28,57 @@ def hard_negatives(batch, heatmaps):
         return batch, heatmaps
 
 
-def train_loop(epoch, train_loader, optimizer, out_folder):
-    global model
+def train_loop(epoch, model, train_loader, optimizer, out_folder):
     global batch_aug
     model.train()
     loss_sum = 0
     count = 0
     print("Training model epoch", epoch)
     for batch in tqdm(train_loader):
-        source, target, heatmap, uncropped_target = batch[0].to(device), batch[1].to(device), batch[2].to(device),batch[4].to(device)
+        source, target, heatmap, u_target = batch[0].to(device), batch[1].to(device), batch[2].to(device), batch[4].to(device)
         source = batch_aug(source)
         if conf["negative_frac"] > 0.01:
             batch, heatmap = hard_negatives(source, heatmap)
         out = model(source, target, padding=conf["pad"])
         optimizer.zero_grad()
+
         los = loss(out, heatmap)
         loss_sum += los.cpu().detach().numpy()
         los.backward()
+
         optimizer.step()
         count = count + 1
-        if count < 5:
-            plot_samples(source[0].cpu(),
-                         uncropped_target[0].cpu(),
-                         heatmap[0].cpu(),
-                         prediction=out[0].cpu(),
-                         name=str(epoch) + "_" + str(count),
-                         dir=out_folder)
+        if conf["plot_training"]:
+            if count < 10:
+                plot_samples(source[0].cpu(),
+                             u_target[0].cpu(),
+                             heatmap[0].cpu(),
+                             prediction=out[0].cpu(),
+                             name=str(epoch) + "_" + str(count),
+                             dir=out_folder)
 
     print("Training of epoch", epoch, "ended with loss", loss_sum / len(train_loader))
+    return model
 
 
-def eval_loop(val_loader, epoch):
-    global model
+
+def eval_loop(val_loader, model, epoch, histograms):
     global conf
     model.eval()
     with t.no_grad():
-        mae, acc, _, _ = eval_displacement(eval_model=model, loader=val_loader, conf=conf, padding=conf["pad_teach"])
+        mae, acc, hist, disp = eval_displacement(eval_model=model, loader=val_loader,
+                                                 histograms=np.zeros((len(val_loader), 64)), conf=conf,
+                                                 padding=conf["pad_teach"])
+        count = 0
+        if conf["plot_eval"]:
+            for batch in val_loader:
+                pass
+                if count > 5:
+                    break
+                source, target = (batch[0].to(device)), (batch[4].to(device))
+                plot_histogram(source, target, name=str(epoch), displacement=disp[count], histogram=hist[count])
+                count = count + 1
+    print("Eval of epoch " + str(epoch) + " ended with mae " + str(mae))
     return mae
 
 
@@ -75,22 +88,22 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path=Non
     global conf
     best_model = None
     model, conf = get_model(model, model_path, eval_model, conf, conf["pad_teach"])
-    optimizer = AdamW(model.parameters(), lr=conf["lr"])
+    optimizer = AdamW(model.parameters(), lr=10**-conf["lr"]) #conf["lr"])
 
     dataset, histograms = get_dataset(data_path, train_data, conf, training=True)
     train_size = int(len(dataset) * 0.95)
     val, train = t.utils.data.random_split(dataset, [len(dataset) - train_size, train_size])
-    train_loader = DataLoader(train, conf["batch_size_train"], shuffle=True, pin_memory=True, num_workers=10)
-    val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False, pin_memory=True, num_workers=10)
+    train_loader = DataLoader(train, conf["batch_size_train"], shuffle=True,  num_workers=10)
+    val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False,  num_workers=10)
     if conf["epochs"] % conf["eval_rate"] != 0:
         print("WARNING epochs and eval rate are not divisible")
     for epoch in range(conf["epochs"]):
-        if epoch % conf["eval_rate"] == 0:
-            err = eval_loop(val_loader,   epoch)
+        if epoch % conf["eval_rate"] == 0:  # and epoch > 0:
+            err = eval_loop(val_loader, model, epoch, histograms)
             if err < lowest_err:
                 lowest_err = err
                 best_model = copy.deepcopy(model)
-        train_loop(epoch, train_loader, optimizer, out)
+        model = train_loop(epoch, model, train_loader, optimizer, out)
 
     save_model_to_file(best_model, model_path, lowest_err, optimizer)
 

@@ -3,17 +3,17 @@ width: 512
 height: 324 #asi
 batch_size_eval: 1 #32
 batch_size_train: 50
-epochs: 6 #prolly indexes from 0! Also prolly does not WORK
+epochs: 12 #prolly indexes from 0! Also prolly does not WORK
 lr: 4.5 #e4.1
-eval_rate: 2 #e3 ## should be whole divisor of epochs
+eval_rate: 3 #e3 ## should be whole divisor of epochs
 crop_sizes: [56] #e56
 fraction: 8 #e8
 smoothness: 2
-negative_frac: 0.33
+negative_frac: 0.333
 layer_pool: True
 filter_size: 3
 emb_channels: 16
-residual: 0 #e:0
+residual: 0 #e:0e
 crops_multiplier: 1
 batching: crops_multiplier
 eval_limit: 20000000000000
@@ -27,6 +27,7 @@ train:
   help:
 eval:
   help: 30
-
+plot_training: False
+plot_eval: False
 #tolerance: 32
 

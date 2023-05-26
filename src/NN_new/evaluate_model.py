@@ -5,6 +5,7 @@ from scipy import interpolate
 from torch.utils.data import DataLoader
 model = None
 import torch as t
+from .utils import plot_samples
 
 def get_histogram(src, tgt, padding):
     global model
@@ -18,7 +19,7 @@ def get_histogram(src, tgt, padding):
 
 
 def eval_displacement(eval_model=None, model_path=None,
-                      loader=None, histograms=None, conf=None, batch_size=1    ,padding=None):
+                      loader=None, histograms=None, conf=None, batch_size=1 ,padding=None, epoch = None):
     """
     :param model_path:
     :param histograms:
@@ -32,6 +33,7 @@ def eval_displacement(eval_model=None, model_path=None,
     train_loader = loader
     device = conf["device"]
     model.eval()
+    count = 0
     with t.no_grad():
         abs_err = 0
         valid = 0
@@ -77,10 +79,9 @@ def eval_displacement(eval_model=None, model_path=None,
                 if abs(ret - gt_list[i]) < conf["tolerance"]:
                     valid += 1
                 idx += 1
-
-
             if idx > conf["eval_limit"]:
                 break
+
 
         return abs_err / idx, valid * 100 / idx, histograms, results
 
@@ -94,7 +95,7 @@ def NNeval_from_python(files, data_path, weights_file, config=None):
     dataset, histograms = get_dataset(data_path, files, conf)
     loader = DataLoader(dataset, conf["batch_size_eval"], shuffle=False, pin_memory=True, num_workers=10)
     return eval_displacement(model_path=weights_file, loader=loader,
-                             histograms=histograms, conf=conf,batch_size=conf["batch_size_eval"], padding=conf["pad_eval"])
+                             histograms=histograms, conf=conf, batch_size=conf["batch_size_eval"], padding=conf["pad_eval"])
 
 
 if __name__ == '__main__':

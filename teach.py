@@ -18,7 +18,7 @@ def teach(_dataset_path, _chosen_positions, _experiments_path, _cache=None, conf
         with open(_cache, 'rb') as handle:
             files_with_displacement = pickle.load(handle)
     desired_files = np.array(choose_proper_filetype(filetype_NN, files_with_displacement))
-    nn_train.NNteach_from_python(desired_files, "strands", os.path.join(_dataset_path, _experiments_path), conf)
+    nn_train.NNteach_from_python(desired_files, "strands", _experiments_path, conf)
     return file_list
 
 

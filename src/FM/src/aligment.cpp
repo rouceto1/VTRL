@@ -250,7 +250,7 @@ void teachOnFile(const char* f1, const char* f2, float &displacemnet,  int &feat
   int features_l;
     int features_r;
   const settings settings = default_config();
-  displacemnet = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features_l,features_l, inliers_matches_count,fails);
+  displacemnet = computeOnTwoImages(loadImage(f1),loadImage(f2), settings,features_l,features_r, inliers_matches_count,fails);
   feature_count_l = features_l;
     feature_count_r = features_r;
 }

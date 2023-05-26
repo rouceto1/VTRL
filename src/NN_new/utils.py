@@ -8,24 +8,9 @@ import numpy as np
 from pathlib import Path
 import kornia as K
 import random
+import cv2 as cv
 from torchvision.utils import save_image
 from scipy import interpolate
-
-
-# class GANAugemntation(t.nn.Module):
-#
-#     def __init__(self, p=0.5):
-#         super(GANAugemntation, self).__init__()
-#         self.augmentor = StyleAugmentor()
-#         self.p = p
-#
-#     def forward(self, x):
-#         with torch.no_grad():
-#             if random.random() < self.p and x.size(-1) > 40:
-#                 return self.augmentor(x, alpha=0.25)
-#             else:
-#                 return x
-
 
 AUG_P = 0.1
 
@@ -47,6 +32,37 @@ batch_augmentations = t.nn.Sequential(
     # K.augmentation.RandomErasing(p=AUG_P, scale=(0.1, 0.5))
 )
 
+
+def plot_heatmap(source, target, cropped_target=None, displacement=None, heatmap=None):
+    f, axarr = plt.subplots(3)
+    image1 = source.permute(1, 2, 0).numpy()
+    image2 = cropped_target.permute(1, 2, 0).numpy()
+    x1 = int(image1.shape[1] / 2 - float(displacement))
+    x2 = int(image1.shape[1] / 2 + float(displacement))
+    # cv.line(image1, (image1.shape[1] // 2, 0), (image1.shape[1] // 2, image1.shape[0]), (0, 255, 0), thickness=2)
+    # cv.line(image2, (x1, 0), (x1, image1.shape[0]), (0, 255, 0), thickness=2)
+    # cv.line(image2, (x2, 0), (x2, image1.shape[0]), (255, 0, 0), thickness=2)
+    axarr[0].imshow(image1, interpolation='nearest', aspect='auto')
+    axarr[1].imshow(image2)
+    axarr[2].plot(heatmap)
+    plt.show()
+
+def plot_histogram(source, target, name = None ,cropped_target=None, displacement=None, histogram=None):
+    f, axarr = plt.subplots(3)
+    image1 = source[0].permute(1, 2, 0).numpy()
+    image2 = target[0].permute(1, 2, 0).numpy()
+    #print(image1.shape[1])
+    #x1 = int(image1.shape[1] / 2 - float(displacement))
+    #x2 = int(image1.shape[1] / 2 + float(displacement))
+    # cv.line(image1, (image1.shape[1] // 2, 0), (image1.shape[1] // 2, image1.shape[0]), (0, 255, 0), thickness=2)
+    # cv.line(image2, (x1, 0), (x1, image1.shape[0]), (0, 255, 0), thickness=2)
+    # cv.line(image2, (x2, 0), (x2, image1.shape[0]), (255, 0, 0), thickness=2)
+    axarr[0].imshow(image1, interpolation='nearest', aspect='auto')
+    axarr[1].imshow(image2, interpolation='nearest', aspect='auto')
+    axarr[2].plot(histogram)
+    f.suptitle("epoch: " + name +" displacement: " + str(displacement))
+    plt.show()
+
 def plot_samples(source, target, heatmap, prediction=None, name=0, dir="results/0/"):
     if prediction is None:
         f, axarr = plt.subplots(3)
@@ -55,8 +71,8 @@ def plot_samples(source, target, heatmap, prediction=None, name=0, dir="results/
         source_width = source.size(-1)
         heatmap_width = heatmap.size(-1)
         heatmap_idx = t.argmax(heatmap)
-        #target_fullsize_start = int(heatmap_idx * (source_width/heatmap_width) - target_width//2)
-        #target_fullsize[:, :, max(target_fullsize_start, 0):target_fullsize_start+target_width] = target
+        # target_fullsize_start = int(heatmap_idx * (source_width/heatmap_width) - target_width//2)
+        # target_fullsize[:, :, max(target_fullsize_start, 0):target_fullsize_start+target_width] = target
         axarr[0].imshow(source.permute(1, 2, 0))
         axarr[1].imshow(target.repeat([3, 1, 1]).permute(1, 2, 0))
 
@@ -82,19 +98,19 @@ def plot_samples(source, target, heatmap, prediction=None, name=0, dir="results/
         heatmap_idx = t.argmax(heatmap)
         fx = interpolate.interp1d(np.linspace(0, 512, 64), heatmap, kind="linear")
         heatmap_plot = fx(np.arange(512))
-        #target_fullsize_start = int(heatmap_idx * (source_width/heatmap_width) - target_width//2)
-        #target_fullsize[:, :, max(target_fullsize_start, 0):max(target_fullsize_start, 0)+target_width] = target
+        # target_fullsize_start = int(heatmap_idx * (source_width/heatmap_width) - target_width//2)
+        # target_fullsize[:, :, max(target_fullsize_start, 0):max(target_fullsize_start, 0)+target_width] = target
         axarr[0].imshow(source.permute(1, 2, 0), aspect="auto")
         axarr[1].imshow(target.permute(1, 2, 0), aspect="auto")
 
-        resized_indices = np.arange(0, prediction.size(-1)) * (source_width/heatmap_width)
+        resized_indices = np.arange(0, prediction.size(-1)) * (source_width / heatmap_width)
         pred = np.interp(np.arange(0, source_width), resized_indices, prediction.detach().numpy())
         predicted_max = np.argmax(pred)
-        #t.sigmoid(pred)
+        # t.sigmoid(pred)
         # axarr[2].axvline(x=predicted_max, ymin=0, ymax=1, c="r")
-        #axarr[2].plot(np.arange(-256, 256), pred)
-        print (pred)
-        print(heatmap_plot)
+        # axarr[2].plot(np.arange(-256, 256), pred)
+        # print (pred)
+        # print(heatmap_plot)
         axarr[2].plot(np.arange(-256, 256), heatmap_plot)
         axarr[2].set_xlim((0, source_width - 1))
         axarr[2].set_xlabel("Displacement [px]")
@@ -104,8 +120,9 @@ def plot_samples(source, target, heatmap, prediction=None, name=0, dir="results/
         axarr[2].legend(["prediction", "target"])
         f.suptitle("Training example")
         f.tight_layout()
-        plt.savefig(os.path.join(dir, str(name)+".png"))
-        plt.close()
+        plt.savefig(os.path.join(dir, str(name) + ".png"))
+        plt.show()
+
 
 def plot_displacement(source, target, prediction, displacement=None, importance=None, name=0, dir="results/0/"):
     if importance is None:
@@ -154,7 +171,7 @@ def plot_similarity(img1, img2, time_histogram, name=None, offset=None):
     predicted_max = t.argmax(time_histogram)
     max_y = t.max(time_histogram)
     # axarr[2].axvline(x=predicted_max, ymin=0, ymax=max_y, c="r")
-    axarr[2].plot(np.arange(-time_histogram.size(0)//2, time_histogram.size(0)//2), time_histogram)
+    axarr[2].plot(np.arange(-time_histogram.size(0) // 2, time_histogram.size(0) // 2), time_histogram)
     axarr[2].set_xlabel("offset from $j_k$")
     axarr[2].set_ylabel("similarity")
     axarr[2].grid()
@@ -183,7 +200,8 @@ def plot_cuts(img1, img2, suptitle, name=None):
     plt.close()
 
 
-def save_imgs(img2, name, img1=None, path="/home/zdeeno/Documents/Datasets/eulongterm_rectified", max_val=None, offset=None):
+def save_imgs(img2, name, img1=None, path="/home/zdeeno/Documents/Datasets/eulongterm_rectified", max_val=None,
+              offset=None):
     path1 = os.path.join(path, "0", str(name) + ".png")
     path2 = os.path.join(path, "1", str(name) + ".png")
     if img1 is not None:
@@ -201,7 +219,7 @@ def save_imgs(img2, name, img1=None, path="/home/zdeeno/Documents/Datasets/eulon
 
 
 def get_shift(img_width, crop_width, histogram, crops_idx):
-    img_center = img_width//2
+    img_center = img_width // 2
     histnum = histogram.size(0)
     histogram = histogram.cpu()
     hist_size = histogram.size(-1)
@@ -209,13 +227,13 @@ def get_shift(img_width, crop_width, histogram, crops_idx):
     final_hist = t.zeros(hist_size * 2)
     bin_size = t.zeros_like(final_hist)
     for idx, crop_idx in enumerate(crops_idx):
-        crop_to_img = ((crop_idx + crop_width//2) - img_center)/img_width
+        crop_to_img = ((crop_idx + crop_width // 2) - img_center) / img_width
         crop_displac_in_hist = int(crop_to_img * hist_size)
-        final_hist_start = hist_center//2 + crop_displac_in_hist
-        final_hist[final_hist_start:final_hist_start+hist_size] += histogram[histnum - idx - 1]
-        bin_size[final_hist_start:final_hist_start+hist_size] += 1
+        final_hist_start = hist_center // 2 + crop_displac_in_hist
+        final_hist[final_hist_start:final_hist_start + hist_size] += histogram[histnum - idx - 1]
+        bin_size[final_hist_start:final_hist_start + hist_size] += 1
     final_hist /= bin_size
-    return final_hist[hist_size//2:-hist_size//2]
+    return final_hist[hist_size // 2:-hist_size // 2]
 
 
 def affine(img, rotate, translate):
@@ -230,4 +248,3 @@ def plot_img_pair(img1, img2):
     axarr[0].imshow(img1.permute(1, 2, 0), aspect="auto")
     axarr[1].imshow(img2.permute(1, 2, 0), aspect="auto")
     plt.show()
-
