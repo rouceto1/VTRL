@@ -6,6 +6,7 @@ from python.grade_results import *
 import argparse
 from python.helper_functions import *
 from notify_run import Notify
+import time
 
 pwd = os.getcwd()
 parser = argparse.ArgumentParser(
@@ -39,6 +40,7 @@ notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 def process(paths, REDO=[False, False, False, False]):
     estimates_grade = None
     for exp in paths:
+        start_time = time.time()
         print(exp)
         experiments_path = os.path.join(pwd, "experiments", exp)
         chosen_positions = np.loadtxt(os.path.join(experiments_path, "input.txt"), int)
@@ -62,7 +64,7 @@ def process(paths, REDO=[False, False, False, False]):
             with open(GT_file, 'rb') as handle:
                 gt_in = pickle.load(handle)
             grade_type(experiments_path, positions=chosen_positions, _GT=gt_in, estimates_file=estimates_grade_out,
-                       estimates=estimates_grade)
+                       estimates=estimates_grade,time_elapsed=start_time)
         notify.send('One finished: ' + exp)
     notify.send('Finished')
 
