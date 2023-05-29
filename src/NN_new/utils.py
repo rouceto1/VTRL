@@ -97,7 +97,7 @@ def plot_samples(source, target, heatmap, prediction=None, name=0, dir="results/
         axarr[2].set_xlim((-256, 256))
         axarr[2].grid()
         axarr[2].legend(["prediction", "target"])
-        plt.show()
+        #plt.show()
     else:
         if len(target.shape) < 3:
             print("This is shit")
@@ -133,7 +133,7 @@ def plot_samples(source, target, heatmap, prediction=None, name=0, dir="results/
         f.suptitle("Training example")
         f.tight_layout()
         plt.savefig(os.path.join(dir, str(name) + ".png"))
-        plt.show()
+        #plt.show()
 
 
 def plot_displacement(source, target, prediction, displacement=None, importance=None, name=0, dir="results/0/"):

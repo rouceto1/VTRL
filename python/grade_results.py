@@ -135,7 +135,7 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     x = pos.x0 + 0.4
     y = pos.y0 + 0.4
     plt.figtext(x, y, save.split("/")[-1])
-    plt.show()
+    #plt.show()
 
 
 

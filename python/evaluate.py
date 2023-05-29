@@ -80,7 +80,7 @@ def plot_fm_list(list):
         axarr[1].imshow(image2)
         axarr[0].set_xlabel(entry[3])
         axarr[1].set_xlabel(entry[4])
-        plt.show()
+        #plt.show()
 
 
 ##
