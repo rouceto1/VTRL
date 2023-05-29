@@ -66,20 +66,20 @@ def compute_to_file(estimates, gt, matches, dist, positions, plot=True,fig_place
     streak_out = os.path.join(dist, "streak.pkl")
     # file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
 
-    errors, line, line_integral, streak, streak_integral = compute(estimates, gt, positions=positions,plot=plot, fig_place=fig_place)
+    errors, line, line_integral, line_2, line_2_integral, streak, streak_integral = compute(estimates, gt, positions=positions,plot=plot, fig_place=fig_place)
     with open(line_out, 'wb') as hand:
         pickle.dump(line, hand)
         print("Line written " + str(line_out))
     with open(streak_out, 'wb') as hand:
         pickle.dump(streak, hand)
         print("streak " + str(streak_out))
-    return sum(errors)/len(errors), line_integral, streak_integral
+    return sum(errors)/len(errors), streak_integral, line_integral, line_2_integral
 
 
 
 def compute_with_plot(data, gt):  # TODO full redo of this...
     file_list, histogram_FM, histogram_NN, feature_count, displacement, gt_disp = load_data(data, gt)
-    disp, line, line_integral, streak, streak_integral = compute(displacement, gt_disp)
+    disp, line, line_integral, line_2, line_2_integral, streak, streak_integral = compute(displacement, gt_disp)
     for location in range(50, len(file_list)):
         f, axarr = plt.subplots(3)
         for i in [0, 1]:
@@ -145,12 +145,13 @@ def compute(displacement, gt, positions=None, plot=True, fig_place=None):
     line = compute_AC_curve(filter_to_max(displacement - gt, 1))
     line_2 = compute_AC_curve(filter_to_max(displacement_filtered - gt_filtered, 1))
     line_integral = get_integral_from_line(line)
+    line_2_integral = get_integral_from_line(line_2)
     streak = get_streak(filter_to_max(displacement - gt, 1))
     if plot is True:
         plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, positions, fig_place)
 
     streak_integral = get_integral_from_line(streak)
-    return disp, line, line_integral, streak, streak_integral
+    return disp, line, line_integral, line_2, line_2_integral, streak, streak_integral
 
 
 def compute_AC_curve(error):
