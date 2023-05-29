@@ -51,7 +51,7 @@ def plot_heatmap(source, target, cropped_target=None, displacement=None,blacked_
 
     f.tight_layout()
     plt.savefig(os.path.join(dir, "heatmap_" + str(name) + ".png"))
-    plt.show()
+    #plt.show()
 
 
 def plot_histogram(source, target, cropped_target=None, displacement=None, histogram=None,
@@ -72,7 +72,7 @@ def plot_histogram(source, target, cropped_target=None, displacement=None, histo
     f.suptitle("epoch: " + name + " displacement: " + str(displacement))
     f.tight_layout()
     plt.savefig(os.path.join(dir, "hist_" + str(name) + ".png"))
-    plt.show()
+    #plt.show()
 
 
 def plot_samples(source, target, heatmap, prediction=None, name=0, dir="results/0/"):
