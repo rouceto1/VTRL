@@ -37,9 +37,21 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
     for batch in tqdm(train_loader):
         source, target, heatmap, u_target = batch[0].to(device), batch[1].to(device), batch[2].to(device), batch[4].to(device)
         source = batch_aug(source)
+        count = count + 1
+        if conf["plot_training"]:
+            if count < 10:
+                blacked = batch[6].to(device)
+                plot_heatmap(source[0].cpu(),
+                             u_target[0].cpu(),
+                             heatmap=heatmap[0].cpu(),
+                             cropped_target=target[0].cpu(),
+                             blacked_image=blacked[0].cpu(),
+                             name=str(epoch) + "_" + str(count),
+                             dir=out_folder)
         if conf["negative_frac"] > 0.01:
             batch, heatmap = hard_negatives(source, heatmap)
         out = model(source, target, padding=conf["pad"])
+
         optimizer.zero_grad()
 
         los = loss(out, heatmap)
@@ -47,22 +59,14 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
         los.backward()
 
         optimizer.step()
-        count = count + 1
-        if conf["plot_training"]:
-            if count < 10:
-                plot_samples(source[0].cpu(),
-                             u_target[0].cpu(),
-                             heatmap[0].cpu(),
-                             prediction=out[0].cpu(),
-                             name=str(epoch) + "_" + str(count),
-                             dir=out_folder)
+
 
     print("Training of epoch", epoch, "ended with loss", loss_sum / len(train_loader))
     return model
 
 
 
-def eval_loop(val_loader, model, epoch, histograms):
+def eval_loop(val_loader, model, epoch, histograms,out_folder):
     global conf
     model.eval()
     with t.no_grad():
@@ -76,7 +80,9 @@ def eval_loop(val_loader, model, epoch, histograms):
                 if count > 5:
                     break
                 source, target = (batch[0].to(device)), (batch[4].to(device))
-                plot_histogram(source, target, name=str(epoch), displacement=disp[count], histogram=hist[count])
+                plot_histogram(source, target, displacement=disp[count], histogram=hist[count],
+                               name=str(epoch) + "_" + str(count),
+                                dir=out_folder)
                 count = count + 1
     print("Eval of epoch " + str(epoch) + " ended with mae " + str(mae))
     return mae
@@ -99,7 +105,7 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path=Non
         print("WARNING epochs and eval rate are not divisible")
     for epoch in range(conf["epochs"]):
         if epoch % conf["eval_rate"] == 0:  # and epoch > 0:
-            err = eval_loop(val_loader, model, epoch, histograms)
+            err = eval_loop(val_loader, model, epoch, histograms,out)
             if err < lowest_err:
                 lowest_err = err
                 best_model = copy.deepcopy(model)

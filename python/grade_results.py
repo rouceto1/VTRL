@@ -6,6 +6,8 @@ from .helper_functions import *
 from csv import writer
 from pathlib import Path
 import time
+from scipy.integrate import trapz
+
 def filter_to_max(lst, threshold):
     lst[lst > threshold] = threshold
     lst[lst < -threshold] = -threshold
@@ -138,7 +140,6 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
 
 
 def compute(displacement, gt, positions=None, plot=True, fig_place=None):
-    print("^^^^^^ ---- this should work")
     displacement_filtered, gt_filtered, count = filter_unsecusfull_matching(displacement, np.array(gt), 1500)
     disp = displacement_filtered - gt_filtered
     line = compute_AC_curve(filter_to_max(displacement - gt, 1))
@@ -153,18 +154,21 @@ def compute(displacement, gt, positions=None, plot=True, fig_place=None):
 
 
 def compute_AC_curve(error):
-    disp = np.sort(abs(error))
-    # plt.plot(disp)
-    # plt.show()
+    #error = [-2.548,458,5,0,5684,-5684.23]
     length = len(error)
+    if length == 0:
+        return [[0], [0]]
+    disp = np.sort(abs(error))
     print(length)
     return [disp, np.array(range(length)) / length]
 
-from scipy.integrate import trapz
 # TODO this is probably incorect since it just summs all the errors therefore not normalised
 def get_integral_from_line(values):
-    integral = trapz(values[0],values[1])
+    #Fucntion returns integral of numerical array
+    #values=[[1,3,5,3,4,81,2,6,88,52,5,2,5,-5],[1,2,3,4,5,6,7,8,9,10,11,12,13,14]]
+    integral = np.trapz(values[0], values[1])
     return integral
+
 
 
 def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=None,time_elapsed=None):
@@ -184,7 +188,7 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
     out = [experiemnt_name, exp_time, *compute_to_file(displacements, gt, matches, dest, positions, fig_place=dest)]
     path = Path(dest).parent
 
-    with open(path / 'ouput.csv', 'a') as f_object:
+    with open(path / 'output.csv', 'a') as f_object:
         writer_object = writer(f_object)
         writer_object.writerow(out)
         f_object.close()

@@ -91,14 +91,14 @@ class Strands(StrandsImgPairDataset):
             source, target, displ, data_idx = super().__getitem__(idx)
             # source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8) # for vlurring out the water mark
             # displ = displ*(512.0/self.width)
-            cropped_target, crop_start, original_image = self.crop_img(target, displac=displ)
+            cropped_target, crop_start, original_image, blacked_img = self.crop_img(target, displac=displ)
             if self.smoothness == 0:
                 heatmap = self.get_heatmap(crop_start)
             else:
                 # TODO tady muze bejt fuckup
                 heatmap = self.get_smooth_heatmap(crop_start)
             #plot_heatmap(source, target, cropped_target, displ, heatmap)
-            return source, cropped_target, heatmap, data_idx, original_image, displ
+            return source, cropped_target, heatmap, data_idx, original_image, displ, blacked_img
         else:
             # croping target when evalution is up to 504 pixels
             source, target = super().__getitem__(idx)
@@ -116,7 +116,10 @@ class Strands(StrandsImgPairDataset):
         crop_start = random.choice(crops)
         crop_out = crop_start + displac
         # crop_start = random.randint(0, self.width - self.crop_width - 1)
-        return img[:, :, crop_start:crop_start + self.crop_width], crop_out, img
+        blacked_image = img.clone()
+        blacked_image[:, :, crop_start + self.crop_width:] = 0
+        blacked_image[:, :, :crop_start] = 0
+        return img[:, :, crop_start:crop_start + self.crop_width], crop_out, img, blacked_image
 
     def crop_img_old(self, img, displac):
         # lower and upper bound simoblise the MIDDLE of the possible crops

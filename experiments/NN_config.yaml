@@ -4,7 +4,7 @@ height: 324 #asi
 batch_size_eval: 1 #32
 batch_size_train: 50
 epochs: 12 #prolly indexes from 0! Also prolly does not WORK
-lr: 4.5 #e4.1
+lr: 4.1 #e4.1
 eval_rate: 3 #e3 ## should be whole divisor of epochs
 crop_sizes: [56] #e56
 fraction: 8 #e8
@@ -28,6 +28,6 @@ train:
 eval:
   help: 30
 plot_training: False
-plot_eval: False
+plot_eval: True
 #tolerance: 32
 

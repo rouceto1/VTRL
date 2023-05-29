@@ -34,8 +34,8 @@ def make_places_list(total_per_place, percentage_to_explore, block_size, whole_p
         hole = random.randint(0, int(hole_size * 2))
         current_block = current_pose + hole
         if current_block + block_size >= total_per_place:
-            print("generated only " + str(i * block_size) + " out of " + str(picked_places_count) + " :%" + str(
-                i * block_size / picked_places_count))
+            #print("generated only " + str(i * block_size) + " out of " + str(picked_places_count) + " :%" + str(
+            #    i * block_size / picked_places_count))
             break
         batch_starts.append(current_block)
         current_pose = current_block + block_size
@@ -59,7 +59,7 @@ def save_strategy(name, experiments_path, percentage_to_explore, block_size, who
     try:
         os.mkdir(os.path.join(experiments_path, name))
     except FileExistsError:
-        print("Strategy already exists " + experiments_path)
+        print("Strategy already exists " + os.path.join(experiments_path, name))
     np.savetxt(os.path.join(experiments_path, name) + "/input.txt", places_out, fmt='%i')
     dictionary = {
         "percents": percentage_to_explore,
@@ -88,8 +88,8 @@ import itertools
 
 def make_multiple_strategies():
     percentage_to_explore_list = np.arange(0.1, 0.95, 0.1)
-    block_size_list = [1,10]
-    whole_place_at_once_list = [True]
+    block_size_list = [1, 10]
+    whole_place_at_once_list = [False]
     single_place_per_batch_list = [False]
     place_weight_randomness_list = np.array(np.ones(7))
     a = [percentage_to_explore_list, block_size_list, whole_place_at_once_list, single_place_per_batch_list,
