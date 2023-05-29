@@ -80,7 +80,7 @@ def eval_loop(val_loader, model, epoch, histograms,out_folder):
                 if count > 5:
                     break
                 source, target = (batch[0].to(device)), (batch[4].to(device))
-                plot_histogram(source, target, displacement=disp[count], histogram=hist[count],
+                plot_histogram(source.cpu(), target.cpu(), displacement=disp[count], histogram=hist[count],
                                name=str(epoch) + "_" + str(count),
                                 dir=out_folder)
                 count = count + 1
