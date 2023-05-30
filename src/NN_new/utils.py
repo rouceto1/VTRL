@@ -33,8 +33,8 @@ batch_augmentations = t.nn.Sequential(
 )
 
 
-def plot_heatmap(source, target, cropped_target=None, displacement=None,blacked_image = None, heatmap=None,dir=None,name=None):
-    f, axarr = plt.subplots(4)
+def plot_heatmap(source, target, cropped_target=None, prediction=None,blacked_image = None, heatmap=None,dir=None,name=None):
+    f, axarr = plt.subplots(5)
     image1 = source.permute(1, 2, 0).numpy()
     image2 = cropped_target.permute(1, 2, 0).numpy()
     image3 = target.permute(1, 2, 0).numpy()
@@ -43,10 +43,12 @@ def plot_heatmap(source, target, cropped_target=None, displacement=None,blacked_
     # cv.line(image2, (x1, 0), (x1, image1.shape[0]), (0, 255, 0), thickness=2)
     # cv.line(image2, (x2, 0), (x2, image1.shape[0]), (255, 0, 0), thickness=2)
     axarr[0].imshow(image1, interpolation='nearest', aspect='auto')
-    axarr[1].imshow(image3,interpolation='nearest', aspect='auto')
+    axarr[1].imshow(image3, interpolation='nearest', aspect='auto')
     axarr[2].imshow(image4, interpolation='nearest', aspect='auto')
     axarr[3].plot(heatmap)
+    axarr[4].plot(prediction.detach().numpy())
     axarr[3].set_xlim((0, 63))
+    axarr[4].set_xlim((0, 63))
     #axarr[4].imshow(image2)
 
     f.tight_layout()

@@ -35,23 +35,24 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
     count = 0
     print("Training model epoch", epoch)
     for batch in tqdm(train_loader):
-        source, target, heatmap, u_target = batch[0].to(device), batch[1].to(device), batch[2].to(device), batch[4].to(device)
+        source, target, heatmap, u_target, blacked = batch[0].to(device), batch[1].to(device), batch[2].to(device), batch[4].to(device), batch[6].to(device)
         source = batch_aug(source)
         count = count + 1
+
+        if conf["negative_frac"] > 0.01:
+            batch, heatmap = hard_negatives(source, heatmap)
+
+        out = model(source, target, padding=conf["pad"])
         if conf["plot_training"]:
             if count < 10:
-                blacked = batch[6].to(device)
                 plot_heatmap(source[0].cpu(),
                              u_target[0].cpu(),
                              heatmap=heatmap[0].cpu(),
                              cropped_target=target[0].cpu(),
                              blacked_image=blacked[0].cpu(),
+                             prediction = out[0].cpu(),
                              name=str(epoch) + "_" + str(count),
                              dir=out_folder)
-        if conf["negative_frac"] > 0.01:
-            batch, heatmap = hard_negatives(source, heatmap)
-        out = model(source, target, padding=conf["pad"])
-
         optimizer.zero_grad()
 
         los = loss(out, heatmap)
