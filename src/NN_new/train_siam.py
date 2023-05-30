@@ -103,9 +103,9 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path=Non
     val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False,  num_workers=10)
     if conf["epochs"] % conf["eval_rate"] != 0:
         print("WARNING epochs and eval rate are not divisible")
-    for epoch in range(conf["epochs"]):
-        if epoch % conf["eval_rate"] == 0:  # and epoch > 0:
-            err = eval_loop(val_loader, model, epoch, histograms,out)
+    for epoch in range(1, conf["epochs"]+1):
+        if epoch % conf["eval_rate"] == 0 or conf["epochs"] == epoch:  # and epoch > 0:
+            err = eval_loop(val_loader, model, epoch, histograms, out)
             if err < lowest_err:
                 lowest_err = err
                 best_model = copy.deepcopy(model)
