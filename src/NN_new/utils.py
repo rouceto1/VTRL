@@ -50,31 +50,28 @@ def plot_heatmap(source, target, cropped_target=None, prediction=None,blacked_im
     axarr[3].set_xlim((0, 63))
     axarr[4].set_xlim((0, 63))
     #axarr[4].imshow(image2)
-
+    f.suptitle( "heatmap_" + str(name))
     f.tight_layout()
     plt.savefig(os.path.join(dir, "heatmap_" + str(name) + ".png"))
     #plt.show()
 
 
 def plot_histogram(source, target, cropped_target=None, displacement=None, histogram=None,
-                   name=None,
-                   dir=None):
+                   name=None, dir=None):
     f, axarr = plt.subplots(3)
-    image1 = source[0].permute(1, 2, 0).numpy()
-    image2 = target[0].permute(1, 2, 0).numpy()
-    # print(image1.shape[1])
-    # x1 = int(image1.shape[1] / 2 - float(displacement))
-    # x2 = int(image1.shape[1] / 2 + float(displacement))
-    # cv.line(image1, (image1.shape[1] // 2, 0), (image1.shape[1] // 2, image1.shape[0]), (0, 255, 0), thickness=2)
-    # cv.line(image2, (x1, 0), (x1, image1.shape[0]), (0, 255, 0), thickness=2)
-    # cv.line(image2, (x2, 0), (x2, image1.shape[0]), (255, 0, 0), thickness=2)
+    image1 = source.permute(1, 2, 0).numpy()
+    if cropped_target is not None:
+        image2 = cropped_target.permute(1, 2, 0).numpy()
+        axarr[1].imshow(image2)
+    else:
+        image2 = target.permute(1, 2, 0).numpy()
+        axarr[1].imshow(image2, interpolation='nearest', aspect='auto')
     axarr[0].imshow(image1, interpolation='nearest', aspect='auto')
-    axarr[1].imshow(image2, interpolation='nearest', aspect='auto')
     axarr[2].plot(histogram)
     f.suptitle("epoch: " + name + " displacement: " + str(displacement))
     f.tight_layout()
     plt.savefig(os.path.join(dir, str(name) + ".png"))
-    #plt.show()
+    plt.show()
 
 
 def plot_samples(source, target, heatmap, prediction=None, name=0, dir="results/0/"):

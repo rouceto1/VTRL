@@ -4,11 +4,12 @@ from torch.nn import BCEWithLogitsLoss
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from .evaluate_model import eval_displacement
-from .utils import batch_augmentations, plot_samples, plot_similarity, plot_displacement, plot_heatmap, plot_histogram
+from .evaluate_model import *
+from .utils import batch_augmentations, plot_samples, plot_similarity, plot_displacement, plot_heatmap
 from .model import save_model_to_file
 from .train_eval_common import *
 import torch as t
+
 loss = BCEWithLogitsLoss()
 model = None
 
@@ -35,7 +36,8 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
     count = 0
     print("Training model epoch", epoch)
     for batch in tqdm(train_loader):
-        source, target, heatmap, u_target, blacked = batch[0].to(device), batch[1].to(device), batch[2].to(device), batch[4].to(device), batch[6].to(device)
+        source, target, heatmap, u_target, blacked = batch[0].to(device), batch[1].to(device), batch[2].to(device), \
+        batch[4].to(device), batch[6].to(device)
         source = batch_aug(source)
         count = count + 1
 
@@ -50,7 +52,7 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
                              heatmap=heatmap[0].cpu(),
                              cropped_target=target[0].cpu(),
                              blacked_image=blacked[0].cpu(),
-                             prediction = out[0].cpu(),
+                             prediction=out[0].cpu(),
                              name=str(epoch) + "_" + str(count),
                              dir=out_folder)
         optimizer.zero_grad()
@@ -61,30 +63,18 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
 
         optimizer.step()
 
-
     print("Training of epoch", epoch, "ended with loss", loss_sum / len(train_loader))
     return model
 
 
-
-def eval_loop(val_loader, model, epoch, histograms,out_folder):
+def eval_loop(val_loader, model, epoch, histograms, out_folder):
     global conf
     model.eval()
     with t.no_grad():
         mae, acc, hist, disp = eval_displacement(eval_model=model, loader=val_loader,
                                                  histograms=np.zeros((len(val_loader), 64)), conf=conf,
-                                                 padding=conf["pad_teach"])
-        count = 0
-        if conf["plot_eval_in_train"]:
-            for batch in val_loader:
-                pass
-                if count > 5:
-                    break
-                source, target = (batch[0].to(device)), (batch[4].to(device))
-                plot_histogram(source.cpu(), target.cpu(), displacement=disp[count], histogram=hist[count],
-                               name="train_hist_" + str(epoch) + "_" + str(count),
-                                dir=out_folder)
-                count = count + 1
+                                                 padding=conf["pad_teach"], plot_path=out_folder,
+                                                 plot_name="train_hist", epoch=epoch, is_teaching=True)
     print("Eval of epoch " + str(epoch) + " ended with mae " + str(mae))
     return mae
 
@@ -95,16 +85,16 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path=Non
     global conf
     best_model = None
     model, conf = get_model(model, model_path, eval_model, conf, conf["pad_teach"])
-    optimizer = AdamW(model.parameters(), lr=10**-conf["lr"]) #conf["lr"])
+    optimizer = AdamW(model.parameters(), lr=10 ** -conf["lr"])  # conf["lr"])
 
     dataset, histograms = get_dataset(data_path, train_data, conf, training=True)
     train_size = int(len(dataset) * 0.95)
     val, train = t.utils.data.random_split(dataset, [len(dataset) - train_size, train_size])
-    train_loader = DataLoader(train, conf["batch_size_train"], shuffle=True,  num_workers=10)
-    val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False,  num_workers=10)
+    train_loader = DataLoader(train, conf["batch_size_train"], shuffle=True, num_workers=10)
+    val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False, num_workers=10)
     if conf["epochs"] % conf["eval_rate"] != 0:
         print("WARNING epochs and eval rate are not divisible")
-    for epoch in range(1, conf["epochs"]+1):
+    for epoch in range(1, conf["epochs"] + 1):
         if epoch % conf["eval_rate"] == 0 or conf["epochs"] == epoch:  # and epoch > 0:
             err = eval_loop(val_loader, model, epoch, histograms, out)
             if err < lowest_err:
