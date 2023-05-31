@@ -37,7 +37,7 @@ GT_file = os.path.join(evaluation_prefix, "GT.pickle")
 notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 
 
-def process(paths, REDO=[False, False, True, True]):
+def process(paths, REDO=[True, False, True, True]):
     estimates_grade = None
     for exp in paths:
         start_time = time.time()
@@ -57,7 +57,6 @@ def process(paths, REDO=[False, False, True, True]):
         if not os.path.exists(estimates_grade_out) or REDO[2]:
             with open(GT_file, 'rb') as handle:
                 gt_in = pickle.load(handle)
-            print ("GT length: ", len(gt_in))
             estimates_grade = evaluate_for_GT(experiments_path, evaluation_prefix, evaluation_paths, weights_eval,
                                               _GT=gt_in,
                                               _estimates_out=estimates_grade_out, conf=config)

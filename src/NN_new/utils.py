@@ -71,7 +71,6 @@ def plot_histogram(source, target, cropped_target=None, displacement=None, histo
     f.suptitle("epoch: " + name + " displacement: " + str(displacement))
     f.tight_layout()
     plt.savefig(os.path.join(dir, str(name) + ".png"))
-    print(os.path.join(dir, str(name) + ".png"))
     #plt.show()
 
 

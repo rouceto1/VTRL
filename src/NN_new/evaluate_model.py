@@ -43,7 +43,7 @@ def eval_displacement(eval_model=None, model_path=None,
         idx = 0
         errors = []
         results = []
-        for batch in tqdm(train_loader):
+        for batch in (tqdm(train_loader) if not is_teaching else train_loader):
             # batch: source, cropped_target, heatmap, data_idx, original_image, displ
             if is_teaching:
                 output_size = conf["output_size"]
@@ -98,7 +98,6 @@ def eval_displacement(eval_model=None, model_path=None,
 
 
 def NNeval_from_python(files, data_path, out_path, weights_file, config=None):
-    print("evaluating:" + str(weights_file))
     global conf
     global device
     conf = config
