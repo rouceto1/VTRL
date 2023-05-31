@@ -75,10 +75,14 @@ def read_gt_file_old(file_list, gt_in):
 
 
 def usefull_annotation(feature_count_l,feature_count_r, matches, histogram):
+    #5 matches is not really goot, totaol fature count is better indicator since in dark it just does find some matches anyway
     if matches > 5:
         return True
     return False
-
+def usefull_GT(feature_count_l,feature_count_r, matches, histogram):
+    if feature_count_l >= 60 and feature_count_r >= 60 and matches >= 5:
+        return True
+    return False
 
 # makes the file list from all images to all targets images
 def make_file_list(places, targets, images, dataset_path, evaluation_prefix, evaluation_paths):
@@ -115,8 +119,10 @@ def make_file_list_annotation(places, images, evaluation_prefix, evaluation_path
 
 def make_file_list_from_gt(evaluation_prefix,gt):
     file_list = []
-    for i in range(10000):
+    for i in range(100):
         sample_list = random.choices(gt)[0]
+        while (usefull_GT(sample_list[1],sample_list[2],sample_list[3],None ) == False):
+            sample_list = random.choices(gt)[0]
         set = []
         set.append(os.path.join(evaluation_prefix, sample_list[4],sample_list[5]))
         set.append(os.path.join(evaluation_prefix, sample_list[6], sample_list[7]))

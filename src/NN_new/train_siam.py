@@ -75,14 +75,14 @@ def eval_loop(val_loader, model, epoch, histograms,out_folder):
                                                  histograms=np.zeros((len(val_loader), 64)), conf=conf,
                                                  padding=conf["pad_teach"])
         count = 0
-        if conf["plot_eval"]:
+        if conf["plot_eval_in_train"]:
             for batch in val_loader:
                 pass
                 if count > 5:
                     break
                 source, target = (batch[0].to(device)), (batch[4].to(device))
                 plot_histogram(source.cpu(), target.cpu(), displacement=disp[count], histogram=hist[count],
-                               name=str(epoch) + "_" + str(count),
+                               name="train_hist_" + str(epoch) + "_" + str(count),
                                 dir=out_folder)
                 count = count + 1
     print("Eval of epoch " + str(epoch) + " ended with mae " + str(mae))

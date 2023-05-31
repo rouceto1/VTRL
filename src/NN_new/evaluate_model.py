@@ -5,7 +5,7 @@ from scipy import interpolate
 from torch.utils.data import DataLoader
 model = None
 import torch as t
-from .utils import plot_samples
+from .utils import plot_histogram
 
 def get_histogram(src, tgt, padding):
     global model
@@ -86,7 +86,7 @@ def eval_displacement(eval_model=None, model_path=None,
         return abs_err / idx, valid * 100 / idx, histograms, results
 
 
-def NNeval_from_python(files, data_path, weights_file, config=None):
+def NNeval_from_python(files, data_path, dataset_path, weights_file, config=None):
     print("evaluating:" + str(weights_file))
     global conf
     global device
@@ -94,8 +94,19 @@ def NNeval_from_python(files, data_path, weights_file, config=None):
     device = conf["device"]
     dataset, histograms = get_dataset(data_path, files, conf)
     loader = DataLoader(dataset, conf["batch_size_eval"], shuffle=False, pin_memory=True, num_workers=10)
-    return eval_displacement(model_path=weights_file, loader=loader,
+    mae, acc, hist, disp = eval_displacement(model_path=os.path.join(dataset_path,weights_file), loader=loader,
                              histograms=histograms, conf=conf, batch_size=conf["batch_size_eval"], padding=conf["pad_eval"])
+    count = 0
+    if conf["plot_eval"]:
+        for batch in loader:
+            if count > 5:
+                break
+            source, target = (batch[0].to(device)), (batch[2].to(device))
+            plot_histogram(source.cpu(), target.cpu(), displacement=disp[count], histogram=hist[count],
+                           name= "eval" + "_" + str(count),
+                           dir=dataset_path)
+            count = count + 1
+    return mae, acc, hist, disp
 
 
 if __name__ == '__main__':

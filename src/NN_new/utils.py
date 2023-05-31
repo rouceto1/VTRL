@@ -73,7 +73,7 @@ def plot_histogram(source, target, cropped_target=None, displacement=None, histo
     axarr[2].plot(histogram)
     f.suptitle("epoch: " + name + " displacement: " + str(displacement))
     f.tight_layout()
-    plt.savefig(os.path.join(dir, "hist_" + str(name) + ".png"))
+    plt.savefig(os.path.join(dir, str(name) + ".png"))
     #plt.show()
 
 
