@@ -28,7 +28,7 @@ class StrandsImgPairDataset(Dataset):
                 # print(self.GT[i])
                 path1 = pair[0]
                 path2 = pair[1]
-                self.data.append((path1, path2))
+                self.data.append((path1, path2,i))
         else:
 
             temp = self.training_input[:, 2].astype(np.float32) * self.width
@@ -68,7 +68,7 @@ class StrandsImgPairDataset(Dataset):
             displ = self.data[idx][2]
             return source_img, target_img, displ, self.data[idx][3]
         else:
-            return source_img, target_img
+            return source_img, target_img, self.data[idx][2]
 
 
 class Strands(StrandsImgPairDataset):
@@ -101,10 +101,10 @@ class Strands(StrandsImgPairDataset):
             return source, cropped_target, heatmap, data_idx, original_image, displ, blacked_img
         else:
             # croping target when evalution is up to 504 pixels
-            source, target = super().__getitem__(idx)
+            source, target,data_idx = super().__getitem__(idx)
             left = (self.width - self.crop_width) / 2
             right = (self.width - self.crop_width) / 2 + self.crop_width
-            return source, target[:, :, int(left):int(right)], target
+            return source, target[:, :, int(left):int(right)], data_idx, target
 
     def crop_img(self, img, displac):
         # crop - avoid asking for unavailable crop

@@ -42,7 +42,7 @@ def get_model(model, model_path, eval_model, conf, pad):
 
     if "eunord" in model_path:
         conf["emb_channels"] = 256
-        # TODO. find all possible changes in NN_config for tiny model and implement
+        # DONE  find all possible changes in NN_config for tiny model and implement
         use256 = True
     else:
         conf["emb_channels"] = 16

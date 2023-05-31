@@ -3,12 +3,13 @@ from .train_eval_common import *
 from tqdm import tqdm
 from scipy import interpolate
 from torch.utils.data import DataLoader
+
 model = None
 import torch as t
 from .utils import plot_histogram
 
-def get_histogram(src, tgt, padding):
-    global model
+
+def get_histogram(src, tgt, padding, model):
     histogram = model(src, tgt, padding)  # , fourrier=True)
     std, mean = t.std_mean(histogram, dim=-1, keepdim=True)
     if any(std == 0):
@@ -19,7 +20,9 @@ def get_histogram(src, tgt, padding):
 
 
 def eval_displacement(eval_model=None, model_path=None,
-                      loader=None, histograms=None, conf=None, batch_size=1 ,padding=None, epoch = None):
+                      loader=None, histograms=None, conf=None, batch_size=1,
+                      padding=None, epoch=None,
+                      plot_path=None, plot_name=None, is_teaching = False):
     """
     :param model_path:
     :param histograms:
@@ -42,23 +45,20 @@ def eval_displacement(eval_model=None, model_path=None,
         results = []
         for batch in tqdm(train_loader):
             # batch: source, cropped_target, heatmap, data_idx, original_image, displ
-            if len(batch) > 3:
+            if is_teaching:
                 output_size = conf["output_size"]
                 source, target, gt = (batch[0].to(device)), (batch[1].to(device)), batch[5]
-                if abs(gt.numpy()[0]) >= conf["width"]:
-                    print("should not happen")
-                    continue
             else:
                 output_size = conf["output_size"] - 1
-                source, target = (batch[0].to(device)), (batch[2].to(device))
+                source, target = (batch[0].to(device)), (batch[3].to(device))
                 gt = [0] * batch_size
 
-            histogram = get_histogram(source, target, padding)
+            histogram = get_histogram(source, target, padding, model)
             shift_hist = histogram.cpu()
             tmp_idx = 0
             if histograms is not None:  # only run this when in pure eval
                 for hist in shift_hist:
-                    histograms[idx+tmp_idx, :] = hist.cpu().numpy()
+                    histograms[idx + tmp_idx, :] = hist.cpu().numpy()
                     tmp_idx += 1
             else:
                 for hist in shift_hist:
@@ -75,13 +75,24 @@ def eval_displacement(eval_model=None, model_path=None,
                 tmp_err = (ret - gt_list[i])
                 abs_err += abs(tmp_err)
                 errors.append(tmp_err)
+
                 # if abs(ret - gt.numpy()[0]) < conf["tolerance"]:
                 if abs(ret - gt_list[i]) < conf["tolerance"]:
                     valid += 1
                 idx += 1
             if idx > conf["eval_limit"]:
                 break
-
+            if conf["plot_eval_in_train"] or conf["plot_eval"]:
+                plot_source = source[0].cpu()
+                plot_target = target[0].cpu()
+                plot_hist = shift_hist[0]
+                croped = None
+                if is_teaching:
+                    croped = target[0].cpu()
+                if idx < 5:
+                    plot_histogram(plot_source, plot_target, displacement=ret, cropped_target=croped, histogram=plot_hist,
+                                   name=plot_name + "_" + str(epoch) + "_" + str(idx),
+                                   dir=plot_path)
 
         return abs_err / idx, valid * 100 / idx, histograms, results
 
@@ -94,18 +105,12 @@ def NNeval_from_python(files, data_path, dataset_path, weights_file, config=None
     device = conf["device"]
     dataset, histograms = get_dataset(data_path, files, conf)
     loader = DataLoader(dataset, conf["batch_size_eval"], shuffle=False, pin_memory=True, num_workers=10)
-    mae, acc, hist, disp = eval_displacement(model_path=os.path.join(dataset_path,weights_file), loader=loader,
-                             histograms=histograms, conf=conf, batch_size=conf["batch_size_eval"], padding=conf["pad_eval"])
-    count = 0
-    if conf["plot_eval"]:
-        for batch in loader:
-            if count > 5:
-                break
-            source, target = (batch[0].to(device)), (batch[2].to(device))
-            plot_histogram(source.cpu(), target.cpu(), displacement=disp[count], histogram=hist[count],
-                           name= "eval" + "_" + str(count),
-                           dir=dataset_path)
-            count = count + 1
+    mae, acc, hist, disp = eval_displacement(model_path=os.path.join(dataset_path, weights_file), loader=loader,
+                                             histograms=histograms, conf=conf, batch_size=conf["batch_size_eval"],
+                                             padding=conf["pad_eval"],
+                                             plot_path=dataset_path,
+                                             plot_name="eval_hist", epoch="max"
+                                             )
     return mae, acc, hist, disp
 
 

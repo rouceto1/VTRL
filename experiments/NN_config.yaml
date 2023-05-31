@@ -3,9 +3,9 @@ width: 512
 height: 324 #asi
 batch_size_eval: 1 #32
 batch_size_train: 50
-epochs: 15 #prolly indexes from 0!
+epochs: 12 #prolly indexes from 0!
 lr: 4.1 #e4.1
-eval_rate: 3 #e3 ## should be whole divisor of epochs
+eval_rate: 1 #e3 ## should be whole divisor of epochs
 crop_sizes: [56] #e56
 fraction: 8 #e8
 smoothness: 2

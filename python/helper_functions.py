@@ -119,7 +119,7 @@ def make_file_list_annotation(places, images, evaluation_prefix, evaluation_path
 
 def make_file_list_from_gt(evaluation_prefix,gt):
     file_list = []
-    for i in range(100):
+    for i in range(10000):
         sample_list = random.choices(gt)[0]
         while (usefull_GT(sample_list[1],sample_list[2],sample_list[3],None ) == False):
             sample_list = random.choices(gt)[0]
