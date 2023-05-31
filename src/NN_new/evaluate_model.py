@@ -97,7 +97,7 @@ def eval_displacement(eval_model=None, model_path=None,
         return abs_err / idx, valid * 100 / idx, histograms, results
 
 
-def NNeval_from_python(files, data_path, dataset_path, weights_file, config=None):
+def NNeval_from_python(files, data_path, out_path, weights_file, config=None):
     print("evaluating:" + str(weights_file))
     global conf
     global device
@@ -105,10 +105,10 @@ def NNeval_from_python(files, data_path, dataset_path, weights_file, config=None
     device = conf["device"]
     dataset, histograms = get_dataset(data_path, files, conf)
     loader = DataLoader(dataset, conf["batch_size_eval"], shuffle=False, pin_memory=True, num_workers=10)
-    mae, acc, hist, disp = eval_displacement(model_path=os.path.join(dataset_path, weights_file), loader=loader,
+    mae, acc, hist, disp = eval_displacement(model_path=weights_file, loader=loader,
                                              histograms=histograms, conf=conf, batch_size=conf["batch_size_eval"],
                                              padding=conf["pad_eval"],
-                                             plot_path=dataset_path,
+                                             plot_path=out_path,
                                              plot_name="eval_hist", epoch="max"
                                              )
     return mae, acc, hist, disp

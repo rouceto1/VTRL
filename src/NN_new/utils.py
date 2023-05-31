@@ -71,7 +71,8 @@ def plot_histogram(source, target, cropped_target=None, displacement=None, histo
     f.suptitle("epoch: " + name + " displacement: " + str(displacement))
     f.tight_layout()
     plt.savefig(os.path.join(dir, str(name) + ".png"))
-    plt.show()
+    print(os.path.join(dir, str(name) + ".png"))
+    #plt.show()
 
 
 def plot_samples(source, target, heatmap, prediction=None, name=0, dir="results/0/"):

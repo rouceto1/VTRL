@@ -46,7 +46,7 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
 
         out = model(source, target, padding=conf["pad"])
         if conf["plot_training"]:
-            if count < 10:
+            if count < 3:
                 plot_heatmap(source[0].cpu(),
                              u_target[0].cpu(),
                              heatmap=heatmap[0].cpu(),

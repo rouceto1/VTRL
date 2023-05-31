@@ -52,13 +52,13 @@ def process(paths, REDO=[False, False, True, True]):
         if not os.path.exists(weights_eval) or REDO[0]:
             file_list_teach = teach(dataset_path, chosen_positions, experiments_path, conf=config)
         #if not os.path.exists(estimates_train_out) or REDO[1]:
-        #    estimates_grade = evaluate_to_file(dataset_path, evaluation_prefix, evaluation_paths, weights_eval,
+        #    estimates_grade = evaluate_to_file(experiments_path, evaluation_prefix, evaluation_paths, weights_eval,
         #                                       _estimates_out=estimates_train_out, conf=config)
         if not os.path.exists(estimates_grade_out) or REDO[2]:
             with open(GT_file, 'rb') as handle:
                 gt_in = pickle.load(handle)
             print ("GT length: ", len(gt_in))
-            estimates_grade = evaluate_for_GT(dataset_path, evaluation_prefix, evaluation_paths, weights_eval,
+            estimates_grade = evaluate_for_GT(experiments_path, evaluation_prefix, evaluation_paths, weights_eval,
                                               _GT=gt_in,
                                               _estimates_out=estimates_grade_out, conf=config)
         if not os.path.exists(os.path.join(experiments_path, "input.png")) or REDO[3]:

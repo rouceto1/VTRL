@@ -7,7 +7,7 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 
 
-def NN_eval(file_list_nn, dataset_path, weights_file, conf):
+def NN_eval(file_list_nn, out_path, weights_file, conf):
     if conf["old"]:
         pass
         hist_in = None
@@ -16,7 +16,7 @@ def NN_eval(file_list_nn, dataset_path, weights_file, conf):
         # a, b, hist_in, dsp = neuralka.NNeval_from_python(np.array(file_list_nn), "strands", weights_file)
     else:
         # print("doing new")
-        aa, bb, hist_in, dsp = nn_ev.NNeval_from_python(np.array(file_list_nn), "strands", dataset_path, weights_file, conf)
+        aa, bb, hist_in, dsp = nn_ev.NNeval_from_python(np.array(file_list_nn), "strands", out_path, weights_file, conf)
     hist_in = np.float64(hist_in)
     return hist_in, dsp
 
@@ -32,7 +32,7 @@ evaluates combos by NN and then uses this output for FM evaluation
 """
 
 
-def fm_nn_eval(file_list, filetype_nn, filetype_fm, dataset_path, weights_file, cache_file, conf):
+def fm_nn_eval(file_list, filetype_nn, filetype_fm, out_path, weights_file, cache_file, conf):
     count = len(file_list)
     if conf["limit"] is not None:
         count = conf["limit"]
@@ -45,7 +45,7 @@ def fm_nn_eval(file_list, filetype_nn, filetype_fm, dataset_path, weights_file, 
 
     if not conf["use_cache"]:
         hist_nn, displacement = NN_eval(choose_proper_filetype(filetype_nn, file_list),
-                                        dataset_path, weights_file,
+                                        out_path, weights_file,
                                         conf)
         if conf["save_cache"]:
             with open(cache_file, 'wb') as handle:
