@@ -62,8 +62,7 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
 
         optimizer.step()
 
-    print("Training of epoch", epoch, "ended with loss", loss_sum / len(train_loader))
-    return model
+    return model, loss_sum / len(train_loader)
 
 
 def eval_loop(val_loader, model, epoch, histograms, out_folder):
@@ -74,8 +73,7 @@ def eval_loop(val_loader, model, epoch, histograms, out_folder):
                                                  histograms=np.zeros((len(val_loader), 64)), conf=conf,
                                                  padding=conf["pad_teach"], plot_path=out_folder,
                                                  plot_name="train_hist", epoch=epoch, is_teaching=True)
-    print("Eval of epoch " + str(epoch) + " ended with mae " + str(mae))
-    return mae
+    return mae.item()
 
 
 def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path=None):
@@ -93,13 +91,20 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path=Non
     val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False, num_workers=10)
     if conf["epochs"] % conf["eval_rate"] != 0:
         print("WARNING epochs and eval rate are not divisible")
+    losses = []
+    meaes = []
     for epoch in tqdm(range(1, conf["epochs"] + 1)):
         if epoch % conf["eval_rate"] == 0 or conf["epochs"] == epoch:  # and epoch > 0:
             err = eval_loop(val_loader, model, epoch, histograms, out)
+            meaes.append(err)
             if err < lowest_err:
                 lowest_err = err
                 best_model = copy.deepcopy(model)
-        model = train_loop(epoch, model, train_loader, optimizer, out)
+        model, loss = train_loop(epoch, model, train_loader, optimizer, out)
+        losses.append(loss)
+    print("Training ended with losses: " + str(losses))
+    print("Training progressed with meaes: " + str(meaes))
+
 
     save_model_to_file(best_model, model_path, lowest_err, optimizer)
 

@@ -89,7 +89,7 @@ def eval_displacement(eval_model=None, model_path=None,
                 croped = None
                 if is_teaching:
                     croped = target[0].cpu()
-                if idx < 5:
+                if idx < 40:
                     plot_histogram(plot_source, plot_target, displacement=ret, cropped_target=croped, histogram=plot_hist,
                                    name=plot_name + "_" + str(epoch) + "_" + str(idx),
                                    dir=plot_path)

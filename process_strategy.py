@@ -37,7 +37,7 @@ GT_file = os.path.join(evaluation_prefix, "GT.pickle")
 notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 
 
-def process(paths, REDO=[True, False, True, True]):
+def process(paths, REDO=[False, False, True, True]):
     estimates_grade = None
     for exp in paths:
         start_time = time.time()
