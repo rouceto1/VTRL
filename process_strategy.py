@@ -37,7 +37,7 @@ GT_file = os.path.join(evaluation_prefix, "GT.pickle")
 notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 
 
-def process(paths, REDO=[False, False, True, True]):
+def process(paths, REDO=[False, False, False, True]):
     estimates_grade = None
     for exp in paths:
         start_time = time.time()
@@ -64,12 +64,12 @@ def process(paths, REDO=[False, False, True, True]):
             with open(GT_file, 'rb') as handle:
                 gt_in = pickle.load(handle)
             grade_type(experiments_path, positions=chosen_positions, _GT=gt_in, estimates_file=estimates_grade_out,
-                       estimates=estimates_grade,time_elapsed=start_time)
+                       estimates=estimates_grade, time_elapsed=start_time)
         notify.send('One finished: ' + exp)
     notify.send('Finished')
 
 
 if __name__ == "__main__":
     REDO = [True, True, True, True]
-    process(["test"], REDO)
+    process(["empty"], REDO)
 

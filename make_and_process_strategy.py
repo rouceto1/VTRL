@@ -21,6 +21,9 @@ class NumpyArrayEncoder(JSONEncoder):
 def make_places_list(total_per_place, percentage_to_explore, block_size, whole_place_at_once,
                      single_place_per_batch,
                      place_weight_randomness):
+    if percentage_to_explore == 0.0:
+        return np.ones(total_per_place, dtype=int)
+
     picked_places_count = total_per_place * percentage_to_explore
     block_count = picked_places_count / block_size
 
@@ -87,10 +90,10 @@ import itertools
 
 
 def make_multiple_strategies():
-    percentage_to_explore_list = np.arange(0.1, 0.95, 0.1)
+    percentage_to_explore_list = np.arange(0.1, 0.99, 0.1)
     block_size_list = [1, 10]
-    whole_place_at_once_list = [False]
-    single_place_per_batch_list = [False]
+    whole_place_at_once_list = [True, False]
+    single_place_per_batch_list = [True]
     place_weight_randomness_list = np.array(np.ones(7))
     a = [percentage_to_explore_list, block_size_list, whole_place_at_once_list, single_place_per_batch_list,
          [place_weight_randomness_list]]
@@ -101,9 +104,21 @@ def make_multiple_strategies():
         names.append(name)
     return names, strategies
 
+def make_test_strategy():
+    percentage_to_explore = 0.1
+    block_size = 1
+    whole_place_at_once = False
+    single_place_per_batch = False
+    place_weight_randomness_list = np.array(np.ones(7))
+    a = [[percentage_to_explore, block_size, whole_place_at_once, single_place_per_batch,
+         place_weight_randomness_list]]
+    return ["test"], a
+
+
 
 if __name__ == "__main__":
     names, strategies = make_multiple_strategies()
+    #names, strategies = make_test_strategy()
     for index, strategy in enumerate(strategies):
         strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],
                          whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],
