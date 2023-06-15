@@ -12,7 +12,7 @@ def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
     file_list = make_file_list_annotation(range(8), range(1, images), _evaluation_prefix, _evaluation_paths)
 
     displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN,
-                                                                                               filetype_FM,
+                                                                                               filetype_FM, None,
                                                                                                _weights_file, _cache2,
                                                                                                conf)
     annotations = []

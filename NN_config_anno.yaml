@@ -21,11 +21,14 @@ tolerance: 50
 use_cache: False
 save_cache: False
 limit: null
+all_combos: False
 old: False
 train:
   help:
 eval:
   help: 30
-
+plot_training: False
+plot_eval_in_train: False
+plot_eval: False
 #tolerance: 32
 
