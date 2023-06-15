@@ -10,7 +10,7 @@ from .utils import plot_histogram
 
 
 def get_histogram(src, tgt, padding, model):
-    histogram = model(src, tgt, padding)  # , fourrier=True)
+    histogram = model(src, tgt, padding)  # , fourier=True)
     std, mean = t.std_mean(histogram, dim=-1, keepdim=True)
     if any(std == 0):
         return t.softmax(histogram, dim=1)
@@ -22,7 +22,7 @@ def get_histogram(src, tgt, padding, model):
 def eval_displacement(eval_model=None, model_path=None,
                       loader=None, histograms=None, conf=None, batch_size=1,
                       padding=None, epoch=None,
-                      plot_path=None, plot_name=None, is_teaching = False):
+                      plot_path=None, plot_name=None, is_teaching=False):
     """
     :param model_path:
     :param histograms:
@@ -86,11 +86,12 @@ def eval_displacement(eval_model=None, model_path=None,
                 plot_source = source[0].cpu()
                 plot_target = target[0].cpu()
                 plot_hist = shift_hist[0]
-                croped = None
+                cropped = None
                 if is_teaching:
-                    croped = target[0].cpu()
-                if idx < 40:
-                    plot_histogram(plot_source, plot_target, displacement=ret, cropped_target=croped, histogram=plot_hist,
+                    cropped = target[0].cpu()
+                if idx < 5:
+                    plot_histogram(plot_source, plot_target, displacement=ret, cropped_target=cropped,
+                                   histogram=plot_hist,
                                    name=plot_name + "_" + str(epoch) + "_" + str(idx),
                                    dir=plot_path)
 
