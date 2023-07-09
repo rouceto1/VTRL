@@ -43,19 +43,9 @@ def fm_nn_eval(file_list, filetype_nn, filetype_fm, out_path, weights_file, cach
     matches = np.zeros(count, dtype=np.int32)
     file_list = np.array(file_list)[:count]
 
-    if not conf["use_cache"]:
-        hist_nn, displacement = NN_eval(choose_proper_filetype(filetype_nn, file_list),
+    hist_nn, displacement = NN_eval(choose_proper_filetype(filetype_nn, file_list),
                                         out_path, weights_file,
                                         conf)
-        if conf["save_cache"]:
-            with open(cache_file, 'wb') as handle:
-                pickle.dump(hist_nn, handle)
-                print("evaluate making cache" + str(cache_file))
-    else:
-        print("evaluate reading cache" + str(cache_file))
-        with open(cache_file, 'rb') as handle:
-            hist_nn = pickle.load(handle)
-
     hist_out = np.zeros((count, 63), dtype=np.float64)
     displacements, feature_count_l, feature_count_r, histograms = grief.cpp_eval_on_files(
         choose_proper_filetype(filetype_fm, file_list),
@@ -63,7 +53,7 @@ def fm_nn_eval(file_list, filetype_nn, filetype_fm, out_path, weights_file, cach
     # FM_out = np.array([disp, fcount], dtype=np.float64).T
     # file_list = np.array(file_list)[:count]
     np.set_printoptions(threshold=sys.maxsize)
-    return file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn  # DONE: add feature count_r
+    return file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn 
 
 
 def plot_fm_list(list):
@@ -84,7 +74,7 @@ def plot_fm_list(list):
 
 
 ##
-def fm_eval(file_list, filetype_fm, limit=None):
+def fm_eval(file_list, limit=None):
     """ Feature matcher treis to evaluate on all files in the list
 
     :param filetype_fm:
@@ -99,8 +89,7 @@ def fm_eval(file_list, filetype_fm, limit=None):
     fcount_l = np.zeros(count, dtype=np.int32)
     fcount_r = np.zeros(count, dtype=np.int32)
     matches = np.zeros(count, dtype=np.int32)
-    grief.cpp_teach_on_files(choose_proper_filetype(filetype_fm, file_list),
-                             disp, fcount_l, fcount_r, matches, count)
+    grief.cpp_teach_on_files( file_list, disp, fcount_l, fcount_r, matches, count)
     fm_out = np.array([disp, fcount_l, fcount_r], dtype=np.float32).T
     # file_list.append(disp)
     file_list = np.array(file_list)[:count]

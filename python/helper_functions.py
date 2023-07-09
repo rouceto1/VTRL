@@ -75,7 +75,7 @@ def make_file_list_annotation(places, images, evaluation_prefix, evaluation_path
     return file_list2
 
 
-
+# this should be same for all datasets......
 def make_file_list_from_gt(evaluation_prefix, gt):
     file_list = []
     for i in range(10000):
