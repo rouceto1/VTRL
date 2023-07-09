@@ -217,7 +217,6 @@ def test(path1, path2):
             print(path2_p[i])
 
 
-
 if __name__ == "__main__":
     pickle_file_with_image_paths_and_shifts = os.path.join("/home/rouceto1/datasets/strands_crop/GT_redone.pickle")
     pickle_file_to_save_to = os.path.join("/home/rouceto1/datasets/strands_crop/GT_redone_all.pickle")

@@ -95,7 +95,6 @@ class Strands(StrandsImgPairDataset):
             if self.smoothness == 0:
                 heatmap = self.get_heatmap(crop_start)
             else:
-                # TODO tady muze bejt fuckup
                 heatmap = self.get_smooth_heatmap(crop_start)
             #plot_heatmap(source, target, cropped_target, displ, heatmap)
             return source, cropped_target, heatmap, data_idx, original_image, displ, blacked_img

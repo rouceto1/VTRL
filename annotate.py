@@ -4,14 +4,18 @@ from python.general_paths import *
 
 
 def annotate(_dataset_path, _evaluation_prefix, _evaluation_paths,
-             _weights_file, _GT_file, _cache2=None, conf=None):
+             _weights_file, _GT_file, _cache2=None, conf=None, images_per_season = None, seasons = None):
     images = 143
+    if seasons is None:
+        seasons = 8
+    if images_per_season is not None:
+        images = images_per_season
     if conf["limit"] is not None:
         images = conf["limit"]
 
-    file_list = make_file_list_annotation(range(8), range(1, images), _evaluation_prefix, _evaluation_paths)
+    file_list = make_file_list_annotation(range(seasons), range(0, images), _evaluation_prefix, _evaluation_paths)
 
-    displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN,
+    _, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = fm_nn_eval(file_list, filetype_NN,
                                                                                                filetype_FM, None,
                                                                                                _weights_file, _cache2,
                                                                                                conf)

@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(
     description='example: --dataset_path "full path" --evaluation_prefix "full path" --weights_folder "full path" '
                 '--file_out suffix.picke')
 parser.add_argument('--dataset_path', type=str,
-                    help="full path to dataset to be annotated",
+                    help="full path to dataset to teach on",
                     default="datasets/strands_crop/training_Nov")
 parser.add_argument('--evaluation_prefix', type=str, help="path to folder with evaluation sub-folders",
                     default="datasets/strands_crop")
@@ -37,8 +37,9 @@ GT_file = os.path.join(evaluation_prefix, "GT_redone_best.pickle")
 notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 
 
-def process(paths, REDO=[False, False, False, True]):
+def process(paths, REDO=[True, True, True, True]):
     estimates_grade = None
+    file_list_train = None
     for exp in paths:
         start_time = time.time()
         print(exp)
@@ -50,10 +51,11 @@ def process(paths, REDO=[False, False, False, True]):
         config = load_config(os.path.join(pwd, "experiments", "NN_config.yaml"), 512)
 
         if not os.path.exists(weights_eval) or REDO[0]:
-            file_list_teach = teach(dataset_path, chosen_positions, experiments_path, conf=config)
-        #if not os.path.exists(estimates_train_out) or REDO[1]:
-        #    estimates_grade = evaluate_to_file(experiments_path, evaluation_prefix, evaluation_paths, weights_eval,
-        #                                       _estimates_out=estimates_train_out, conf=config)
+            file_list_train = teach(dataset_path, chosen_positions, experiments_path, conf=config)
+        if not os.path.exists(estimates_train_out) or REDO[1]:
+            estimates_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions, weights_eval,
+                                                    _estimates_out=estimates_train_out, conf=config,
+                                                    file_list=file_list_train)
         if not os.path.exists(estimates_grade_out) or REDO[2]:
             with open(GT_file, 'rb') as handle:
                 gt_in = pickle.load(handle)
@@ -72,4 +74,3 @@ def process(paths, REDO=[False, False, False, True]):
 if __name__ == "__main__":
     REDO = [True, True, True, True]
     process(["empty"], REDO)
-

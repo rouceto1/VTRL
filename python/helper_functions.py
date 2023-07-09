@@ -49,43 +49,12 @@ def read_gt_file(file_list, gt_in):
         gt[c] = gt[c].astype("category")
         gt[c] = gt[c].cat.as_ordered()
     gt = gt.set_index(new_ind)
-
-    # print(files.join(gt, how="inner").displacement)
-
     return files.join(gt, how="inner")["displacement"].values
-
-
-def read_gt_file_old(file_list, gt_in):
-    gt_out = []
-    for file_pair in tqdm(file_list):
-        split_path = os.path.normpath(file_pair[0]).split(os.sep)
-        split_path2 = os.path.normpath(file_pair[1]).split(os.sep)
-        time = split_path[-1]
-        place = split_path[-3] + "/" + split_path[-2]
-        time2 = split_path2[-1]
-        place2 = split_path2[-3] + "/" + split_path2[-2]
-        for gt_single in gt_in:
-            second = (place2 == gt_single[4] and time2 == gt_single[5]) or (
-                        place2 == gt_single[6] and time2 == gt_single[7])
-            if second:
-                if (place == gt_single[4] and time == gt_single[5]):
-                    gt_out.append(gt_single[0])  # TODO this might be flipped
-                    break
-                elif (place == gt_single[6] and time == gt_single[7]):
-                    gt_out.append(-gt_single[0])
-                    break
-    return gt_out
 
 
 def usefull_annotation(feature_count_l, feature_count_r, matches, histogram):
     # 5 matches is not really goot, totaol fature count is better indicator since in dark it just does find some matches anyway
     if matches > 5:
-        return True
-    return False
-
-
-def usefull_GT(feature_count_l, feature_count_r, matches, histogram):
-    if feature_count_l >= 60 and feature_count_r >= 60 and matches >= 5:
         return True
     return False
 
@@ -111,7 +80,7 @@ def make_file_list_from_gt(evaluation_prefix, gt):
     file_list = []
     for i in range(10000):
         sample_list = random.choices(gt)[0]
-        while (usefull_GT(sample_list[1], sample_list[2], sample_list[3], None) == False):
+        while (useful_GT(sample_list[1], sample_list[2], sample_list[3], sample_list[10]) == False):
             sample_list = random.choices(gt)[0]
         set = []
         set.append(os.path.join(evaluation_prefix, sample_list[4], sample_list[5]))
@@ -120,6 +89,11 @@ def make_file_list_from_gt(evaluation_prefix, gt):
 
     return file_list
 
+
+def useful_GT(feature_count_l, feature_count_r, matches, usefulness):
+    if usefulness == 1:
+        return True
+    return False
 
 def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=None):
     # print("First file loaded")

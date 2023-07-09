@@ -63,7 +63,7 @@ def fm_nn_eval(file_list, filetype_nn, filetype_fm, out_path, weights_file, cach
     # FM_out = np.array([disp, fcount], dtype=np.float64).T
     # file_list = np.array(file_list)[:count]
     np.set_printoptions(threshold=sys.maxsize)
-    return displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn  # DONE: add feature count_r
+    return file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn  # DONE: add feature count_r
 
 
 def plot_fm_list(list):
@@ -80,7 +80,7 @@ def plot_fm_list(list):
         axarr[1].imshow(image2)
         axarr[0].set_xlabel(entry[3])
         axarr[1].set_xlabel(entry[4])
-        #plt.show()
+        # plt.show()
 
 
 ##
@@ -105,5 +105,5 @@ def fm_eval(file_list, filetype_fm, limit=None):
     # file_list.append(disp)
     file_list = np.array(file_list)[:count]
     files_with_displacement = np.append(file_list, fm_out, axis=1)
-    #plot_fm_list(files_with_displacement)
+    # plot_fm_list(files_with_displacement)
     return files_with_displacement

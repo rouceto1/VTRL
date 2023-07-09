@@ -118,7 +118,7 @@ def make_test_strategy():
 
 if __name__ == "__main__":
     names, strategies = make_multiple_strategies()
-    #names, strategies = make_test_strategy()
+    names, strategies = make_test_strategy()
     for index, strategy in enumerate(strategies):
         strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],
                          whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],

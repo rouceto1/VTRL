@@ -110,6 +110,7 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path=Non
 
 
     save_model_to_file(best_model, model_path, lowest_err, optimizer)
+    return best_model
 
 
 def NNteach_from_python(training_data, data_path, experiments_path, config):
@@ -120,8 +121,9 @@ def NNteach_from_python(training_data, data_path, experiments_path, config):
     global batch_aug
     batch_aug = batch_augmentations.to(device)
     print("trianing:" + str(experiments_path))
-    teach_stuff(train_data=training_data, model_path=os.path.join(experiments_path, "weights.pt"), out=experiments_path,
+    return teach_stuff(train_data=training_data, model_path=os.path.join(experiments_path, "weights.pt"), out=experiments_path,
                 data_path=data_path)
+
 
 
 if __name__ == '__main__':
