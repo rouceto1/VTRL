@@ -216,13 +216,38 @@ def test(path1, path2):
             print(path1_p[i])
             print(path2_p[i])
 
+def create_GT_grief(root_path, width):
+    # format of annotation list is [shift, features1, features2, matches, path11,path12,path21,path22,[histogram1],[histogram2],good/bad]
+    new_GT = []
+    idx = 0
+    with os.walk(root_path) as file: #TODO fix the file walk
+        if not file.contains("place_00") or file.contains("bmp"):
+            gt = []
+            disp = np.loadtxt(os.path.join(root_path, "input.txt"), int)
+            paths = os.path.split(file)
+            id = int(paths[0].split(".")[0])
+            shift = disp[id] / width
+            gt.append(shift)
+            gt.append(0, 0, 0) # features, features and matches
+            gt.append("place_00")
+            gt.append(id)
+            gt.append(paths[-2])
+            gt.append(id)
+            gt.append([]) # histogram
+            gt.append([]) # histogram
+            gt.append(1)
+            idx = idx + 1
+            new_GT.append(gt)
+    with open(os.path.join(root_path, "GT.pickle"), 'wb') as handle:
+        pickle.dump(new_GT, handle)
+
 
 if __name__ == "__main__":
     pickle_file_with_image_paths_and_shifts = os.path.join("/home/rouceto1/datasets/strands_crop/GT_redone.pickle")
     pickle_file_to_save_to = os.path.join("/home/rouceto1/datasets/strands_crop/GT_redone_all.pickle")
     dataset_path = os.path.join("/home/rouceto1/datasets/strands_crop")
     #test(pickle_file_with_image_paths_and_shifts, pickle_file_to_save_to)
-
-    annotation = Annotate(pickle_file_with_image_paths_and_shifts, pickle_file_to_save_to, dataset_path)
-    annotation.combine_annotations()
+    create_GT_grief("/home/rouceto1/datasets/grief_jpg/cestlice_reduced", 1024)
+    #annotation = Annotate(pickle_file_with_image_paths_and_shifts, pickle_file_to_save_to, dataset_path)
+    #annotation.combine_annotations()
     #annotation.annotate()
