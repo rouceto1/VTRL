@@ -268,8 +268,8 @@ histogram_single_sort(vector<double> vec_temp_l,double input_bin_count,double im
       double lower = -image_width*((indx/input_bin_count)-(1.0/2.0));//1 should be in bracket for 63 bins 0 for 64
       double upper = -image_width*((indx+1)/input_bin_count-1.0/2.0);
       std::vector<double> range;
-      lower = -((31.0-indx)*8.0+4.0)*image_width/512.0;
-      upper = -((31.0-indx)*8.0-4.0)*image_width/512.0;
+      lower = -((31.0-indx)*8.0+4.0)*image_width/512.0; // This is only valid if NN is working on 512 wide images, however why would i need this i dont know
+      upper = -((31.0-indx)*8.0-4.0)*image_width/512.0; // appers to be centering the 63 bins on the iddle of hte image and allwoing it to span only half of the image. 
       range.push_back(lower);
       range.push_back (upper);
       vec_bins_e.push_back(range);
