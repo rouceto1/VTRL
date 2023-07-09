@@ -44,7 +44,8 @@ def process(paths, REDO=[True, True, True, True]):
         start_time = time.time()
         print(exp)
         experiments_path = os.path.join(pwd, "experiments", exp)
-        chosen_positions = np.loadtxt(os.path.join(experiments_path, "input.txt"), int)
+        with open(os.path.join(experiments_path, "input.pkl"), 'rb') as handle:
+            chosen_positions = pickle.load(handle)
         weights_eval = os.path.join(experiments_path, "weights.pt")
         estimates_grade_out = os.path.join(experiments_path, "estimates.pickle")
         estimates_train_out = os.path.join(experiments_path, "train.pickle")

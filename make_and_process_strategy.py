@@ -5,6 +5,7 @@ import os
 import random
 import numpy as np
 import json
+import pickle
 
 pwd = os.getcwd()
 experiments_path = os.path.join(pwd, "experiments")
@@ -49,7 +50,7 @@ def make_places_list(total_per_place, percentage_to_explore, block_size, whole_p
         rand = random.choices(possible_places, weights=place_weight_randomness)
         for place in range(batch, batch + block_size):
             if whole_place_at_once:
-                places_out[place] = 8
+                places_out[place] = -2
                 continue
             if not single_place_per_batch:
                 rand = random.choices(possible_places, weights=place_weight_randomness)
@@ -63,7 +64,8 @@ def save_strategy(name, experiments_path, percentage_to_explore, block_size, who
         os.mkdir(os.path.join(experiments_path, name))
     except FileExistsError:
         print("Strategy already exists " + os.path.join(experiments_path, name))
-    np.savetxt(os.path.join(experiments_path, name) + "/input.txt", places_out, fmt='%i')
+    with open(os.path.join(experiments_path, name) + "/input.pkl", 'wb') as handle:
+        pickle.dump(places_out, handle)
     dictionary = {
         "percents": percentage_to_explore,
         "block_size": block_size,

@@ -32,6 +32,7 @@ def get_dataset(data_path, training_input, conf, training=False):
         dataset = Strands(crop, conf["fraction"], conf["smoothness"], training_input, training=training)
         # TODO: threshold selects if  iterator returns GT as well (0 > means there is going to be GT)
         histograms = np.zeros((len(training_input), 63))
+
     return dataset, histograms
 
 
