@@ -14,8 +14,6 @@ import random
 filetype_FM = ".bmp"
 filetype_NN = ".png"
 image_file_template = "place_%d/%05d"
-chosen_positions_file = "input.txt"
-feature_matcher_file = "FM_out.pickle"
 
 
 # adds file extension to all files in the list
@@ -95,20 +93,23 @@ def useful_GT(feature_count_l, feature_count_r, matches, usefulness):
         return True
     return False
 
+def concatenate_combos_for_teaching(list1,list2):
+    out = []
+    out.append(list1)
+    out.extend(list2)
+    return out
+
 def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=None):
     # print("First file loaded")
-    if conf["limit"] is not None:
-        limit = conf["limit"] * 10
-    else:
-        limit = -1
+    #takes list of sorted chosen positions indicated by the number bigger than or equal zero and makes a combination of all indexies for a given postitions,
+    # if -1 is in chosen position it skips this index
+    # if -2 is chosen position it uses all possible positions for this index
     indexes = dict([(0, []), (1, []), (2, []), (3, []), (4, []), (5, []), (6, []), (7, [])])
     for i, value in enumerate(chosen_positions):
-        if limit == i:
-            break
         if value == -1:
             continue
 
-        if value == 8:
+        if value == -2:
             for every in range(8):
                 if os.path.exists(os.path.join(dataset_path, image_file_template % (every, i)) + filetype_fm):
                     indexes[every].extend([i])

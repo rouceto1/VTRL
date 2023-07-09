@@ -31,6 +31,5 @@ neural_network_file = annotation_file + "_NN_cache.pickle"
 cache2 = os.path.join(dataset_path, neural_network_file)
 eval_out_file = weights_file + "_eval.pickle"
 
-chosen_positions = np.loadtxt(os.path.join(dataset_path, chosen_positions_file), int)
 eval_out = os.path.join(dataset_path, eval_out_file)
 cache = os.path.join(dataset_path, feature_matcher_file)
