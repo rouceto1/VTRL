@@ -72,6 +72,7 @@ def process(paths, REDO=[True, True, True, True]):
     notify.send('Finished')
 
 
+
 if __name__ == "__main__":
-    REDO = [True, True, True, True]
+    REDO = [False,False,True, True]
     process(["empty"], REDO)
