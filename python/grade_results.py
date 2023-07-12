@@ -8,6 +8,7 @@ from pathlib import Path
 import time
 from scipy.integrate import trapz
 
+
 def filter_to_max(lst, threshold):
     lst[lst > threshold] = threshold
     lst[lst < -threshold] = -threshold
@@ -61,20 +62,23 @@ def get_streak(disp):
     return [poses, streak]
 
 
-def compute_to_file(estimates, gt, matches, dist, positions, plot=True,fig_place=None):
+def compute_to_file(estimates, gt, matches, dist, positions, plot=True, fig_place=None):
     line_out = os.path.join(dist, "line.pkl")
     streak_out = os.path.join(dist, "streak.pkl")
     # file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
 
-    errors, line, line_integral, line_2, line_2_integral, streak, streak_integral = compute(estimates, gt, positions=positions,plot=plot, fig_place=fig_place)
+    errors, line, line_integral, line_2, line_2_integral, streak, streak_integral = compute(estimates, gt,
+                                                                                            positions=positions,
+                                                                                            plot=plot,
+                                                                                            fig_place=fig_place)
     with open(line_out, 'wb') as hand:
         pickle.dump(line, hand)
         print("Line written " + str(line_out))
     with open(streak_out, 'wb') as hand:
         pickle.dump(streak, hand)
         print("streak " + str(streak_out))
-    return sum(errors)/len(errors), streak_integral, line_integral, line_2_integral
-
+    return round(sum(errors) / len(errors), 5), round(streak_integral, 5), round(line_integral, 5), round(
+        line_2_integral, 5)
 
 
 def compute_with_plot(data, gt):  # TODO full redo of this...
@@ -136,8 +140,7 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     y = pos.y0 + 0.4
     plt.figtext(x, y, save.split("/")[-1])
     plt.close()
-    #plt.show()
-
+    # plt.show()
 
 
 def compute(displacement, gt, positions=None, plot=True, fig_place=None):
@@ -156,7 +159,7 @@ def compute(displacement, gt, positions=None, plot=True, fig_place=None):
 
 
 def compute_AC_curve(error):
-    #error = [-2.548,458,5,0,5684,-5684.23]
+    # error = [-2.548,458,5,0,5684,-5684.23]
     length = len(error)
     if length == 0:
         return [[0], [0]]
@@ -164,16 +167,16 @@ def compute_AC_curve(error):
     print(length)
     return [disp, np.array(range(length)) / length]
 
+
 # TODO this is probably incorect since it just summs all the errors therefore not normalised
 def get_integral_from_line(values):
-    #Fucntion returns integral of numerical array
-    #values=[[1,3,5,3,4,81,2,6,88,52,5,2,5,-5],[1,2,3,4,5,6,7,8,9,10,11,12,13,14]]
+    # Fucntion returns integral of numerical array
+    # values=[[1,3,5,3,4,81,2,6,88,52,5,2,5,-5],[1,2,3,4,5,6,7,8,9,10,11,12,13,14]]
     integral = np.trapz(values[0], values[1])
     return integral
 
 
-
-def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=None,time_elapsed=None):
+def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=None, time_elapsed=None):
     print("recieve offset estiamtes")
     if estimates is None:
         print("from " + str(estimates_file))
@@ -184,7 +187,7 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
     print("get gt for offset pairs")
     gt = read_gt_file(file_list, _GT)
     print("loaded GT")
-    exp_time = int(time.time()-time_elapsed)
+    exp_time = int(time.time() - time_elapsed)
     # SOLVED: redo the compute_to_file, the gt is already sorted to the data to compare it to
     experiemnt_name = os.path.basename(os.path.normpath(dest))
     out = [experiemnt_name, exp_time, *compute_to_file(displacements, gt, matches, dest, positions, fig_place=dest)]
