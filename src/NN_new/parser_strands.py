@@ -37,13 +37,14 @@ class StrandsImgPairDataset(Dataset):
             self.fcount2 = self.training_input[:, 4].astype(np.float32).astype(np.int32)
             self.max_fcount = max(max(self.fcount1), max(self.fcount2))
             self.fcount_threshold = np.percentile([self.fcount1, self.fcount2], 50)
+            self.fcount_threshold = max(self.fcount_threshold, 250)
             ##print (GT[0])
             qualifieds = np.array(self.fcount1) >= self.fcount_threshold
             qualifieds2 = np.array(self.fcount2) >= self.fcount_threshold
             qualifieds3 = abs(self.disp) < int(self.width - self.crop_width)
             self.nonzeros = np.count_nonzero(np.logical_and(qualifieds, qualifieds2, qualifieds3))
-            print("[+] {} images were qualified out of {} images with {} images not being aligned at all".format(
-                self.nonzeros, len(qualifieds), 0.1))
+            print("[+] {} images were qualified out of {} ".format(
+                self.nonzeros, len(qualifieds)))
             if self.nonzeros == 0:
                 print("[-] no valid selection to teach on. Exiting")
                 exit(0)
@@ -54,7 +55,7 @@ class StrandsImgPairDataset(Dataset):
                 # print(self.GT[i])
                 path1 = pair[0]
                 path2 = pair[1]
-                if qualifieds[i] and qualifieds2[i]:
+                if qualifieds[i] and qualifieds2[i] and qualifieds3[i]:
                     self.data.append((path1, path2, self.disp[i], i))
 
     def __len__(self):
