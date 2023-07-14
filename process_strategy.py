@@ -40,6 +40,7 @@ notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 def process(paths, REDO=[True, True, True, True]):
     estimates_grade = None
     file_list_train = None
+    actual_teach_count = 0
     for exp in paths:
         start_time = time.time()
         print(exp)
@@ -55,7 +56,7 @@ def process(paths, REDO=[True, True, True, True]):
         config = load_config(os.path.join(pwd, "experiments", "NN_config.yaml"), 512)
 
         if not os.path.exists(weights_eval) or REDO[0]:
-            file_list_train = teach(dataset_path, chosen_positions, experiments_path, conf=config)
+            file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path, conf=config)
         #if not os.path.exists(estimates_train_out) or REDO[1]:
         #    estimates_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions, weights_eval,
         #                                            _estimates_out=estimates_train_out, conf=config,
@@ -72,7 +73,7 @@ def process(paths, REDO=[True, True, True, True]):
             if file_list_train is None:
                 file_list_train = make_combos_for_teaching(chosen_positions, dataset_path, filetype_FM, conf=config)
             grade_type(experiments_path, positions=chosen_positions, _GT=gt_in, estimates_file=estimates_grade_out,
-                       estimates=estimates_grade, time_elapsed=start_time, data_count=len(file_list_train))
+                       estimates=estimates_grade, time_elapsed=start_time, data_count=[len(file_list_train),actual_teach_count])
         notify.send('One finished: ' + exp)
     notify.send('Finished')
 

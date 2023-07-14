@@ -110,7 +110,7 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path=Non
 
 
     save_model_to_file(best_model, model_path, lowest_err, optimizer)
-    return best_model
+    return dataset.nonzeros
 
 
 def NNteach_from_python(training_data, data_path, experiments_path, config):

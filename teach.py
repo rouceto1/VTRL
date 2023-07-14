@@ -7,8 +7,8 @@ def teach(_dataset_path, _chosen_positions, _experiments_path, _cache=None, conf
     file_list = make_combos_for_teaching(_chosen_positions, _dataset_path, filetype_FM, conf=conf)
     files_with_displacement = fm_eval(file_list, filetype_FM)
     desired_files = np.array(choose_proper_filetype(filetype_NN, files_with_displacement))
-    mdl = nn_train.NNteach_from_python(desired_files, "strands", _experiments_path, conf)
-    return file_list #TODO make it reaturn model and pass it to eval
+    actual_teaching_count = nn_train.NNteach_from_python(desired_files, "strands", _experiments_path, conf)
+    return file_list, actual_teaching_count #TODO make it reaturn model and pass it to eval
 
 
 if __name__ == "__main__":
