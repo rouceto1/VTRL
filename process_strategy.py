@@ -69,8 +69,10 @@ def process(paths, REDO=[True, True, True, True]):
         if not os.path.exists(os.path.join(experiments_path, "input.png")) or REDO[3]:
             with open(GT_file, 'rb') as handle:
                 gt_in = pickle.load(handle)
+            if file_list_train is None:
+                file_list_train = make_combos_for_teaching(chosen_positions, dataset_path, filetype_FM, conf=config)
             grade_type(experiments_path, positions=chosen_positions, _GT=gt_in, estimates_file=estimates_grade_out,
-                       estimates=estimates_grade, time_elapsed=start_time)
+                       estimates=estimates_grade, time_elapsed=start_time, data_count=len(file_list_train))
         notify.send('One finished: ' + exp)
     notify.send('Finished')
 
@@ -78,4 +80,4 @@ def process(paths, REDO=[True, True, True, True]):
 
 if __name__ == "__main__":
     REDO = [False,False,True, True]
-    process(["empty"], REDO)
+    process(["test"], REDO)
