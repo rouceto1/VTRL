@@ -190,7 +190,7 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
     exp_time = int(time.time() - time_elapsed)
     # SOLVED: redo the compute_to_file, the gt is already sorted to the data to compare it to
     experiemnt_name = os.path.basename(os.path.normpath(dest))
-    out = [experiemnt_name, exp_time, *compute_to_file(displacements, gt, matches, dest, positions, fig_place=dest)]
+    out = [experiemnt_name, exp_time, *compute_to_file(displacements, gt, matches, dest, positions, fig_place=dest), data_count]
     path = Path(dest).parent
 
     with open(path / 'output.csv', 'a') as f_object:
