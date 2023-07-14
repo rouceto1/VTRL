@@ -176,7 +176,7 @@ def get_integral_from_line(values):
     return integral
 
 
-def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=None, time_elapsed=None):
+def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=None, time_elapsed=None,data_count=None):
     print("recieve offset estiamtes")
     if estimates is None:
         print("from " + str(estimates_file))
