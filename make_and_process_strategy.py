@@ -92,8 +92,8 @@ import itertools
 
 
 def make_multiple_strategies():
-    percentage_to_explore_list = np.arange(0.1, 0.99, 0.1)
-    block_size_list = [1, 10]
+    percentage_to_explore_list = np.arange(0.05, 0.99, 0.3)
+    block_size_list = [1]
     whole_place_at_once_list = [True, False]
     single_place_per_batch_list = [True]
     place_weight_randomness_list = np.array(np.ones(7))
@@ -120,7 +120,7 @@ def make_test_strategy():
 
 if __name__ == "__main__":
     names, strategies = make_multiple_strategies()
-    names, strategies = make_test_strategy()
+    #names, strategies = make_test_strategy()
     for index, strategy in enumerate(strategies):
         strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],
                          whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],
