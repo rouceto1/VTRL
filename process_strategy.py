@@ -16,7 +16,7 @@ parser.add_argument('--dataset_path', type=str,
                     help="full path to dataset to teach on",
                     default="datasets/strands_crop/training_Nov")
 parser.add_argument('--evaluation_prefix', type=str, help="path to folder with evaluation sub-folders",
-                    default="datasets/strands_crop")
+                    default="datasets/grief_jpg")
 parser.add_argument('--evaluation_paths', type=str, help="names of folders to eval",
                     default=["testing_Dec", "testing_Feb", "testing_Nov"])
 parser.add_argument('--weights_folder', type=str, help="path of weights folder",
@@ -33,7 +33,7 @@ dataset_path = os.path.join(pwd, args.dataset_path)
 evaluation_paths = args.evaluation_paths
 evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
 
-GT_file = os.path.join(pwd,"datasets/grief_jpg", "GT_merge.pickle")
+GT_file = os.path.join(evaluation_prefix, "GT_merge.pickle")
 notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 
 

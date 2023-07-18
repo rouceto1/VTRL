@@ -9,7 +9,7 @@ if __name__ == "__main__":
     paths = [item for item in os.listdir(experiments_path) if os.path.isdir(os.path.join(experiments_path, item))]
     teach = False
     e_teach = False
-    e_grade = False
+    e_grade = True
     grade = True
     redo = [teach, e_teach, e_grade, grade]
     process(paths, redo)

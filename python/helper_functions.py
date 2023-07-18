@@ -76,8 +76,8 @@ def make_file_list_annotation(places, images, evaluation_prefix, evaluation_path
 # this should be same for all datasets......
 def make_file_list_from_gt(evaluation_prefix, gt):
     file_list = []
-    use_all = False
-    if use_all:
+    use_all = True
+    if not use_all:
         for i in range(10000):
             sample_list = random.choices(gt)[0]
             while (useful_GT(sample_list[1], sample_list[2], sample_list[3], sample_list[10]) == False):
@@ -88,8 +88,6 @@ def make_file_list_from_gt(evaluation_prefix, gt):
             file_list.append(set)
     else:
         for i in gt:
-            if (useful_GT(i[1], i[2], i[3], i[10]) == False):
-                continue
             set = []
             set.append(os.path.join(evaluation_prefix, i[4], i[5]))
             set.append(os.path.join(evaluation_prefix, i[6], i[7]))
