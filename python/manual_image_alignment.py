@@ -28,6 +28,8 @@ class Annotate:
             if len(entry) > 10:  # TODO proper size of each line
                 #continue
                 pass
+            #entry[4] = entry[4][:-1] + "0" + entry[4][-1:]
+            #entry[6] = entry[6][:-1] + "0" + entry[6][-1:]
             image1 = cv2.imread(os.path.join(self.dataset_path, entry[4], entry[5]) + ".bmp")
             # image1 = cv2.cvtColor(image1, cv2.COLOR)
             image2 = cv2.imread(os.path.join(self.dataset_path, entry[6], entry[7]) + ".bmp")
@@ -87,7 +89,7 @@ class Annotate:
             last_entry = entry
             if save:
                 break
-        self.save_GT(self.list_all)
+        #self.save_GT(self.list_all)
 
     def save_GT(self, data):
         print("saving")
@@ -173,8 +175,9 @@ class Annotate:
         #returns a list of lists with the same fromat as input
         self.list_all_new = []
         self.list_all_filtered = []
+        too_large = 0
         for i in self.list_all:
-            if i[-1] >= -3:
+            if i[-1] >= 1:
                 self.list_all_filtered.append(i)
         already_matched = []
         for entry in tqdm((self.list_all_filtered)):
@@ -186,7 +189,13 @@ class Annotate:
                 if entry[7] == entry2[7]:
                     continue
                 new_entry = []
-                combined_shift = entry[0] - entry2[0] % 1
+                combined_shift = entry[0] - entry2[0]
+                if abs(combined_shift) >= 1:
+                    pass
+                    continue
+                if abs(combined_shift) >= 0.5:
+                    too_large += 1
+                    continue
                 new_entry.append(combined_shift)
                 new_entry.append(entry[2])
                 new_entry.append(entry2[2])
@@ -203,6 +212,7 @@ class Annotate:
                 new_entry.append(1)
                 self.list_all_new.append(new_entry)
             already_matched.append(entry[6]+entry[7])
+        print("too large: ", too_large)
         self.save_GT(self.list_all_new)
 
 
@@ -244,10 +254,11 @@ def create_GT_grief(root_path, width):
 
 if __name__ == "__main__":
     pickle_file_with_image_paths_and_shifts = os.path.join("/home/rouceto1/datasets/strands_crop/GT_redone.pickle")
-    pickle_file_to_save_to = os.path.join("/home/rouceto1/datasets/strands_crop/GT_redone_all.pickle")
+    pickle_file_to_save_to = os.path.join("/home/rouceto1/datasets/strands_crop/GT_redone_best.pickle")
     dataset_path = os.path.join("/home/rouceto1/datasets/strands_crop")
     #test(pickle_file_with_image_paths_and_shifts, pickle_file_to_save_to)
-    create_GT_grief("/home/rouceto1/datasets/grief_jpg/cestlice_reduced", 1024)
-    #annotation = Annotate(pickle_file_with_image_paths_and_shifts, pickle_file_to_save_to, dataset_path)
-    #annotation.combine_annotations()
+    #create_GT_grief("/home/rouceto1/datasets/grief_jpg/cestlice_reduced", 1024)
+    annotation = Annotate(pickle_file_with_image_paths_and_shifts, pickle_file_to_save_to, dataset_path)
     #annotation.annotate()
+
+    annotation.combine_annotations()
