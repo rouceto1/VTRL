@@ -33,7 +33,7 @@ dataset_path = os.path.join(pwd, args.dataset_path)
 evaluation_paths = args.evaluation_paths
 evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
 
-GT_file = os.path.join(evaluation_prefix, "GT_redone_best.pickle")
+GT_file = os.path.join(pwd,"datasets/grief_jpg", "GT_merge.pickle")
 notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 
 

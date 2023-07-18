@@ -13,7 +13,7 @@ from tqdm import tqdm
 import random
 filetype_FM = ".bmp"
 filetype_NN = ".png"
-image_file_template = "place_%d/%05d" #TODO redo all datasets to this format
+image_file_template = "place_%02d/%05d" #TODO redo all datasets to this format
 
 
 # adds file extension to all files in the list
