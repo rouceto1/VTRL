@@ -12,4 +12,5 @@ if __name__ == "__main__":
     e_grade = True
     grade = True
     redo = [teach, e_teach, e_grade, grade]
+    paths.sort()
     process(paths, redo)
