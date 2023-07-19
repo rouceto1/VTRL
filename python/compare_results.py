@@ -5,6 +5,7 @@ import pickle
 import matplotlib.pyplot as plt
 
 pwd = os.getcwd()
+import colorsys
 
 
 class Results:
@@ -23,7 +24,7 @@ class Results:
         self.data_counts = 6
         self.data_counts_filtered = 7
 
-        self.data = self.data[self.data[:, self.data_counts_filtered].argsort()]
+        self.data = self.data[np.array(self.data[:, self.data_counts_filtered], dtype=int).argsort()]
 
     def load_csv_to_numpy(self):
         with open(self.csv_path, newline='') as csvfile:
@@ -33,18 +34,30 @@ class Results:
         data = data[data[:, 0].argsort()]
         return data
 
+    def get_N_HexCol(self,N=5):
+        HSV_tuples = [(x * 1.0 / N, 0.5, 0.5) for x in range(N)]
+        hex_out = []
+        for rgb in HSV_tuples:
+            rgb = map(lambda x: int(x * 255), colorsys.hsv_to_rgb(*rgb))
+            hex_out.append('#%02x%02x%02x' % tuple(rgb))
+        return hex_out
+
+
     def plot_graph(self):
-        t = ['#646B63', '#8E402A', '#343B29', '#AF2B1E', '#9C9C9C', '#00BB2D', '#F39F18', '#9B111E', '#8673A1',
-             '#293133']
+        t = self.get_N_HexCol(len(self.data))
+        fig = plt.figure()
+        ax = plt.gca()
         for i, data in enumerate(self.data):
             if float(self.data[i][self.data_counts_filtered]) > 8200:
                 pass
                 #continue
-            plt.scatter(float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral_filtered]),
-                        label=self.data[i][self.names], c=t[i])
+            ax.scatter( float(self.data[i][self.integral_filtered]), float(self.data[i][self.data_counts_filtered]),
+                        label=self.data[i][self.names] + " "+  self.data[i][self.data_counts_filtered], c=t[i])
+            ax.annotate(self.data[i][self.names], (float(self.data[i][self.integral_filtered]), float(self.data[i][self.data_counts_filtered])))
         plt.title(self.csv_name)
 
-        plt.ylim([0.43,0.455])
+        #plt.ylim([0.43, 0.455]
+        ax.set_yscale('log')
         plt.legend()
         plt.savefig(self.output_graph_path)
 
@@ -53,6 +66,4 @@ class Results:
 
 if __name__ == "__main__":
     results = Results(os.path.join(pwd, "experiments"), "output.csv")
-    results.plot_graph()
-    results = Results(os.path.join(pwd, "experiments"), "10k.csv")
     results.plot_graph()
