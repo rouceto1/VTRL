@@ -73,12 +73,12 @@ def process(paths, REDO=[True, True, True, True]):
             if file_list_train is None:
                 file_list_train = make_combos_for_teaching(chosen_positions, dataset_path, filetype_FM, conf=config)
             grade_type(experiments_path, positions=chosen_positions, _GT=gt_in, estimates_file=estimates_grade_out,
-                       estimates=estimates_grade, time_elapsed=start_time, data_count=[len(file_list_train),actual_teach_count])
+                       estimates=estimates_grade, time_elapsed=start_time, data_count=[len(file_list_train), actual_teach_count])
         notify.send('One finished: ' + exp)
     notify.send('Finished')
 
 
 
 if __name__ == "__main__":
-    REDO = [False,False,True, True]
+    REDO = [False, False, True, True]
     process(["test"], REDO)

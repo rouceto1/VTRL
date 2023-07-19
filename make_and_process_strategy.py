@@ -6,6 +6,7 @@ import random
 import numpy as np
 import json
 import pickle
+import itertools
 
 pwd = os.getcwd()
 experiments_path = os.path.join(pwd, "experiments")
@@ -88,9 +89,6 @@ def strategy_creator(name, experiments_path, percentage_to_explore, total_per_pl
     return places_out
 
 
-import itertools
-
-
 def make_multiple_strategies():
     a = np.arange(0.02, 0.20, 0.02)
     b = np.arange(0.20, 0.50, 0.05)
@@ -106,7 +104,6 @@ def make_multiple_strategies():
     names = []
     for strategy in strategies:
         #name = f'{strategy[0]:.2f}_{strategy[1]:d}_{strategy[2]:d}_{strategy[3]:d}'
-
         name = f'{strategy[0]:.2f}_{strategy[2]:d}'
         names.append(name)
     return names, strategies

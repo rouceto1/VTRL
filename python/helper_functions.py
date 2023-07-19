@@ -11,9 +11,10 @@ import itertools as it
 from pathlib import Path
 from tqdm import tqdm
 import random
+
 filetype_FM = ".bmp"
 filetype_NN = ".png"
-image_file_template = "place_%02d/%05d" #TODO redo all datasets to this format
+image_file_template = "place_%02d/%05d"  # TODO redo all datasets to this format
 
 
 # adds file extension to all files in the list
@@ -101,15 +102,17 @@ def useful_GT(feature_count_l, feature_count_r, matches, usefulness):
         return True
     return False
 
-def concatenate_combos_for_teaching(list1,list2):
+
+def concatenate_combos_for_teaching(list1, list2):
     out = []
     out.append(list1)
     out.extend(list2)
     return out
 
+
 def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=None):
     # print("First file loaded")
-    #takes list of sorted chosen positions indicated by the number bigger than or equal zero and makes a combination of all indexies for a given postitions,
+    # takes list of sorted chosen positions indicated by the number bigger than or equal zero and makes a combination of all indexies for a given postitions,
     # if -1 is in chosen position it skips this index
     # if -2 is chosen position it uses all possible positions for this index
     indexes = dict([(0, []), (1, []), (2, []), (3, []), (4, []), (5, []), (6, []), (7, [])])
@@ -133,6 +136,7 @@ def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=N
     cout = 0
     file_list = []
     if conf["all_combos"] is True:
+        print(indexes)
         for key in indexes:
             position = list(itertools.combinations(indexes[key], 2))
             combination_list.append(position)
