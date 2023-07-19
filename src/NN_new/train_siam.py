@@ -36,7 +36,7 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
     count = 0
     for batch in train_loader:
         source, target, heatmap, u_target, blacked = batch[0].to(device), batch[1].to(device), batch[2].to(device), \
-        batch[4].to(device), batch[6].to(device)
+            batch[4].to(device), batch[6].to(device)
         source = batch_aug(source)
         count = count + 1
 
@@ -76,12 +76,12 @@ def eval_loop(val_loader, model, epoch, histograms, out_folder):
     return mae.item()
 
 
-def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path=None):
+def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path_init=None, model_path_out=None):
     lowest_err = 9999999
     global model
     global conf
     best_model = None
-    model, conf = get_model(model, model_path, eval_model, conf, conf["pad_teach"])
+    model, conf = get_model(model, model_path_init, eval_model, conf, conf["pad_teach"])
     optimizer = AdamW(model.parameters(), lr=10 ** -conf["lr"])  # conf["lr"])
 
     dataset, histograms = get_dataset(data_path, train_data, conf, training=True)
@@ -94,7 +94,7 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path=Non
     losses = []
     meaes = []
     if conf["epochs"] == 0:
-        save_model_to_file(model, model_path, 0, optimizer)
+        save_model_to_file(model, model_path_out, 0, optimizer)
         return
     for epoch in tqdm(range(1, conf["epochs"] + 1)):
         if epoch % conf["eval_rate"] == 0 or conf["epochs"] == epoch:  # and epoch > 0:
@@ -108,8 +108,7 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path=Non
     print("Training ended with losses: " + str(losses))
     print("Training progressed with meaes: " + str(meaes))
 
-
-    save_model_to_file(best_model, model_path, lowest_err, optimizer)
+    save_model_to_file(best_model, model_path_out, lowest_err, optimizer)
     return dataset.nonzeros
 
 
@@ -121,9 +120,9 @@ def NNteach_from_python(training_data, data_path, experiments_path, config):
     global batch_aug
     batch_aug = batch_augmentations.to(device)
     print("trianing:" + str(experiments_path))
-    return teach_stuff(train_data=training_data, model_path=os.path.join(experiments_path, "weights.pt"), out=experiments_path,
-                data_path=data_path)
-
+    return teach_stuff(train_data=training_data, model_path_init=os.path.join(experiments_path, "weights.pt"),
+                       model_path_out=os.path.join(experiments_path, "weights.pt"), out=experiments_path,
+                       data_path=data_path)
 
 
 if __name__ == '__main__':
