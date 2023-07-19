@@ -92,7 +92,10 @@ import itertools
 
 
 def make_multiple_strategies():
-    percentage_to_explore_list = np.arange(0.05, 0.99, 0.3)
+    a = np.arange(0.0001, 0.20, 0.02)
+    b = np.arange(0.20, 0.50, 0.05)
+    c = np.arange(0.50, 0.99, 0.2)
+    percentage_to_explore_list = np.concatenate([a, b, c])
     block_size_list = [1]
     whole_place_at_once_list = [True, False]
     single_place_per_batch_list = [True]
@@ -102,7 +105,9 @@ def make_multiple_strategies():
     strategies = list(itertools.product(*a))
     names = []
     for strategy in strategies:
-        name = f'{strategy[0]:.2f}_{strategy[1]:d}_{strategy[2]:d}_{strategy[3]:d}'
+        #name = f'{strategy[0]:.2f}_{strategy[1]:d}_{strategy[2]:d}_{strategy[3]:d}'
+
+        name = f'{strategy[0]:.2f}_{strategy[2]:d}'
         names.append(name)
     return names, strategies
 
