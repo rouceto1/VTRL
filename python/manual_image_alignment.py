@@ -24,17 +24,29 @@ class Annotate:
         overlay = 0
         equalize = False
         last_entry = None
-        for entry in tqdm(self.list_all):
+        for number, entry in enumerate(self.list_all[0][0]):
             if len(entry) > 10:  # TODO proper size of each line
                 #continue
                 pass
+            if  not "testi" in entry[0]:
+                continue
+
             #entry[4] = entry[4][:-1] + "0" + entry[4][-1:]
             #entry[6] = entry[6][:-1] + "0" + entry[6][-1:]
-            image1 = cv2.imread(os.path.join(self.dataset_path, entry[4], entry[5]) + ".bmp")
-            # image1 = cv2.cvtColor(image1, cv2.COLOR)
-            image2 = cv2.imread(os.path.join(self.dataset_path, entry[6], entry[7]) + ".bmp")
-            # image2 = cv2.cvtColor(image2, cv2.COLOR)
-            shift = entry[0]
+            do_GT = False
+            if do_GT:
+                image1 = cv2.imread(os.path.join(self.dataset_path, entry[4], entry[5]) + ".bmp")
+                # image1 = cv2.cvtColor(image1, cv2.COLOR)
+                image2 = cv2.imread(os.path.join(self.dataset_path, entry[6], entry[7]) + ".bmp")
+                # image2 = cv2.cvtColor(image2, cv2.COLOR)
+                shift = entry[0]
+            else :
+                image1 = cv2.imread("/home" + entry[0][11:] + ".png")
+
+                image2 = cv2.imread("/home" + entry[1][11:] + ".png")
+                if image1 is None or image2 is None:
+                    continue
+                shift = self.list_all[0][1][number]
             print(shift)
             image11 = image1
 
@@ -189,7 +201,7 @@ class Annotate:
                 if entry[7] == entry2[7]:
                     continue
                 new_entry = []
-                combined_shift = entry[0] - entry2[0]
+                combined_shift = - entry[0] + entry2[0]
                 if abs(combined_shift) >= 1:
                     pass
                     continue
@@ -253,12 +265,13 @@ def create_GT_grief(root_path, width):
 
 
 if __name__ == "__main__":
-    pickle_file_with_image_paths_and_shifts = os.path.join("/home/rouceto1/datasets/strands_crop/GT_redone.pickle")
-    pickle_file_to_save_to = os.path.join("/home/rouceto1/datasets/strands_crop/GT_redone_best.pickle")
+    #pickle_file_with_image_paths_and_shifts = os.path.join("/home/rouceto1/datasets/strands_crop/GT_redone.pickle")
+    pickle_file_with_image_paths_and_shifts = os.path.join("/home/rouceto1/VTRL/experiments/0.35_1_0_1/estimates.pickle")
+    pickle_file_to_save_to = os.path.join("/home/rouceto1/datasets/strands_crop/GT_redone_best.pickleasas")
     dataset_path = os.path.join("/home/rouceto1/datasets/strands_crop")
     #test(pickle_file_with_image_paths_and_shifts, pickle_file_to_save_to)
     #create_GT_grief("/home/rouceto1/datasets/grief_jpg/cestlice_reduced", 1024)
     annotation = Annotate(pickle_file_with_image_paths_and_shifts, pickle_file_to_save_to, dataset_path)
-    #annotation.annotate()
+    annotation.annotate()
 
-    annotation.combine_annotations()
+    #annotation.combine_annotations()
