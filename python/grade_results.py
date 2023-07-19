@@ -6,6 +6,7 @@ from .helper_functions import *
 from csv import writer
 from pathlib import Path
 import time
+import cv2
 from scipy.integrate import trapz
 
 
@@ -62,7 +63,7 @@ def get_streak(disp):
     return [poses, streak]
 
 
-def compute_to_file(estimates, gt, matches, dist, positions, plot=True, fig_place=None):
+def compute_to_file(estimates, gt, matches, dist, positions, plot=True, fig_place=None, hist_nn=None, hist_fm=None):
     line_out = os.path.join(dist, "line.pkl")
     streak_out = os.path.join(dist, "streak.pkl")
     # file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
@@ -70,7 +71,8 @@ def compute_to_file(estimates, gt, matches, dist, positions, plot=True, fig_plac
     errors, line, line_integral, line_2, line_2_integral, streak, streak_integral = compute(estimates, gt,
                                                                                             positions=positions,
                                                                                             plot=plot,
-                                                                                            fig_place=fig_place)
+                                                                                            fig_place=fig_place,
+                                                                                            hist=hist_nn)
     with open(line_out, 'wb') as hand:
         pickle.dump(line, hand)
         print("Line written " + str(line_out))
@@ -143,7 +145,7 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     # plt.show()
 
 
-def compute(displacement, gt, positions=None, plot=True, fig_place=None):
+def compute(displacement, gt, positions=None, plot=True, fig_place=None, hist=None):
     displacement_filtered, gt_filtered, count = filter_unsecusfull_matching(displacement, np.array(gt), 1500)
     disp = displacement_filtered - gt_filtered
     line = compute_AC_curve(filter_to_max(displacement - gt, 1))
@@ -175,6 +177,22 @@ def get_integral_from_line(values):
     integral = np.trapz(values[0], values[1])
     return integral
 
+def show_estiamtes(file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn ,gt):
+    #use opencv to compare image pairs form file_list shifted by displacement and shifted by gt value
+
+    for i in range(len(file_list)):
+        #if not "testing" in file_list[i][0] :
+        #    continue
+        img1 = cv2.imread("/home" + file_list[i][0][11:] + ".png")
+        img2 = cv2.imread("/home" + file_list[i][1][11:] + ".png")
+        imgm2 = np.roll(img2, int(gt[i]*img2.shape[1]), axis=1)
+        image1 = np.concatenate((img1, imgm2), axis=0)
+        cv2.imshow("plus", image1)
+        img2 = np.roll(img2, int(-gt[i]*img2.shape[1]), axis=1)
+        image2 = np.concatenate((img1, img2), axis=0)
+        cv2.imshow("minus", image2)
+        cv2.waitKey(0)
+
 
 def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=None, time_elapsed=None, data_count=None):
     print("recieve offset estiamtes")
@@ -183,14 +201,15 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
         with open(estimates_file, 'rb') as handle:
             estimates = pickle.load(handle)
     file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = estimates[0]
-
     print("get gt for offset pairs")
     gt = read_gt_file(file_list, _GT)
     print("loaded GT")
+    #show_estiamtes(file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn, gt)
     exp_time = int(time.time() - time_elapsed)
     # SOLVED: redo the compute_to_file, the gt is already sorted to the data to compare it to
     experiemnt_name = os.path.basename(os.path.normpath(dest))
-    out = [experiemnt_name, exp_time, *compute_to_file(displacements, gt, matches, dest, positions, fig_place=dest),
+    out = [experiemnt_name, exp_time,
+           *compute_to_file(displacements, gt, matches, dest, positions, fig_place=dest, hist_nn=hist_nn),
            data_count[0], data_count[1]]
     path = Path(dest).parent
 
