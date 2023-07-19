@@ -74,7 +74,7 @@ def compute_to_file(estimates, gt, matches, dist, positions, plot=True, fig_plac
                                                                                             fig_place=fig_place,
                                                                                             hist=hist_nn)
     with open(line_out, 'wb') as hand:
-        pickle.dump(line, hand)
+        pickle.dump(line_2, hand)
         print("Line written " + str(line_out))
     with open(streak_out, 'wb') as hand:
         pickle.dump(streak, hand)
@@ -104,12 +104,12 @@ def compute_with_plot(data, gt):  # TODO full redo of this...
     return line, line_integral
 
 
-def filter_unsecusfull_matching(disp, gt, threshold):
-    count = sum(x > threshold for x in disp)
+def filter_from_two_arrays_using_thrashold_to_first(a1, a2, threshold):
+    count = sum(x > threshold for x in abs(a1))
     # disp[abs(disp) > threshold] = 0
-    disp_out = disp[(abs(disp) <= threshold)]
-    gt = gt[(abs(disp) <= threshold)]
-    return disp_out, gt, count
+    a1_o = a1[(abs(a1) <= threshold)]
+    a2_o = a2[(abs(a1) <= threshold)]
+    return a1_o, a2_o, count
 
 
 def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, positions, save):
@@ -141,15 +141,20 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     x = pos.x0 + 0.4
     y = pos.y0 + 0.4
     plt.figtext(x, y, save.split("/")[-1])
-    plt.close()
-    # plt.show()
+    plt.show()
+    #plt.close()
+    print(":as")
+    #
 
 
 def compute(displacement, gt, positions=None, plot=True, fig_place=None, hist=None):
-    displacement_filtered, gt_filtered, count = filter_unsecusfull_matching(displacement, np.array(gt), 1500)
+    displacement_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(displacement, np.array(gt), 0.5)
+    gt_filtered, displacement_filtered,  count2 = filter_from_two_arrays_using_thrashold_to_first(gt_filtered, displacement_filtered, 0.5)
+
     disp = displacement_filtered - gt_filtered
-    line = compute_AC_curve(filter_to_max(displacement - gt, 1))
-    line_2 = compute_AC_curve(filter_to_max(displacement_filtered - gt_filtered, 1))
+    disp = np.append(disp,1)
+    line = compute_AC_curve(displacement - gt)
+    line_2 = compute_AC_curve(disp)
     line_integral = get_integral_from_line(line)
     line_2_integral = get_integral_from_line(line_2)
     streak = get_streak(filter_to_max(displacement - gt, 1))
@@ -170,11 +175,10 @@ def compute_AC_curve(error):
     return [disp, np.array(range(length)) / length]
 
 
-# TODO this is probably incorect since it just summs all the errors therefore not normalised
 def get_integral_from_line(values):
     # Fucntion returns integral of numerical array
     # values=[[1,3,5,3,4,81,2,6,88,52,5,2,5,-5],[1,2,3,4,5,6,7,8,9,10,11,12,13,14]]
-    integral = np.trapz(values[0], values[1])
+    integral = np.trapz(values[1], values[0]) ##DONE AND PROBABLY WORKS
     return integral
 
 def show_estiamtes(file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn ,gt):
