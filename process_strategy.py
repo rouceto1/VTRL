@@ -12,21 +12,16 @@ pwd = os.getcwd()
 parser = argparse.ArgumentParser(
     description='example: --dataset_path "full path" --evaluation_prefix "full path" --weights_folder "full path" '
                 '--file_out suffix.picke')
-parser.add_argument('--dataset_path', type=str,
-                    help="full path to dataset to teach on",
+parser.add_argument('--dataset_path', type=str, help="full path to dataset to teach on",
                     default="datasets/strands_crop/training_Nov")
 parser.add_argument('--evaluation_prefix', type=str, help="path to folder with evaluation sub-folders",
                     default="datasets/grief_jpg")
 parser.add_argument('--evaluation_paths', type=str, help="names of folders to eval",
                     default=["testing_Dec", "testing_Feb", "testing_Nov"])
-parser.add_argument('--weights_folder', type=str, help="path of weights folder",
-                    default="weights/")
-parser.add_argument('--weights_file', type=str, help="name of weights.pt",
-                    default="model_eunord.pt")
-parser.add_argument('--weights_file2', type=str, help="name of weights.pt",
-                    default="model_tiny.pt")
-parser.add_argument('--file_out', type=str, help="name of pickle out",
-                    default="_GT_.pickle")
+parser.add_argument('--weights_folder', type=str, help="path of weights folder", default="weights/")
+parser.add_argument('--weights_file', type=str, help="name of weights.pt", default="model_eunord.pt")
+parser.add_argument('--weights_file2', type=str, help="name of weights.pt", default="model_tiny.pt")
+parser.add_argument('--file_out', type=str, help="name of pickle out", default="_GT_.pickle")
 args = parser.parse_args()
 
 dataset_path = os.path.join(pwd, args.dataset_path)
@@ -57,7 +52,7 @@ def process(paths, REDO=[True, True, True, True]):
 
         if not os.path.exists(weights_eval) or REDO[0]:
             file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path, conf=config)
-        #if not os.path.exists(estimates_train_out) or REDO[1]:
+        # if not os.path.exists(estimates_train_out) or REDO[1]:
         #    estimates_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions, weights_eval,
         #                                            _estimates_out=estimates_train_out, conf=config,
         #                                            file_list=file_list_train)
@@ -75,10 +70,10 @@ def process(paths, REDO=[True, True, True, True]):
                 if os.path.exists(os.path.join(experiments_path, "used_images.txt")):
                     actual_teach_count = np.loadtxt(os.path.join(experiments_path, "used_images.txt"), int)
             grade_type(experiments_path, positions=chosen_positions, _GT=gt_in, estimates_file=estimates_grade_out,
-                       estimates=estimates_grade, time_elapsed=start_time, data_count=[len(file_list_train), actual_teach_count])
+                       estimates=estimates_grade, time_elapsed=start_time,
+                       data_count=[len(file_list_train), actual_teach_count])
         notify.send('One finished: ' + exp)
     notify.send('Finished')
-
 
 
 if __name__ == "__main__":
