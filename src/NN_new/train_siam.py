@@ -120,9 +120,13 @@ def NNteach_from_python(training_data, data_path, experiments_path, config):
     global batch_aug
     batch_aug = batch_augmentations.to(device)
     print("trianing:" + str(experiments_path))
-    return teach_stuff(train_data=training_data, model_path_init=os.path.join(experiments_path, "weights.pt"),
+    image_count = teach_stuff(train_data=training_data, model_path_init=os.path.join(experiments_path, "weights.pt"),
                        model_path_out=os.path.join(experiments_path, "weights.pt"), out=experiments_path,
                        data_path=data_path)
+    with open(os.path.join(experiments_path, "used_images.txt"), 'w') as f:
+        f.write('%d' % image_count)
+    return image_count
+
 
 
 if __name__ == '__main__':
