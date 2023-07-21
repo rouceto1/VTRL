@@ -30,13 +30,14 @@ evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
 
 GT_file = os.path.join(evaluation_prefix, "GT_merge.pickle")
 notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
-
+init_weights = os.path.join(pwd, "experiments", "init_weights.pt")
 
 def process(paths, REDO=[True, True, True, True]):
-    estimates_grade = None
-    file_list_train = None
-    actual_teach_count = 0
+
     for exp in paths:
+        estimates_grade = None
+        file_list_train = None
+        actual_teach_count = 0
         start_time = time.time()
         print(exp)
         experiments_path = os.path.join(pwd, "experiments", exp)
@@ -51,7 +52,7 @@ def process(paths, REDO=[True, True, True, True]):
         config = load_config(os.path.join(pwd, "experiments", "NN_config.yaml"), 512)
 
         if not os.path.exists(weights_eval) or REDO[0]:
-            file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path, conf=config)
+            file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path, init_weights=init_weights, conf=config)
         # if not os.path.exists(estimates_train_out) or REDO[1]:
         #    estimates_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions, weights_eval,
         #                                            _estimates_out=estimates_train_out, conf=config,

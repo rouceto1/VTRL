@@ -3,9 +3,10 @@ import numpy as np
 import pandas as pd
 import json
 import pickle
+import manual_image_alignment
 
 
-def get_annotation_dict(path, GT_file):
+def get_annotation_dict(path):
     df = pd.read_csv(path)
     entries = {"stromovka": [{}], "planetarium": [{} for _ in range(11)],
                "carlevaris": [{}], "michigan": [{} for _ in range(11)],
@@ -28,7 +29,7 @@ def get_annotation_dict(path, GT_file):
             diff += (kp1["x"] / 100) * 1024 - (kp2["x"] / 100) * 1024
         mean = diff // len(kp_dict1)
         if dataset_name == "cestlice_reduced":
-            #continue
+            # continue
             pass
         else:
             entries[dataset_name][target_season][img_idx] = round(mean)
@@ -89,7 +90,7 @@ def combine_GT(GT1, GT2):
     for i in GT1:
         i[8] = []
         i[9] = []
-    #extend GT2 by 2000 random entries form GT1
+    # extend GT2 by 2000 random entries form GT1
     rng = np.random.default_rng()
     numbers = rng.choice(len(GT1), size=2000, replace=False)
     for i in numbers:
@@ -97,17 +98,48 @@ def combine_GT(GT1, GT2):
 
     return sorted(GT2, key=lambda x: x[4])
 
-def save_GT(path,  data):
+
+def save_GT(path, data):
     print("saving")
     with open(path, 'wb') as handle:
         pickle.dump(data, handle)
 
 
+def sanity_check(GT):
+    combos = []
+    faults = []
+    for i in GT:
+        if abs(i[0]) > 0.5:
+            print("too large GT", i)
+            faults.append(i)
+        if i[4] + i[5] + i[6] + i[7] in combos:
+            print("double entry", i)
+            faults.append(i)
+        combos.append(i[4] + i[5] + i[6] + i[7])
+
+    for f in faults:
+        GT.remove(f)
+    return GT
+
+
 if __name__ == "__main__":
-    gt_new = get_annotation_dict("/home/rouceto1/datasets/grief_jpg/annotation.csv",
-                                 "/home/rouceto1/datasets/grief_jpg/GT_redone_best.pickle")
-    gt_combined = combine_annotations(gt_new)
-    with open("/home/rouceto1/datasets/grief_jpg/GT_redone_best_reformat.pickle", 'rb') as handle:
-        gt_in = pickle.load(handle)
-    gt_out = combine_GT(gt_in, gt_combined)
-    save_GT("/home/rouceto1/datasets/grief_jpg/GT_merge.pickle", gt_out)
+    dataset_path = os.path.join("/home/rouceto1/datasets/grief_jpg")
+    original_strands_annotations = os.path.join(dataset_path, "GT_redone.pickle")
+    combined_strands_annotations = os.path.join(dataset_path, "GT_redone_best.pickle")
+    original_grief_annotations = os.path.join(dataset_path, "annotation.csv")
+    final_GT_path = os.path.join(dataset_path, "GT_merge.pickle")
+
+    annotation_grief = manual_image_alignment.Annotate(original_strands_annotations, combined_strands_annotations,
+                                                       dataset_path)
+    # annotation.annotate()
+    annotation_grief.combine_annotations()
+    # annotation.show_GT()
+    with open(combined_strands_annotations, 'rb') as handle:
+        strands_gt_combined = pickle.load(handle)
+
+    grief_gt_basic = get_annotation_dict(original_grief_annotations)
+    grief_gt_combined = combine_annotations(grief_gt_basic)
+
+    gt_out = combine_GT(strands_gt_combined, grief_gt_combined)
+    gt_chacked = sanity_check(gt_out)
+    save_GT(final_GT_path, gt_chacked)

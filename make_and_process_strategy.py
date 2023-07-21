@@ -31,7 +31,7 @@ def make_places_list(total_per_place, percentage_to_explore, block_size, whole_p
 
     hole_places_count = (total_per_place - picked_places_count)
     hole_size = hole_places_count / block_count
-
+    random.seed(42)
     current_pose = 0
     batch_starts = []
 
