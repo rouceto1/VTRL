@@ -27,8 +27,8 @@ args = parser.parse_args()
 dataset_path = os.path.join(pwd, args.dataset_path)
 evaluation_paths = args.evaluation_paths
 evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
-
-GT_file = os.path.join(evaluation_prefix, "GT_merge.pickle")
+gt_name = "GT_merge_s"
+GT_file = os.path.join(evaluation_prefix, gt_name + ".pickle")
 notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 init_weights = os.path.join(pwd, "experiments", "init_weights.pt")
 
@@ -47,7 +47,7 @@ def process(paths, REDO=[True, True, True, True]):
         else:
             chosen_positions = np.loadtxt(os.path.join(experiments_path, "input.txt"), int)
         weights_eval = os.path.join(experiments_path, "weights.pt")
-        estimates_grade_out = os.path.join(experiments_path, "estimates.pickle")
+        estimates_grade_out = os.path.join(experiments_path, gt_name + "estimates.pickle")
         estimates_train_out = os.path.join(experiments_path, "train.pickle")
         config = load_config(os.path.join(pwd, "experiments", "NN_config.yaml"), 512)
 
@@ -72,7 +72,7 @@ def process(paths, REDO=[True, True, True, True]):
                     actual_teach_count = np.loadtxt(os.path.join(experiments_path, "used_images.txt"), int)
             grade_type(experiments_path, positions=chosen_positions, _GT=gt_in, estimates_file=estimates_grade_out,
                        estimates=estimates_grade, time_elapsed=start_time,
-                       data_count=[len(file_list_train), actual_teach_count])
+                       data_count=[len(file_list_train), actual_teach_count], GT_name=gt_name)
         notify.send('One finished: ' + exp)
     notify.send('Finished')
 
