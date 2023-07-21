@@ -35,14 +35,13 @@ class Results:
         data = data[data[:, 0].argsort()]
         return data
 
-    def get_N_HexCol(self,N=5):
-        HSV_tuples = [(x * 1.0 / (N*1.5), 1, 1) for x in range(N)]
+    def get_N_HexCol(self, N=5):
+        HSV_tuples = [(x * 1.0 / (N * 1.5), 1, 1) for x in range(N)]
         hex_out = []
         for rgb in HSV_tuples:
             rgb = map(lambda x: int(x * 255), colorsys.hsv_to_rgb(*rgb))
             hex_out.append('#%02x%02x%02x' % tuple(rgb))
         return hex_out
-
 
     def plot_scatter(self):
         fig = plt.figure()
@@ -50,35 +49,37 @@ class Results:
         for i, data in enumerate(self.data):
             if float(self.data[i][self.data_counts_filtered]) > 2000:
                 pass
-                #continue
-            ax.scatter( float(self.data[i][self.integral_filtered]), float(self.data[i][self.data_counts_filtered]),
-                        label=self.data[i][self.names] + " "+  self.data[i][self.data_counts_filtered], c=self.t[i])
-            ax.annotate(self.data[i][self.names], (float(self.data[i][self.integral_filtered]), float(self.data[i][self.data_counts_filtered])))
+                # continue
+            ax.scatter(float(self.data[i][self.integral_filtered]), float(self.data[i][self.data_counts_filtered]),
+                       label=self.data[i][self.names] + " " + self.data[i][self.data_counts_filtered], c=self.t[i],
+                       alpha=0.5)
+            ax.annotate(self.data[i][self.names],
+                        (float(self.data[i][self.integral_filtered]), float(self.data[i][self.data_counts_filtered])))
         plt.title(self.csv_name)
 
-        #plt.ylim([0.43, 0.455]
-        #ax.set_yscale('log')
-        plt.xlabel ("Integral")
-        plt.ylabel ("Data count")
-        #plt.legend()
+        # plt.ylim([0.43, 0.455]
+        # ax.set_yscale('log')
+        plt.xlabel("Integral")
+        plt.ylabel("Data count")
+        # plt.legend()
         plt.savefig(self.output_graph_path)
         plt.show()
 
     def plot_lines(self):
-        #loads and plots AC_lines from line.pkl for each folder
+        # loads and plots AC_lines from line.pkl for each folder
         fig = plt.figure()
         ax = plt.gca()
         for i, data in enumerate(self.data):
             if float(self.data[i][self.data_counts_filtered]) > 2000:
                 pass
-                #continue
+                # continue
             with open(os.path.join(self.path, self.data[i][self.names], "line.pkl"), 'rb') as f:
                 line = pickle.load(f)
-            ax.plot(line[0], line[1], label=self.data[i][self.data_counts_filtered], c=self.t[i])
+            ax.plot(line[0], line[1], label=self.data[i][self.data_counts_filtered], c=self.t[i], alpha=0.5)
         plt.legend()
         plt.title("AC lines for different counts of teaching data images")
-        plt.xlabel ("alowed image shift")
-        plt.ylabel ("probability of correct registration")
+        plt.xlabel("allowed image shift")
+        plt.ylabel("probability of correct registration")
         plt.show()
 
 
