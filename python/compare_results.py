@@ -43,18 +43,19 @@ class Results:
             hex_out.append('#%02x%02x%02x' % tuple(rgb))
         return hex_out
 
-    def plot_scatter(self):
+    def plot_scatter(self, filter=False):
         fig = plt.figure()
         ax = plt.gca()
         for i, data in enumerate(self.data):
             if float(self.data[i][self.data_counts_filtered]) > 2000:
                 pass
-                # continue
-            ax.scatter(float(self.data[i][self.integral_filtered]), float(self.data[i][self.data_counts_filtered]),
+                if filter:
+                    continue
+            ax.scatter(float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral_filtered]),
                        label=self.data[i][self.names] + " " + self.data[i][self.data_counts_filtered], c=self.t[i],
                        alpha=0.5)
             ax.annotate(self.data[i][self.names],
-                        (float(self.data[i][self.integral_filtered]), float(self.data[i][self.data_counts_filtered])))
+                        (float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral_filtered])))
         plt.title(self.csv_name)
 
         # plt.ylim([0.43, 0.455]
@@ -84,6 +85,7 @@ class Results:
 
 
 if __name__ == "__main__":
-    results = Results(os.path.join(pwd, "experiments"), "output.csv")
+    results = Results(os.path.join(pwd, "backups", "strands-strands-6-2"), "output.csv")
     results.plot_scatter()
+    results.plot_scatter(filter=True)
     results.plot_lines()
