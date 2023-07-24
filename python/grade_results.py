@@ -63,9 +63,9 @@ def get_streak(disp):
     return [poses, streak]
 
 
-def compute_to_file(estimates, gt, dist, positions, plot=True, fig_place=None, hist_nn=None):
-    line_out = os.path.join(dist, "line.pkl")
-    streak_out = os.path.join(dist, "streak.pkl")
+def compute_to_file(estimates, gt, dist, positions, plot=True, fig_place=None, hist_nn=None,name=""):
+    line_out = os.path.join(dist, name + "_line.pkl")
+    streak_out = os.path.join(dist, name +"_streak.pkl")
     # file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
 
     errors, line, line_integral, line_2, line_2_integral, streak, streak_integral = compute(estimates, gt,
@@ -223,7 +223,7 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
         gt = read_gt_file(file_list, GT_reduced)
 
         out = [experiemnt_name, exp_time,
-            *compute_to_file(displacements, gt, dest, positions, fig_place=dest),
+            *compute_to_file(displacements, gt, dest, positions, fig_place=dest,name = G),
             data_count[0], data_count[1], G]
 
         with open(path / 'output.csv', 'a') as f_object:
