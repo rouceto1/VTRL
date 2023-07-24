@@ -63,16 +63,50 @@ def get_streak(disp):
     return [poses, streak]
 
 
-def compute_to_file(estimates, gt, dist, positions, plot=True, fig_place=None, hist_nn=None, name=""):
+def compute_AC_to_uncertainty(estimates, gt, hist_nn, hist_fm, matches):
+
+    estimates_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(estimates,
+                                                                                             np.array(gt), 0.5)
+    gt_filtered, estimates_filtered, count2 = filter_from_two_arrays_using_thrashold_to_first(gt_filtered,
+                                                                                              estimates,
+                                                                                              0.5)
+    assert (count == count2 == 0)
+    z = np.array([])
+    x = np.array([])
+    y = np.array([])
+    disp = estimates_filtered - gt_filtered
+    #disp = np.append(disp, 1)
+    #matches = np.append(matches, 1600)
+    for i in range(1600):
+        z = np.append(z,(matches < i).sum())
+        l = np.array(compute_AC_curve(disp[(matches < i)]))
+        x = np.append(x,l[0])
+        y = np.append(y,l[1])
+
+    z = np.array(z)
+    #x = np.array(x)
+    #y = np.array(y)
+
+    line = compute_AC_curve(disp)
+    ig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.plot_surface(x, z, y, c=z, cmap='Greens')
+    plt.show()
+    pass
+
+
+def compute_to_file(estimates, gt, dist, positions, plot=True, fig_place=None, hist_nn=None, hist_fm=None, matches=None,
+                    name=""):
     line_out = os.path.join(dist, "line_" + name + ".pkl")
     streak_out = os.path.join(dist, "streak_" + name + ".pkl")
     # file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
-
+    #compute_AC_to_uncertainty(estimates, gt, hist_nn, hist_fm, matches)
     errors, line, line_integral, line_2, line_2_integral, streak, streak_integral = compute(estimates, gt,
                                                                                             positions=positions,
                                                                                             plot=plot,
                                                                                             fig_place=fig_place,
                                                                                             hist=hist_nn, name=name)
+
     with open(line_out, 'wb') as hand:
         pickle.dump(line_2, hand)
         print("Line written " + str(line_out))
