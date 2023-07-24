@@ -64,15 +64,15 @@ def get_streak(disp):
 
 
 def compute_to_file(estimates, gt, dist, positions, plot=True, fig_place=None, hist_nn=None, name=""):
-    line_out = os.path.join(dist, "line_" +name + ".pkl")
-    streak_out = os.path.join(dist, "streak_" +name + ".pkl")
+    line_out = os.path.join(dist, "line_" + name + ".pkl")
+    streak_out = os.path.join(dist, "streak_" + name + ".pkl")
     # file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
 
     errors, line, line_integral, line_2, line_2_integral, streak, streak_integral = compute(estimates, gt,
                                                                                             positions=positions,
                                                                                             plot=plot,
                                                                                             fig_place=fig_place,
-                                                                                            hist=hist_nn,name=name)
+                                                                                            hist=hist_nn, name=name)
     with open(line_out, 'wb') as hand:
         pickle.dump(line_2, hand)
         print("Line written " + str(line_out))
@@ -112,7 +112,7 @@ def filter_from_two_arrays_using_thrashold_to_first(a1, a2, threshold):
     return a1_o, a2_o, count
 
 
-def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, positions, save,name=""):
+def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, positions, save, name=""):
     plot1 = plt.subplot2grid((2, 2), (0, 0), colspan=1)
     plot2 = plt.subplot2grid((2, 2), (0, 1), rowspan=1, colspan=1)
     plot3 = plt.subplot2grid((2, 2), (1, 0), colspan=2)
@@ -143,11 +143,10 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     plt.figtext(x, y, save.split("/")[-1])
     plt.show()
     # plt.close()
-    print(":as")
     #
 
 
-def compute(displacement, gt, positions=None, plot=True, fig_place=None,hist=None, name=""):
+def compute(displacement, gt, positions=None, plot=True, fig_place=None, hist=None, name=""):
     displacement_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(displacement,
                                                                                                 np.array(gt), 0.5)
     gt_filtered, displacement_filtered, count2 = filter_from_two_arrays_using_thrashold_to_first(gt_filtered,
@@ -174,7 +173,6 @@ def compute_AC_curve(error):
     if length == 0:
         return [[0], [0]]
     disp = np.sort(abs(error))
-    print(length)
     return [disp, np.array(range(length)) / length]
 
 
@@ -213,7 +211,7 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
     path = Path(dest).parent
 
     GT_versions = ["strands", "grief", "all"]
-    slices = [[3054,None],[None,3053], [None,None]]
+    slices = [[3054, None], [None, 3053], [None, None]]
     exp_time = int(time.time() - time_elapsed)
     for index, G in enumerate(GT_versions):
         file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = estimates[0]
@@ -223,8 +221,8 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
         gt = read_gt_file(file_list, GT_reduced)
 
         out = [experiemnt_name, exp_time,
-            *compute_to_file(displacements, gt, dest, positions, fig_place=dest,name = G),
-            data_count[0], data_count[1], G]
+               *compute_to_file(displacements, gt, dest, positions, fig_place=dest, name=G),
+               data_count[0], data_count[1], G]
 
         with open(path / 'output.csv', 'a') as f_object:
             writer_object = writer(f_object)

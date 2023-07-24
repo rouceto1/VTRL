@@ -136,7 +136,6 @@ def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=N
     cout = 0
     file_list = []
     if conf["all_combos"] is True:
-        print(indexes)
         for key in indexes:
             position = list(itertools.combinations(indexes[key], 2))
             combination_list.append(position)
