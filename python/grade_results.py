@@ -198,7 +198,7 @@ def show_estiamtes(file_list, displacements, feature_count_l, feature_count_r, m
         cv2.waitKey(0)
 
 
-def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=None, time_elapsed=None, data_count=None):
+def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=None, time_elapsed=None, data_count=None,GT_name=""):
     print("recieve offset estiamtes")
     if estimates is None:
         print("from " + str(estimates_file))
@@ -214,7 +214,7 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
     experiemnt_name = os.path.basename(os.path.normpath(dest))
     out = [experiemnt_name, exp_time,
            *compute_to_file(displacements, gt, matches, dest, positions, fig_place=dest, hist_nn=hist_nn),
-           data_count[0], data_count[1]]
+           data_count[0], data_count[1],GT_name]
     path = Path(dest).parent
 
     with open(path / 'output.csv', 'a') as f_object:
