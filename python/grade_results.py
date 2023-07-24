@@ -141,21 +141,20 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     x = pos.x0 + 0.4
     y = pos.y0 + 0.4
     plt.figtext(x, y, save.split("/")[-1])
-    plt.show()
+    # plt.show()
     # plt.close()
     #
 
 
 def compute(displacement, gt, positions=None, plot=True, fig_place=None, hist=None, name=""):
-    displacement_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(displacement,
-                                                                                                np.array(gt), 0.5)
-    gt_filtered, displacement_filtered, count2 = filter_from_two_arrays_using_thrashold_to_first(gt_filtered,
-                                                                                                 displacement_filtered,
-                                                                                                 0.5)
+    #displacement_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(displacement,
+                                                                                    #            np.array(gt), 0.5)
+    displacement_filtered = filter_to_max(displacement, 1)
+    #assert (count == count2 == 0)
 
-    disp = displacement_filtered - gt_filtered
+    disp = displacement_filtered - gt
     disp = np.append(disp, 1)
-    line = compute_AC_curve(displacement - gt)
+    line = compute_AC_curve(displacement_filtered - gt)
     line_2 = compute_AC_curve(disp)
     line_integral = get_integral_from_line(line)
     line_2_integral = get_integral_from_line(line_2)
@@ -217,11 +216,15 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
         file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = estimates[0]
         file_list = file_list[slices[index][0]:slices[index][1]]
         displacements = displacements[slices[index][0]:slices[index][1]]
+        matches = matches[slices[index][0]:slices[index][1]]
+        histograms = histograms[slices[index][0]:slices[index][1]]
+        hist_nn = hist_nn[slices[index][0]:slices[index][1]]
         GT_reduced = _GT[slices[index][0]:slices[index][1]]
         gt = read_gt_file(file_list, GT_reduced)
 
         out = [experiemnt_name, exp_time,
-               *compute_to_file(displacements, gt, dest, positions, fig_place=dest, name=G),
+               *compute_to_file(displacements, gt, dest, positions, fig_place=dest, hist_nn=hist_nn, hist_fm=histograms,
+                                matches=matches, name=G),
                data_count[0], data_count[1], G]
 
         with open(path / 'output.csv', 'a') as f_object:
