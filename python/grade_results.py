@@ -196,7 +196,7 @@ def compute(displacement, gt, positions=None, plot=True, fig_place=None, hist=No
     line_2_integral = get_integral_from_line(line_2)
     streak = get_streak(filter_to_max(displacement - gt, 1))
     if plot is True:
-        plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, positions, fig_place, name=name)
+        plot_all(disp, displacement_filtered, gt, line, line_2, streak, positions, fig_place, name=name)
 
     streak_integral = get_integral_from_line(streak)
     return disp, line, line_integral, line_2, line_2_integral, streak, streak_integral
