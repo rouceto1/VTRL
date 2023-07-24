@@ -247,6 +247,8 @@ int internalHistogram(std::vector<cv::KeyPoint> keypoints1,std::vector<cv::KeyPo
     //std::cout<< histMax << " " << histMax2 << " " << sumDev<< std::endl;
 
   if (histMax > 0) displacement = (float)sumDev/histMax;
+
+
   return inliers_matches.size();
 }
 

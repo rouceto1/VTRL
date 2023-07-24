@@ -145,7 +145,9 @@ float computeOnTwoImages(cv::Mat img1, cv::Mat img2 , struct settings settings,i
 
     //std::cout<< displacement << std::endl;
     //cv::waitKey(0);
-
+    if (displacement > 10000 ){
+        displacement = 123456789;
+    }
   return displacement;
 }
 
