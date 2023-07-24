@@ -63,7 +63,7 @@ def process(paths, REDO=[False, False, False, False]):
             estimates_grade = evaluate_for_GT(experiments_path, evaluation_prefix, evaluation_paths, weights_eval,
                                               _GT=gt_in,
                                               _estimates_out=estimates_grade_out, conf=config)
-        if not os.path.exists(os.path.join(experiments_path, "input.png")) or REDO[3]:
+        if not os.path.exists(os.path.join(experiments_path, "plots", "input.png")) or REDO[3]:
             with open(GT_file, 'rb') as handle:
                 gt_in = pickle.load(handle)
             if file_list_train is None:
