@@ -19,7 +19,7 @@ def evaluate_for_learning(out_path, _dataset_path, _chosen_positions, _weights_f
 
 def evaluate_for_GT(out_path, _evaluation_prefix, _evaluation_paths, _weights_file, _GT=None,
                     _estimates_out=None,
-                    _cache2=None, conf=None):
+                    _cache2="/tmp/cache.pkl", conf=None):
     file_list = make_file_list_from_gt(_evaluation_prefix, _GT)
     out = [fm_nn_eval(file_list, filetype_NN, filetype_FM, out_path, _weights_file, _cache2, conf=conf)]
     with open(_estimates_out, 'wb') as handle:

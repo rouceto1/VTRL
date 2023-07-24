@@ -42,10 +42,17 @@ def fm_nn_eval(file_list, filetype_nn, filetype_fm, out_path, weights_file, cach
     fcount_r = np.zeros(count, dtype=np.int32)
     matches = np.zeros(count, dtype=np.int32)
     file_list = np.array(file_list)[:count]
-
+    #if cache_file is not None and os.path.exists(cache_file):
+    #    with open(cache_file, 'rb') as handle:
+    #        hist_nn = pickle.load(handle)
+    #else:
+    #    pass
     hist_nn, displacement = NN_eval(choose_proper_filetype(filetype_nn, file_list),
-                                    out_path, weights_file,
-                                    conf)
+                                out_path, weights_file,
+                                conf)
+        #if cache_file is not None:
+        #    with open(cache_file, 'wb') as handle:
+        #        pickle.dump(hist_nn, handle)
     hist_out = np.zeros((count, 63), dtype=np.float64)
     displacements, feature_count_l, feature_count_r, histograms = grief.cpp_eval_on_files(
         choose_proper_filetype(filetype_fm, file_list),
