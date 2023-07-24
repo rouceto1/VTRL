@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(
     description='example: --dataset_path "full path" --evaluation_prefix "full path" --weights_folder "full path" '
                 '--file_out suffix.picke')
 parser.add_argument('--dataset_path', type=str, help="full path to dataset to teach on",
-                    default="datasets/strands_crop/training_Nov")
+                    default="datasets/teaching/strands")
 parser.add_argument('--evaluation_prefix', type=str, help="path to folder with evaluation sub-folders",
                     default="datasets/grief_jpg")
 parser.add_argument('--evaluation_paths', type=str, help="names of folders to eval",
@@ -47,7 +47,7 @@ def process(paths, REDO=[True, True, True, True]):
         else:
             chosen_positions = np.loadtxt(os.path.join(experiments_path, "input.txt"), int)
         weights_eval = os.path.join(experiments_path, "weights.pt")
-        estimates_grade_out = os.path.join(experiments_path, gt_name + "estimates.pickle")
+        estimates_grade_out = os.path.join(experiments_path, gt_name + "_estimates.pickle")
         estimates_train_out = os.path.join(experiments_path, "train.pickle")
         config = load_config(os.path.join(pwd, "experiments", "NN_config.yaml"), 512)
 
