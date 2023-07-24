@@ -63,7 +63,7 @@ def get_streak(disp):
     return [poses, streak]
 
 
-def compute_to_file(estimates, gt, matches, dist, positions, plot=True, fig_place=None, hist_nn=None, hist_fm=None):
+def compute_to_file(estimates, gt, dist, positions, plot=True, fig_place=None, hist_nn=None):
     line_out = os.path.join(dist, "line.pkl")
     streak_out = os.path.join(dist, "streak.pkl")
     # file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
@@ -142,17 +142,20 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     y = pos.y0 + 0.4
     plt.figtext(x, y, save.split("/")[-1])
     plt.show()
-    #plt.close()
+    # plt.close()
     print(":as")
     #
 
 
 def compute(displacement, gt, positions=None, plot=True, fig_place=None, hist=None):
-    displacement_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(displacement, np.array(gt), 0.5)
-    gt_filtered, displacement_filtered,  count2 = filter_from_two_arrays_using_thrashold_to_first(gt_filtered, displacement_filtered, 0.5)
+    displacement_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(displacement,
+                                                                                                np.array(gt), 0.5)
+    gt_filtered, displacement_filtered, count2 = filter_from_two_arrays_using_thrashold_to_first(gt_filtered,
+                                                                                                 displacement_filtered,
+                                                                                                 0.5)
 
     disp = displacement_filtered - gt_filtered
-    disp = np.append(disp,1)
+    disp = np.append(disp, 1)
     line = compute_AC_curve(displacement - gt)
     line_2 = compute_AC_curve(disp)
     line_integral = get_integral_from_line(line)
@@ -178,49 +181,55 @@ def compute_AC_curve(error):
 def get_integral_from_line(values):
     # Fucntion returns integral of numerical array
     # values=[[1,3,5,3,4,81,2,6,88,52,5,2,5,-5],[1,2,3,4,5,6,7,8,9,10,11,12,13,14]]
-    integral = np.trapz(values[1], values[0]) ##DONE AND PROBABLY WORKS
+    integral = np.trapz(values[1], values[0])  ##DONE AND PROBABLY WORKS
     return integral
 
-def show_estiamtes(file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn ,gt):
-    #use opencv to compare image pairs form file_list shifted by displacement and shifted by gt value
+
+def show_estiamtes(file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn, gt):
+    # use opencv to compare image pairs form file_list shifted by displacement and shifted by gt value
 
     for i in range(len(file_list)):
-        #if not "testing" in file_list[i][0] :
+        # if not "testing" in file_list[i][0] :
         #    continue
         img1 = cv2.imread("/home" + file_list[i][0][11:] + ".png")
         img2 = cv2.imread("/home" + file_list[i][1][11:] + ".png")
-        imgm2 = np.roll(img2, int(gt[i]*img2.shape[1]), axis=1)
+        imgm2 = np.roll(img2, int(gt[i] * img2.shape[1]), axis=1)
         image1 = np.concatenate((img1, imgm2), axis=0)
         cv2.imshow("plus", image1)
-        img2 = np.roll(img2, int(-gt[i]*img2.shape[1]), axis=1)
+        img2 = np.roll(img2, int(-gt[i] * img2.shape[1]), axis=1)
         image2 = np.concatenate((img1, img2), axis=0)
         cv2.imshow("minus", image2)
         cv2.waitKey(0)
 
 
-def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=None, time_elapsed=None, data_count=None,GT_name=""):
+def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=None, time_elapsed=None, data_count=None,
+               GT_name=""):
     print("recieve offset estiamtes")
     if estimates is None:
         print("from " + str(estimates_file))
         with open(estimates_file, 'rb') as handle:
             estimates = pickle.load(handle)
-    file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = estimates[0]
-    print("get gt for offset pairs")
-    gt = read_gt_file(file_list, _GT)
-    print("loaded GT")
-    #show_estiamtes(file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn, gt)
-    exp_time = int(time.time() - time_elapsed)
-    # SOLVED: redo the compute_to_file, the gt is already sorted to the data to compare it to
     experiemnt_name = os.path.basename(os.path.normpath(dest))
-    out = [experiemnt_name, exp_time,
-           *compute_to_file(displacements, gt, matches, dest, positions, fig_place=dest, hist_nn=hist_nn),
-           data_count[0], data_count[1],GT_name]
     path = Path(dest).parent
 
-    with open(path / 'output.csv', 'a') as f_object:
-        writer_object = writer(f_object)
-        writer_object.writerow(out)
-        f_object.close()
+    GT_versions = ["strands", "grief", "all"]
+    slices = [[3054,None],[None,3053], [None,None]]
+    exp_time = int(time.time() - time_elapsed)
+    for index, G in enumerate(GT_versions):
+        file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = estimates[0]
+        file_list = file_list[slices[index][0]:slices[index][1]]
+        displacements = displacements[slices[index][0]:slices[index][1]]
+        GT_reduced = _GT[slices[index][0]:slices[index][1]]
+        gt = read_gt_file(file_list, GT_reduced)
+
+        out = [experiemnt_name, exp_time,
+            *compute_to_file(displacements, gt, dest, positions, fig_place=dest),
+            data_count[0], data_count[1], G]
+
+        with open(path / 'output.csv', 'a') as f_object:
+            writer_object = writer(f_object)
+            writer_object.writerow(out)
+            f_object.close()
 
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ args = parser.parse_args()
 dataset_path = os.path.join(pwd, args.dataset_path)
 evaluation_paths = args.evaluation_paths
 evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
-gt_name = "GT_merge_s"
+gt_name = "GT_merge_s_g"
 GT_file = os.path.join(evaluation_prefix, gt_name + ".pickle")
 notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 init_weights = os.path.join(pwd, "experiments", "init_weights.pt")
