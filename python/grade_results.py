@@ -63,16 +63,16 @@ def get_streak(disp):
     return [poses, streak]
 
 
-def compute_to_file(estimates, gt, dist, positions, plot=True, fig_place=None, hist_nn=None,name=""):
-    line_out = os.path.join(dist, name + "_line.pkl")
-    streak_out = os.path.join(dist, name +"_streak.pkl")
+def compute_to_file(estimates, gt, dist, positions, plot=True, fig_place=None, hist_nn=None, name=""):
+    line_out = os.path.join(dist, "line_" +name + ".pkl")
+    streak_out = os.path.join(dist, "streak_" +name + ".pkl")
     # file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
 
     errors, line, line_integral, line_2, line_2_integral, streak, streak_integral = compute(estimates, gt,
                                                                                             positions=positions,
                                                                                             plot=plot,
                                                                                             fig_place=fig_place,
-                                                                                            hist=hist_nn)
+                                                                                            hist=hist_nn,name=name)
     with open(line_out, 'wb') as hand:
         pickle.dump(line_2, hand)
         print("Line written " + str(line_out))
@@ -112,7 +112,7 @@ def filter_from_two_arrays_using_thrashold_to_first(a1, a2, threshold):
     return a1_o, a2_o, count
 
 
-def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, positions, save):
+def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, positions, save,name=""):
     plot1 = plt.subplot2grid((2, 2), (0, 0), colspan=1)
     plot2 = plt.subplot2grid((2, 2), (0, 1), rowspan=1, colspan=1)
     plot3 = plt.subplot2grid((2, 2), (1, 0), colspan=2)
@@ -136,7 +136,7 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     # plot3.ylabel("Place visited", fontsize=18)
     # plot3.xlabel("Timestamp [s]", fontsize=18)
     plt.tight_layout()
-    plt.savefig(os.path.join(save, "input.png"), dpi=600)
+    plt.savefig(os.path.join(save, "input_" + name + ".png"), dpi=800)
     pos = plot3.get_position()
     x = pos.x0 + 0.4
     y = pos.y0 + 0.4
@@ -147,7 +147,7 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     #
 
 
-def compute(displacement, gt, positions=None, plot=True, fig_place=None, hist=None):
+def compute(displacement, gt, positions=None, plot=True, fig_place=None,hist=None, name=""):
     displacement_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(displacement,
                                                                                                 np.array(gt), 0.5)
     gt_filtered, displacement_filtered, count2 = filter_from_two_arrays_using_thrashold_to_first(gt_filtered,
@@ -162,7 +162,7 @@ def compute(displacement, gt, positions=None, plot=True, fig_place=None, hist=No
     line_2_integral = get_integral_from_line(line_2)
     streak = get_streak(filter_to_max(displacement - gt, 1))
     if plot is True:
-        plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, positions, fig_place)
+        plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, positions, fig_place, name=name)
 
     streak_integral = get_integral_from_line(streak)
     return disp, line, line_integral, line_2, line_2_integral, streak, streak_integral
