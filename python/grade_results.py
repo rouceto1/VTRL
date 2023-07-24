@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import marshal as pickle
+
+import numpy as np
 from matplotlib import image
 from matplotlib import pyplot as plt
 from .helper_functions import *
@@ -7,7 +9,7 @@ from csv import writer
 from pathlib import Path
 import time
 import cv2
-from scipy.integrate import trapz
+from mpl_toolkits import mplot3d
 
 
 def filter_to_max(lst, threshold):
