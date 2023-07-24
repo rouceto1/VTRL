@@ -63,8 +63,13 @@ def save_strategy(name, experiments_path, percentage_to_explore, block_size, who
                   single_place_per_batch, place_weight_randomness, places_out):
     try:
         os.mkdir(os.path.join(experiments_path, name))
+
     except FileExistsError:
         print("Strategy already exists " + os.path.join(experiments_path, name))
+    try:
+        os.mkdir(os.path.join(experiments_path, name) + "/plots")
+    except FileExistsError:
+        pass
     with open(os.path.join(experiments_path, name) + "/input.pkl", 'wb') as handle:
         pickle.dump(places_out, handle)
     dictionary = {

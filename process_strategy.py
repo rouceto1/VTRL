@@ -32,7 +32,7 @@ GT_file = os.path.join(evaluation_prefix, gt_name + ".pickle")
 notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 init_weights = os.path.join(pwd, "experiments", "init_weights.pt")
 
-def process(paths, REDO=[True, True, True, True]):
+def process(paths, REDO=[False, False, False, False]):
 
     for exp in paths:
         estimates_grade = None
