@@ -42,20 +42,20 @@ def fm_nn_eval(file_list, filetype_nn, filetype_fm, out_path, weights_file, cach
     fcount_r = np.zeros(count, dtype=np.int32)
     matches = np.zeros(count, dtype=np.int32)
     file_list = np.array(file_list)[:count]
-    #if cache_file is not None and os.path.exists(cache_file):
+    # if cache_file is not None and os.path.exists(cache_file):
     #    with open(cache_file, 'rb') as handle:
     #        hist_nn = pickle.load(handle)
-    #else:
+    # else:
     #    pass
-    hist_nn, displacement = NN_eval(choose_proper_filetype(filetype_nn, file_list),
-                                out_path, weights_file,
-                                conf)
-        #if cache_file is not None:
-        #    with open(cache_file, 'wb') as handle:
-        #        pickle.dump(hist_nn, handle)
+    hist_nn, displacement = NN_eval(file_list,
+                                    out_path, weights_file,
+                                    conf)
+    # if cache_file is not None:
+    #    with open(cache_file, 'wb') as handle:
+    #        pickle.dump(hist_nn, handle)
     hist_out = np.zeros((count, 63), dtype=np.float64)
     displacements, feature_count_l, feature_count_r, histograms = grief.cpp_eval_on_files(
-        choose_proper_filetype(filetype_fm, file_list),
+        file_list,
         disp, fcount_l, fcount_r, matches, count, hist_nn, hist_out, gt)
     # FM_out = np.array([disp, fcount], dtype=np.float64).T
     # file_list = np.array(file_list)[:count]
@@ -96,7 +96,7 @@ def fm_eval(file_list, filetype_FM, limit=None):
     fcount_l = np.zeros(count, dtype=np.int32)
     fcount_r = np.zeros(count, dtype=np.int32)
     matches = np.zeros(count, dtype=np.int32)
-    grief.cpp_teach_on_files(choose_proper_filetype(filetype_FM, file_list), disp, fcount_l, fcount_r, matches, count)
+    grief.cpp_teach_on_files(file_list, disp, fcount_l, fcount_r, matches, count)
     fm_out = np.array([disp, fcount_l, fcount_r], dtype=np.float32).T
     # file_list.append(disp)
     file_list = np.array(file_list)[:count]

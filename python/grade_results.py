@@ -66,17 +66,11 @@ def get_streak(disp):
 
 
 def compute_AC_to_uncertainty(estimates, gt, hist_nn, hist_fm, matches):
-
-    estimates_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(estimates,
-                                                                                             np.array(gt), 0.5)
-    gt_filtered, estimates_filtered, count2 = filter_from_two_arrays_using_thrashold_to_first(gt_filtered,
-                                                                                              estimates,
-                                                                                              0.5)
-    assert (count == count2 == 0)
+    estimates_filtered = filter_to_max(estimates, 1)
     z = np.array([])
     x = np.array([])
     y = np.array([])
-    disp = estimates_filtered - gt_filtered
+    disp = estimates_filtered - gt
     #disp = np.append(disp, 1)
     #matches = np.append(matches, 1600)
     for i in range(1600):

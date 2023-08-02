@@ -12,9 +12,9 @@ from pathlib import Path
 from tqdm import tqdm
 import random
 
-filetype_FM = ".bmp"
+filetype_FM = ".png"
 filetype_NN = ".png"
-image_file_template = "place_%02d/%05d"  # TODO redo all datasets to this format
+image_file_template = "season_%04d/%09d"
 
 
 # adds file extension to all files in the list
@@ -110,7 +110,49 @@ def concatenate_combos_for_teaching(list1, list2):
     return out
 
 
+def make_combos_for_dataset(input, path_dataset, image_file_template):
+    # makes list of all possible combination between same places per season
+    # input is list of seasons which are folders
+    # each season is list of places which are files
+    # each file is defined as "season_%d04/%09d"
+    # format of return is: [cestlice[season0[place1 place2 place3 ... place271 ] season1[place1 place2 place3 ... place271 ] ... season30[place1 place2 place3 ... place271 ]]
+    #                                       strands[season0[place1 place2 place3 ... place7 ] season1[place1 place2 place3 ... place7 ] ... season1007[place1 place2 place3 ... place7 ]]]
+
+    output = []
+
+    seasons = len(input)
+    places = len(input[0])
+    # places are amount of folders in path_dataset
+
+    for place in range(places):
+        for season in range(seasons):
+            if input[season][place] == 0:
+                continue
+            for season2 in range(season + 1, seasons):
+                if input[season2][place] == 0:
+                    continue
+                file1 = os.path.join(path_dataset, image_file_template % (season, place)) + ".png"
+                file2 = os.path.join(path_dataset, image_file_template % (season2, place)) + ".png"
+                if os.path.exists(file1) and os.path.exists(file2):
+                    output.append([file1, file2])
+    return output
+
+
 def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=None):
+    # format of chosen_positions is: [cestlice[season0[place1 place2 place3 ... place271 ] season1[place1 place2 place3 ... place271 ] ... season30[place1 place2 place3 ... place271 ]]
+    #                                       strands[season0[place1 place2 place3 ... place7 ] season1[place1 place2 place3 ... place7 ] ... season1007[place1 place2 place3 ... place7 ]]]
+    # takes chosen postioins list and creates all possible teaching combinattaions for it
+    # each combination is a list of 2 files comprised of same place between 2 seasons
+    # available places are indicated by 1 notavialbale are 0
+    pass
+    cestlice = chosen_positions[0]
+    strands = chosen_positions[1]
+    output = make_combos_for_dataset(cestlice, os.path.join(dataset_path, "cestlice"), image_file_template)
+    output.extend(make_combos_for_dataset(strands, os.path.join(dataset_path, "strands"), image_file_template))
+    return output
+
+
+def make_combos_for_teaching_old(chosen_positions, dataset_path, filetype_fm, conf=None):
     # print("First file loaded")
     # takes list of sorted chosen positions indicated by the number bigger than or equal zero and makes a combination of all indexies for a given postitions,
     # if -1 is in chosen position it skips this index

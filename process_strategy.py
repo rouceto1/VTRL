@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(
     description='example: --dataset_path "full path" --evaluation_prefix "full path" --weights_folder "full path" '
                 '--file_out suffix.picke')
 parser.add_argument('--dataset_path', type=str, help="full path to dataset to teach on",
-                    default="datasets/teaching/strands")
+                    default="datasets/teaching")
 parser.add_argument('--evaluation_prefix', type=str, help="path to folder with evaluation sub-folders",
                     default="datasets/grief_jpg")
 parser.add_argument('--evaluation_paths', type=str, help="names of folders to eval",

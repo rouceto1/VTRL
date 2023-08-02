@@ -197,7 +197,8 @@ def plot_similarity(img1, img2, time_histogram, name=None, offset=None):
     if name is not None:
         plt.savefig("results_aligning/" + name + ".png")
     else:
-        plt.show()
+        pass
+        #plt.show()
     plt.close()
 
 
@@ -210,7 +211,8 @@ def plot_cuts(img1, img2, suptitle, name=None):
         # plt.savefig("results_cuts/" + name + ".png")
         pass
     else:
-        plt.show()
+        pass
+        #plt.show()
     plt.close()
 
 
