@@ -49,8 +49,8 @@ def make_places_list(seasons, percentage_to_explore, block_size, whole_place_at_
             hole = random.randint(0, int(hole_size * 2))
             current_block = current_pose + hole
             if current_block + block_size >= seasons * places:
-                print("generated only " + str(i * block_size) + " out of " + str(picked_total_count) + " :%" + str(
-                    i * block_size / picked_total_count))
+                #print("generated only " + str(i * block_size) + " out of " + str(picked_total_count) + " :%" + str(
+                #    i * block_size / picked_total_count))
                 break
             batch_starts.append(current_block)
             current_pose = current_block + block_size
