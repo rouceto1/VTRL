@@ -158,11 +158,6 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     plot2.set_title("metrics")
     plot2.legend()
 
-    interpolated = []
-    for pose in positions:
-        interpolated.append(pose)
-    locs, labels = plt.xticks()
-    plot3.plot(interpolated)
     # plot3.ylabel("Place visited", fontsize=18)
     # plot3.xlabel("Timestamp [s]", fontsize=18)
     plt.tight_layout()
