@@ -33,48 +33,48 @@ def make_places_list(seasons, percentage_to_explore, block_size, whole_place_at_
 
     if percentage_to_explore == 0.0:
         #return empty array
-        return np.ones(seasons, dtype=int)
+        places_tmp = np.zeros(seasons * places, dtype=int)
+    else:
+        picked_total_count = seasons * percentage_to_explore * places
+        block_count = picked_total_count / block_size
 
-    picked_total_count = seasons * percentage_to_explore * places
-    block_count = picked_total_count / block_size
+        hole_places_count = (seasons * places - picked_total_count)
+        hole_size = hole_places_count / block_count
+        random.seed(42)
+        current_pose = 0
+        batch_starts = []
+        places_tmp = []
 
-    hole_places_count = (seasons * places - picked_total_count)
-    hole_size = hole_places_count / block_count
-    random.seed(42)
-    current_pose = 0
-    batch_starts = []
+        for i in range(int(block_count)):
+            hole = random.randint(0, int(hole_size * 2))
+            current_block = current_pose + hole
+            if current_block + block_size >= seasons * places:
+                print("generated only " + str(i * block_size) + " out of " + str(picked_total_count) + " :%" + str(
+                    i * block_size / picked_total_count))
+                break
+            batch_starts.append(current_block)
+            current_pose = current_block + block_size
 
-    for i in range(int(block_count)):
-        hole = random.randint(0, int(hole_size * 2))
-        current_block = current_pose + hole
-        if current_block + block_size >= seasons * places:
-            print("generated only " + str(i * block_size) + " out of " + str(picked_total_count) + " :%" + str(
-                i * block_size / picked_total_count))
-            break
-        batch_starts.append(current_block)
-        current_pose = current_block + block_size
+        places_none = np.zeros(places, dtype=int)  # make array that has no places chosen
+        possible_places = range(places)
+        current_batch_start = 0
+        current_batch_size = 0
+        for place in range(places * seasons):
 
-    places_none = np.zeros(places, dtype=int)  # make array that has no places chosen
-    possible_places = range(places)
-    current_batch_start = 0
-    current_batch_size = 0
-    places_tmp = []
-    for place in range(places * seasons):
+            if current_batch_size == block_size :
+                current_batch_start = current_batch_start + 1
+                current_batch_size = 0
 
-        if current_batch_size == block_size :
-            current_batch_start = current_batch_start + 1
-            current_batch_size = 0
+            if current_batch_start >= len(batch_starts):
+                places_tmp.append(0)
+                continue
+            if batch_starts[current_batch_start] > place:
+                places_tmp.append(0)
+                continue
 
-        if current_batch_start >= len(batch_starts):
-            places_tmp.append(0)
-            continue
-        if batch_starts[current_batch_start] > place:
-            places_tmp.append(0)
-            continue
+            current_batch_size = current_batch_size + 1
 
-        current_batch_size = current_batch_size + 1
-
-        places_tmp.append(1)
+            places_tmp.append(1)
 
     seasons_out = []
     #split places_tmp into seasons count of arrays
@@ -166,4 +166,5 @@ if __name__ == "__main__":
                          whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],
                          dataset_weight=strategy[4])
     names.sort()
+    names.append("none")
     process(names)
