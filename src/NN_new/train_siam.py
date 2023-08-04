@@ -42,7 +42,6 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
 
         if conf["negative_frac"] > 0.01:
             batch, heatmap = hard_negatives(source, heatmap)
-        print(name1, name2)
         try:
             out = model(source, target, padding=conf["pad"])
         except:
