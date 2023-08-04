@@ -47,10 +47,10 @@ def eval_displacement(eval_model=None, model_path=None,
             # batch: source, cropped_target, heatmap, data_idx, original_image, displ
             if is_teaching:
                 output_size = conf["output_size"]
-                source, target, gt = (batch[0].to(device)), (batch[1].to(device)), batch[5]
+                source, target, gt,name_a,name_b = (batch[0].to(device)), (batch[1].to(device)), batch[5],batch[6],batch[7]
             else:
                 output_size = conf["output_size"] - 1
-                source, target = (batch[0].to(device)), (batch[3].to(device))
+                source, target,name_a,name_b = (batch[0].to(device)), (batch[3].to(device)), batch[4], batch[5]
                 gt = [0] * batch_size
 
             histogram = get_histogram(source, target, padding, model)

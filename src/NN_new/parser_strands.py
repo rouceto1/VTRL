@@ -67,9 +67,9 @@ class StrandsImgPairDataset(Dataset):
         target_img = read_image(self.data[idx][1], mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
         if self.train:
             displ = self.data[idx][2]
-            return source_img, target_img, displ, self.data[idx][3]
+            return source_img, target_img, displ, self.data[idx][3], self.data[idx][0], self.data[idx][1]
         else:
-            return source_img, target_img, self.data[idx][2]
+            return source_img, target_img, self.data[idx][2], self.data[idx][0], self.data[idx][1]
 
 
 class Strands(StrandsImgPairDataset):
@@ -89,7 +89,7 @@ class Strands(StrandsImgPairDataset):
 
     def __getitem__(self, idx):
         if self.train:
-            source, target, displ, data_idx = super().__getitem__(idx)
+            source, target, displ, data_idx,img_a,img_b = super().__getitem__(idx)
             # source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8) # for vlurring out the water mark
             # displ = displ*(512.0/self.width)
             cropped_target, crop_start, original_image, blacked_img = self.crop_img(target, displac=displ)
@@ -98,13 +98,13 @@ class Strands(StrandsImgPairDataset):
             else:
                 heatmap = self.get_smooth_heatmap(crop_start)
             #plot_heatmap(source, target, cropped_target, displ, heatmap)
-            return source, cropped_target, heatmap, data_idx, original_image, displ, blacked_img
+            return source, cropped_target, heatmap, data_idx, original_image, displ, blacked_img,img_a,img_b
         else:
             # croping target when evalution is up to 504 pixels
-            source, target,data_idx = super().__getitem__(idx)
+            source, target, data_idx,img_a,img_b = super().__getitem__(idx)
             left = (self.width - self.crop_width) / 2
             right = (self.width - self.crop_width) / 2 + self.crop_width
-            return source, target[:, :, int(left):int(right)], data_idx, target
+            return source, target[:, :, int(left):int(right)], data_idx, target,img_a,img_b
 
     def crop_img(self, img, displac):
         # crop - avoid asking for unavailable crop
