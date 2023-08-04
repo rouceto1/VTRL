@@ -35,7 +35,7 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
     loss_sum = 0
     count = 0
     for batch in train_loader:
-        source, target, heatmap, u_target, blacked, name1,name2 = batch[0].to(device), batch[1].to(device), batch[2].to(device), \
+        source, target, heatmap, u_target, blacked, name1, name2 = batch[0].to(device), batch[1].to(device), batch[2].to(device), \
             batch[4].to(device), batch[6].to(device),batch[7],batch[8]
         source = batch_aug(source)
         count = count + 1
@@ -43,7 +43,11 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
         if conf["negative_frac"] > 0.01:
             batch, heatmap = hard_negatives(source, heatmap)
         print(name1, name2)
-        out = model(source, target, padding=conf["pad"])
+        try:
+            out = model(source, target, padding=conf["pad"])
+        except:
+            for i in range(len(name1)):
+                print(name1[i], name2[i], source[i].shape, target[i].shape)
         if conf["plot_training"]:
             if count < 3:
                 plot_heatmap(source[0].cpu(),
