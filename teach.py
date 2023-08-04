@@ -3,7 +3,7 @@ from python.general_paths import *
 import src.NN_new.train_siam as nn_train
 
 
-def teach(_dataset_path, _chosen_positions, _experiments_path,init_weights=None, _cache=None, conf=None):
+def teach(_dataset_path, _chosen_positions, _experiments_path, init_weights=None, _cache=None, conf=None):
     file_list = make_combos_for_teaching(_chosen_positions, _dataset_path, filetype_FM, conf=conf)
     #make cache for files with displacement
     if _cache is None and conf["use_cache"]:

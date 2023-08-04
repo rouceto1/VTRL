@@ -178,12 +178,15 @@ def compute(displacement, gt, positions=None, plot=True, fig_place=None, hist=No
     #assert (count == count2 == 0)
 
     disp = displacement_filtered - gt
+    max_reached = np.count_nonzero(displacement == 1)
+    max_total = max_reached/len(displacement)
+    disp[displacement == 1] = max_total
     disp = np.append(disp, 1)
-    line = compute_AC_curve(displacement_filtered - gt)
+    line = compute_AC_curve(disp)
     line_2 = compute_AC_curve(disp)
     line_integral = get_integral_from_line(line)
     line_2_integral = get_integral_from_line(line_2)
-    streak = get_streak(filter_to_max(displacement - gt, 1))
+    streak = get_streak(filter_to_max(disp, 1))
     if plot is True:
         plot_all(disp, displacement_filtered, gt, line, line_2, streak, positions, fig_place, name=name)
 
