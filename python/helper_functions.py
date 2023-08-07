@@ -123,7 +123,7 @@ def make_combos_for_dataset(input, path_dataset, image_file_template):
     seasons = len(input)
     places = len(input[0])
     # places are amount of folders in path_dataset
-
+    count = 0
     for place in range(places):
         for season in range(seasons):
             if input[season][place] == 0:
@@ -131,11 +131,12 @@ def make_combos_for_dataset(input, path_dataset, image_file_template):
             for season2 in range(season + 1, seasons):
                 if input[season2][place] == 0:
                     continue
+                count += 1
                 file1 = os.path.join(path_dataset, image_file_template % (season, place)) + ".png"
                 file2 = os.path.join(path_dataset, image_file_template % (season2, place)) + ".png"
                 if os.path.exists(file1) and os.path.exists(file2):
                     output.append([file1, file2])
-    return output
+    return output, count
 
 
 def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=None):
@@ -147,8 +148,9 @@ def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=N
     pass
     cestlice = chosen_positions[0]
     strands = chosen_positions[1]
-    output = make_combos_for_dataset(cestlice, os.path.join(dataset_path, "cestlice"), image_file_template)
-    output.extend(make_combos_for_dataset(strands, os.path.join(dataset_path, "strands"), image_file_template))
+    output, count = make_combos_for_dataset(cestlice, os.path.join(dataset_path, "cestlice"), image_file_template)
+    output2, count2 = make_combos_for_dataset(strands, os.path.join(dataset_path, "strands"), image_file_template)
+    output.extend(output2)
     return output
 
 

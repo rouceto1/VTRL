@@ -35,6 +35,7 @@ def make_places_list(seasons, percentage_to_explore, block_size, whole_place_at_
     if percentage_to_explore == 0.0:
         #return empty array
         places_tmp = np.zeros(seasons * places, dtype=int)
+        count = 0
     else:
         picked_total_count = seasons * percentage_to_explore * places
         block_count = picked_total_count / block_size
@@ -45,7 +46,7 @@ def make_places_list(seasons, percentage_to_explore, block_size, whole_place_at_
         current_pose = 0
         batch_starts = []
         places_tmp = []
-
+        count = 0
         for i in range(int(block_count)):
             hole = random.randint(0, int(hole_size * 2))
             current_block = current_pose + hole
@@ -74,7 +75,7 @@ def make_places_list(seasons, percentage_to_explore, block_size, whole_place_at_
                 continue
 
             current_batch_size = current_batch_size + 1
-
+            count = count + 1
             places_tmp.append(1)
 
     seasons_out = []
@@ -86,7 +87,7 @@ def make_places_list(seasons, percentage_to_explore, block_size, whole_place_at_
         seasons_out.append(season_tmp)
 
 
-    return seasons_out
+    return seasons_out, count
 
 
 def save_strategy(name, experiments_path, percentage_to_explore, block_size, whole_place_at_once,
@@ -94,7 +95,8 @@ def save_strategy(name, experiments_path, percentage_to_explore, block_size, who
     try:
         os.mkdir(os.path.join(experiments_path, name))
     except FileExistsError:
-        print("Strategy already exists " + os.path.join(experiments_path, name))
+        #print("Strategy already exists " + os.path.join(experiments_path, name))
+        pass
     try:
         os.mkdir(os.path.join(experiments_path, name) + "/plots")
     except FileExistsError:
@@ -115,16 +117,16 @@ def save_strategy(name, experiments_path, percentage_to_explore, block_size, who
 
 def strategy_creator(name, experiments_path, percentage_to_explore, block_size=5,
                      whole_place_at_once=False, single_place_per_batch=False, dataset_weight=np.ones(2)):
-    picked_diff = (1007.0*1007.0-1007.0)/(30.0*30.0-30.0) * 7.0/30.0
+    #picked_diff = (1007.0*1007.0-1007.0)/(30.0*30.0-30.0) * 7.0/271.0
 
 
-    places_out_cestlice = make_places_list(30, percentage_to_explore, block_size, whole_place_at_once,
+    places_out_cestlice, c1 = make_places_list(30, percentage_to_explore, block_size, whole_place_at_once,
                                            single_place_per_batch,
                                            dataset_weight[0], places=271)
-    places_out_strands = make_places_list(1007, percentage_to_explore, block_size, whole_place_at_once,
+    places_out_strands, c2 = make_places_list(1007, percentage_to_explore, block_size, whole_place_at_once,
                                           single_place_per_batch,
-                                          dataset_weight[1]/picked_diff, places=7)
-
+                                          dataset_weight[1], places=7)
+    #print(percentage_to_explore,c1,c2,c1+c2)
     save_strategy(name, experiments_path, percentage_to_explore, block_size, whole_place_at_once,
                   single_place_per_batch, dataset_weight, [places_out_cestlice, places_out_strands])
     return [places_out_cestlice, places_out_strands]
@@ -135,12 +137,11 @@ def make_multiple_strategies():
     b = np.arange(0.20, 0.50, 0.05)
     c = np.arange(0.50, 0.99, 0.2)
     percentage_to_explore_list = np.concatenate([a, b, c])
-    np.array([0.02, 0.05, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50])
+    percentage_to_explore_list = np.array([0.02, 0.05, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 0.60, 0.80, 0.99])
     block_size_list = [1]
     whole_place_at_once_list = [True]
     single_place_per_batch_list = [True]
-    place_weight_randomness_list = [np.array([0.5, 0.5]), np.array([0.2, 0.8]), np.array([0.8, 0.2]),
-                                    np.array([0.0, 1.0]), np.array([1.0, 0.0])]
+    place_weight_randomness_list = [np.array([0.0, 1.0])]
     a = [percentage_to_explore_list, block_size_list, whole_place_at_once_list, single_place_per_batch_list,
          place_weight_randomness_list]
     strategies = list(itertools.product(*a))
@@ -153,7 +154,7 @@ def make_multiple_strategies():
 
 
 def make_test_strategy():
-    percentage_to_explore = 0.1
+    percentage_to_explore = 0.0
     block_size = 1
     whole_place_at_once = False
     single_place_per_batch = False
