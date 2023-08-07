@@ -31,8 +31,8 @@ struct settings default_config (){
   settings.distance_factor = 0.95;
   settings.upright = upright;
   settings.featureMaximum = 1600;
-  strcpy(settings.detectorName,"fast");
-  strcpy(settings.descriptorName,"grief");
+  strcpy(settings.detectorName,"brisk");
+  strcpy(settings.descriptorName,"brisk");
   return settings;
 }
 float twoImagesAndHistogram(cv::Mat img1, cv::Mat img2, vector<double> histogram_input ){
@@ -232,9 +232,10 @@ void evalOnFiles(const char ** filesFrom, const char ** filesTo, double ** histo
 
 
 void teachOnFiles(const char ** filesFrom, const char ** filesTo, float *displacement,  int *feature_count_l,int *feature_count_r,int *inliers_matches_count, int files ){
-  int fails = 0;
 #pragma omp parallel for ordered schedule(dynamic)
+
   for (int i = 0; i < files; i++){
+      int fails = 0;
     float dsp = 0;
     int fcount_l = 0;
       int fcount_r = 0;
