@@ -51,7 +51,7 @@ def process(paths, REDO=[False, False, False, False]):
         estimates_train_out = os.path.join(experiments_path, "train.pickle")
         config = load_config(os.path.join(pwd, "experiments", "NN_config.yaml"), 512)
 
-        if not os.path.exists(weights_eval) or REDO[0]:
+        if "dummy" not in exp and (not os.path.exists(weights_eval) or REDO[0]):
             file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path, init_weights=init_weights, conf=config)
         # if not os.path.exists(estimates_train_out) or REDO[1]:
         #    estimates_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions, weights_eval,
@@ -79,4 +79,4 @@ def process(paths, REDO=[False, False, False, False]):
 
 if __name__ == "__main__":
     REDO = [False, False, True, True]
-    process(["test"], REDO)
+    process(["none"], REDO)

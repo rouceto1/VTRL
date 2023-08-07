@@ -156,11 +156,27 @@ def make_test_strategy():
     place_weight_randomness_list = np.array(np.ones(2))
     a = [[percentage_to_explore, block_size, whole_place_at_once, single_place_per_batch,
           place_weight_randomness_list]]
-    return ["test"], a
+    return ["none"], a
+
+def make_dummy_strategys(count = 10):
+    out = []
+    names = []
+    for i in range(count):
+        percentage_to_explore = 0.0
+        block_size = 1
+        whole_place_at_once = False
+        single_place_per_batch = False
+        place_weight_randomness_list = np.array(np.ones(2))
+        a = [[percentage_to_explore, block_size, whole_place_at_once, single_place_per_batch,
+          place_weight_randomness_list]]
+        out.append(a)
+        names.append("dummy_" + str(i))
+    return names, out
 
 if __name__ == "__main__":
     names, strategies = make_multiple_strategies()
-    # names, strategies = make_test_strategy()
+    names, strategies = make_test_strategy()
+    names, strategies = make_dummy_strategys(10)
     for index, strategy in enumerate(strategies):
         strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],
                          whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],
