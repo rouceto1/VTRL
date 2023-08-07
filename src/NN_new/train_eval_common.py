@@ -40,16 +40,22 @@ def get_model(model, model_path, eval_model, conf, pad):
     if eval_model is not None:
         model = eval_model
         return model, conf
-
-    if "eunord" in model_path:
-        conf["emb_channels"] = 256
-        # DONE  find all possible changes in NN_config for tiny model and implement
-        use256 = True
+    if model_path is not None:
+        if "eunord" in model_path:
+            conf["emb_channels"] = 256
+            # DONE  find all possible changes in NN_config for tiny model and implement
+            use256 = True
+        else:
+            conf["emb_channels"] = 16
+            use256 = False
     else:
+        
         conf["emb_channels"] = 16
+
         use256 = False
     model = get_parametrized_model(conf["layer_pool"], conf["filter_size"], conf["emb_channels"], conf["residual"],
                                    pad, conf["device"], legacy=use256)
-    if os.path.exists(model_path):
+
+    if model_path is not None and os.path.exists(model_path):
         model = load_model(model, model_path)
     return model, conf
