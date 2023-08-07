@@ -19,6 +19,8 @@ def teach(_dataset_path, _chosen_positions, _experiments_path, init_weights=None
     else:
         files_with_displacement = fm_eval(file_list, filetype_FM)
     actual_teaching_count = nn_train.NNteach_from_python(files_with_displacement, "strands", init_weights, _experiments_path, conf)
+    with open(os.path.join(_experiments_path, "possible_images.txt"), 'w') as f:
+        f.write('%d' % len(file_list))
     return file_list, actual_teaching_count #TODO make it reaturn model and pass it to eval
 
 

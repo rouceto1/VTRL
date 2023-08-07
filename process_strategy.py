@@ -67,12 +67,15 @@ def process(paths, REDO=[False, False, False, False]):
             with open(GT_file, 'rb') as handle:
                 gt_in = pickle.load(handle)
             if file_list_train is None:
-                file_list_train = make_combos_for_teaching(chosen_positions, dataset_path, filetype_FM, conf=config)
+                if os.path.exists(os.path.join(experiments_path, "possible_images.txt")):
+                    file_list_train_len = np.loadtxt(os.path.join(experiments_path, "possible_images.txt"), int)
                 if os.path.exists(os.path.join(experiments_path, "used_images.txt")):
                     actual_teach_count = np.loadtxt(os.path.join(experiments_path, "used_images.txt"), int)
+            else:
+                file_list_train_len = len(file_list_train)
             grade_type(experiments_path, positions=chosen_positions, _GT=gt_in, estimates_file=estimates_grade_out,
                        estimates=estimates_grade, time_elapsed=start_time,
-                       data_count=[len(file_list_train), actual_teach_count], GT_name=gt_name)
+                       data_count=[file_list_train_len, actual_teach_count], GT_name=gt_name)
         notify.send('One finished: ' + exp)
     notify.send('Finished')
 
