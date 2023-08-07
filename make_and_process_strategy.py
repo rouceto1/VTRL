@@ -170,7 +170,7 @@ def make_dummy_strategys(count = 10):
         a = [[percentage_to_explore, block_size, whole_place_at_once, single_place_per_batch,
           place_weight_randomness_list]]
         out.append(a[0])
-        names.append("dummy_" + str(i))
+        names.append("0.00_0_0_0_0.00." + str(i))
     return names, out
 
 if __name__ == "__main__":
