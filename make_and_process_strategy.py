@@ -7,6 +7,7 @@ import numpy as np
 import json
 import pickle
 import itertools
+import math
 
 pwd = os.getcwd()
 experiments_path = os.path.join(pwd, "experiments")
@@ -114,12 +115,15 @@ def save_strategy(name, experiments_path, percentage_to_explore, block_size, who
 
 def strategy_creator(name, experiments_path, percentage_to_explore, block_size=5,
                      whole_place_at_once=False, single_place_per_batch=False, dataset_weight=np.ones(2)):
+    picked_diff = (1007.0*1007.0-1007.0)/(30.0*30.0-30.0) * 7.0/30.0
+
+
     places_out_cestlice = make_places_list(30, percentage_to_explore, block_size, whole_place_at_once,
                                            single_place_per_batch,
                                            dataset_weight[0], places=271)
     places_out_strands = make_places_list(1007, percentage_to_explore, block_size, whole_place_at_once,
                                           single_place_per_batch,
-                                          dataset_weight[1], places=7)
+                                          dataset_weight[1]/picked_diff, places=7)
 
     save_strategy(name, experiments_path, percentage_to_explore, block_size, whole_place_at_once,
                   single_place_per_batch, dataset_weight, [places_out_cestlice, places_out_strands])
@@ -136,7 +140,7 @@ def make_multiple_strategies():
     whole_place_at_once_list = [True]
     single_place_per_batch_list = [True]
     place_weight_randomness_list = [np.array([0.5, 0.5]), np.array([0.2, 0.8]), np.array([0.8, 0.2]),
-                                    np.array([0, 1]), np.array([1, 0])]
+                                    np.array([0.0, 1.0]), np.array([1.0, 0.0])]
     a = [percentage_to_explore_list, block_size_list, whole_place_at_once_list, single_place_per_batch_list,
          place_weight_randomness_list]
     strategies = list(itertools.product(*a))
@@ -175,12 +179,12 @@ def make_dummy_strategys(count = 10):
 
 if __name__ == "__main__":
     names, strategies = make_multiple_strategies()
-    names, strategies = make_test_strategy()
-    names, strategies = make_dummy_strategys(10)
+    #names, strategies = make_test_strategy()
+    #names, strategies = make_dummy_strategys(10)
     for index, strategy in enumerate(strategies):
         strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],
                          whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],
                          dataset_weight=strategy[4])
     names.sort()
-    names.append("none")
+    #names.append("none")
     process(names)

@@ -249,7 +249,10 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
         hist_nn = hist_nn[slices[index][0]:slices[index][1]]
         GT_reduced = _GT[slices[index][0]:slices[index][1]]
         gt = read_gt_file(file_list, GT_reduced)
-
+        if "0.00_0_0_0_0.00.0" in experiemnt_name:
+            displacements = displacements * 0.0
+        if "0.00_0_0_0_0.00.1" in experiemnt_name:
+            displacements = np.array([random.uniform(-0.5, 0.5) for _ in range(len(displacements))])
         out = [experiemnt_name, exp_time,
                *compute_to_file(displacements, gt, dest, positions, fig_place=dest, hist_nn=hist_nn, hist_fm=histograms,
                                 matches=matches, name=G),
