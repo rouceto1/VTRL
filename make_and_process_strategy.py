@@ -169,7 +169,7 @@ def make_dummy_strategys(count = 10):
         place_weight_randomness_list = np.array(np.ones(2))
         a = [[percentage_to_explore, block_size, whole_place_at_once, single_place_per_batch,
           place_weight_randomness_list]]
-        out.append(a)
+        out.append(a[0])
         names.append("dummy_" + str(i))
     return names, out
 
