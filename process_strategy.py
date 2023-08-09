@@ -28,7 +28,7 @@ evaluation_paths = args.evaluation_paths
 evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
 gt_name = "GT_merge_s_g"
 GT_file = os.path.join(evaluation_prefix, gt_name + ".pickle")
-init_weights = os.path.join(pwd, "experiments", "init_weights.pt")
+init_weights = os.path.join(pwd, "init_weights.pt")
 
 
 def process(paths, exp_path, REDO=[False, False, False, False]):
@@ -59,7 +59,7 @@ def process(paths, exp_path, REDO=[False, False, False, False]):
         #                                        _estimates_out=estimates_train_out, conf=config,
         #                                        file_list=file_list_train)
 
-        if not os.path.exists(estimates_grade_out) and REDO[2]:
+        if not os.path.exists(estimates_grade_out) or REDO[2]:
             with open(GT_file, 'rb') as handle:
                 gt_in = pickle.load(handle)
             estimates_grade = evaluate_for_GT(os.path.join(experiments_path, "plots"), evaluation_prefix,
@@ -68,6 +68,7 @@ def process(paths, exp_path, REDO=[False, False, False, False]):
                                               _estimates_out=estimates_grade_out, conf=config)
         with open(os.path.join(experiments_path, "timing.txt"), 'w') as f:
             f.write('%d' % (int(time.time() - start_time)))
+
         if not os.path.exists(os.path.join(experiments_path, "plots", "input.png")) and REDO[3]:
 
             if file_list_train is None:
