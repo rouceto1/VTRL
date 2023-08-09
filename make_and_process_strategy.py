@@ -265,4 +265,4 @@ if __name__ == "__main__":
                                 dataset_weight=strategy[4], places_weights=strategy[5])
     names.sort()
     # names.append("none")
-    process(names)
+    process(names,"experiments")

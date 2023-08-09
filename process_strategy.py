@@ -30,7 +30,8 @@ gt_name = "GT_merge_s_g"
 GT_file = os.path.join(evaluation_prefix, gt_name + ".pickle")
 init_weights = os.path.join(pwd, "experiments", "init_weights.pt")
 
-def process(paths, REDO=[False, False, False, False]):
+
+def process(paths, exp_path, REDO=[False, False, False, False]):
     with open(GT_file, 'rb') as handle:
         gt_in = pickle.load(handle)
     for exp in paths:
@@ -39,7 +40,7 @@ def process(paths, REDO=[False, False, False, False]):
         actual_teach_count = 0
         start_time = time.time()
         print(exp)
-        experiments_path = os.path.join(pwd, "experiments", exp)
+        experiments_path = os.path.join(pwd, exp_path, exp)
         if os.path.exists(os.path.join(experiments_path, "input.pkl")):
             with open(os.path.join(experiments_path, "input.pkl"), 'rb') as handle:
                 chosen_positions = pickle.load(handle)
@@ -51,16 +52,18 @@ def process(paths, REDO=[False, False, False, False]):
         config = load_config(os.path.join(pwd, "NN_config.yaml"), 512)
 
         if "0.00" not in exp and (not os.path.exists(weights_eval) or REDO[0]):
-            file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path, init_weights=init_weights, conf=config)
+            file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path,
+                                                        init_weights=init_weights, conf=config)
         # if not os.path.exists(estimates_train_out) or REDO[1]:
-            #estimates_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions, weights_eval,
-            #                                        _estimates_out=estimates_train_out, conf=config,
-            #                                        file_list=file_list_train)
+        # estimates_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions, weights_eval,
+        #                                        _estimates_out=estimates_train_out, conf=config,
+        #                                        file_list=file_list_train)
 
         if not os.path.exists(estimates_grade_out) and REDO[2]:
             with open(GT_file, 'rb') as handle:
                 gt_in = pickle.load(handle)
-            estimates_grade = evaluate_for_GT(os.path.join (experiments_path,"plots"), evaluation_prefix, evaluation_paths, weights_eval,
+            estimates_grade = evaluate_for_GT(os.path.join(experiments_path, "plots"), evaluation_prefix,
+                                              evaluation_paths, weights_eval,
                                               _GT=gt_in,
                                               _estimates_out=estimates_grade_out, conf=config)
         with open(os.path.join(experiments_path, "timing.txt"), 'w') as f:
