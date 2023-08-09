@@ -33,7 +33,8 @@ notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 init_weights = os.path.join(pwd, "experiments", "init_weights.pt")
 
 def process(paths, REDO=[False, False, False, False]):
-
+    with open(GT_file, 'rb') as handle:
+        gt_in = pickle.load(handle)
     for exp in paths:
         estimates_grade = None
         file_list_train = None
@@ -54,27 +55,31 @@ def process(paths, REDO=[False, False, False, False]):
         if "0.00" not in exp and (not os.path.exists(weights_eval) or REDO[0]):
             file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path, init_weights=init_weights, conf=config)
         # if not os.path.exists(estimates_train_out) or REDO[1]:
-        #    estimates_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions, weights_eval,
-        #                                            _estimates_out=estimates_train_out, conf=config,
-        #                                            file_list=file_list_train)
-        if not os.path.exists(estimates_grade_out) or REDO[2]:
+            #estimates_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions, weights_eval,
+            #                                        _estimates_out=estimates_train_out, conf=config,
+            #                                        file_list=file_list_train)
+
+        if not os.path.exists(estimates_grade_out) and REDO[2]:
             with open(GT_file, 'rb') as handle:
                 gt_in = pickle.load(handle)
             estimates_grade = evaluate_for_GT(os.path.join (experiments_path,"plots"), evaluation_prefix, evaluation_paths, weights_eval,
                                               _GT=gt_in,
                                               _estimates_out=estimates_grade_out, conf=config)
+        with open(os.path.join(experiments_path, "timing.txt"), 'w') as f:
+            f.write('%d' % (int(time.time() - start_time)))
         if not os.path.exists(os.path.join(experiments_path, "plots", "input.png")) and REDO[3]:
-            with open(GT_file, 'rb') as handle:
-                gt_in = pickle.load(handle)
+
             if file_list_train is None:
                 if os.path.exists(os.path.join(experiments_path, "possible_images.txt")):
                     file_list_train_len = np.loadtxt(os.path.join(experiments_path, "possible_images.txt"), int)
                 if os.path.exists(os.path.join(experiments_path, "used_images.txt")):
                     actual_teach_count = np.loadtxt(os.path.join(experiments_path, "used_images.txt"), int)
+                if os.path.exists(os.path.join(experiments_path, "used_images.txt")):
+                    time_taken = np.loadtxt(os.path.join(experiments_path, "timing.txt"), int)
             else:
                 file_list_train_len = len(file_list_train)
             grade_type(experiments_path, positions=chosen_positions, _GT=gt_in, estimates_file=estimates_grade_out,
-                       estimates=estimates_grade, time_elapsed=start_time,
+                       estimates=estimates_grade, time_elapsed=time_taken,
                        data_count=[file_list_train_len, actual_teach_count], GT_name=gt_name)
         notify.send('One finished: ' + exp)
     notify.send('Finished')
