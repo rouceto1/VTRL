@@ -31,8 +31,8 @@ struct settings default_config (){
   settings.distance_factor = 0.95;
   settings.upright = upright;
   settings.featureMaximum = 1600;
-  strcpy(settings.detectorName,"brisk");
-  strcpy(settings.descriptorName,"brisk");
+  strcpy(settings.detectorName,"fast");
+  strcpy(settings.descriptorName,"grief");
   return settings;
 }
 float twoImagesAndHistogram(cv::Mat img1, cv::Mat img2, vector<double> histogram_input ){
