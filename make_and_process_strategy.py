@@ -85,7 +85,6 @@ def make_places_list(seasons, percentage_to_explore, block_size, whole_place_at_
 
         hole_places_count = (seasons * places - picked_total_count)
         hole_size = hole_places_count / block_count
-        random.seed(42)
         current_pose = 0
         batch_starts = []
         places_tmp = []
@@ -255,6 +254,8 @@ def make_dummy_strategys(count=10):
 
 
 if __name__ == "__main__":
+    random.seed(42)
+    np.random.seed(42)
     names, strategies = make_multiple_strategies(biased=True)
     # names, strategies = make_test_strategy()
     # names, strategies = make_dummy_strategys(10)
