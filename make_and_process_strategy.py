@@ -20,6 +20,47 @@ class NumpyArrayEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
+def make_places_list_by_places(seasons, percentage_to_explore, block_size, whole_place_at_once,
+                     single_place_per_batch,
+                     dataset_weight, places, places_weights):
+    if percentage_to_explore == 0.0:
+        #return empty array
+        return make_empty_places_list(seasons, places), 0
+    else:
+        percentage_to_explore = percentage_to_explore * dataset_weight
+        season_count = seasons * percentage_to_explore
+        # make numpy array of booleans for each place for each season
+
+        rng = np.random.default_rng()
+        selected_seasons = rng.choice(seasons, size=season_count, replace=False)
+        seasons_out = []
+        total_count = 0
+        for s in range(seasons):
+            if s in selected_seasons:
+                tmp = np.zeros(places, dtype=bool)
+                for i, p in enumerate(tmp):
+                    if bool_based_on_probability(places_weights[i]):
+                        tmp[i] = True
+                        total_count += 1
+                    else:
+                        tmp[i] = False
+                seasons_out.append(tmp)
+            else:
+                seasons_out.append(np.zeros(places, dtype=bool))
+        return seasons_out, total_count
+
+def bool_based_on_probability(probability=0.5):
+    return random.random() < probability
+def make_empty_places_list(seasons, places):
+    places_tmp = np.zeros(seasons * places, dtype=int)
+    count = 0
+    seasons_out = []
+    for season in range(seasons):
+        season_tmp = []
+        for place in range(places):
+            season_tmp.append(places_tmp[season * places + place])
+        seasons_out.append(season_tmp)
+    return seasons_out
 
 def make_places_list(seasons, percentage_to_explore, block_size, whole_place_at_once,
                      single_place_per_batch,
@@ -34,8 +75,7 @@ def make_places_list(seasons, percentage_to_explore, block_size, whole_place_at_
 
     if percentage_to_explore == 0.0:
         #return empty array
-        places_tmp = np.zeros(seasons * places, dtype=int)
-        count = 0
+        return make_empty_places_list(seasons, places), 0
     else:
         picked_total_count = seasons * percentage_to_explore * places
         block_count = picked_total_count / block_size
@@ -131,7 +171,21 @@ def strategy_creator(name, experiments_path, percentage_to_explore, block_size=5
                   single_place_per_batch, dataset_weight, [places_out_cestlice, places_out_strands])
     return [places_out_cestlice, places_out_strands]
 
+def biased_strategy_creator(name, experiments_path, percentage_to_explore, block_size=5,
+                        whole_place_at_once=False, single_place_per_batch=False, dataset_weight=np.ones(2),
+                            places_weights=None):
 
+
+    places_out_cestlice, c1 = make_places_list_by_places(30, percentage_to_explore, block_size, whole_place_at_once,
+                                           single_place_per_batch,
+                                           dataset_weight[0], places=271,places_weights=places_weights)
+    places_out_strands, c2 = make_places_list_by_places(1007, percentage_to_explore, block_size, whole_place_at_once,
+                                          single_place_per_batch,
+                                          dataset_weight[1], places=7,places_weights=places_weights)
+    #print(percentage_to_explore,c1,c2,c1+c2)
+    save_strategy(name, experiments_path, percentage_to_explore, block_size, whole_place_at_once,
+                  single_place_per_batch, dataset_weight, [places_out_cestlice, places_out_strands])
+    return [places_out_cestlice, places_out_strands]
 def make_multiple_strategies():
     a = np.arange(0.02, 0.20, 0.02)
     b = np.arange(0.20, 0.50, 0.05)
