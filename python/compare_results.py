@@ -3,6 +3,8 @@ import csv
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
+import seaborn as sn
+import pandas as pd
 
 pwd = os.getcwd()
 import colorsys
@@ -20,12 +22,26 @@ class Results:
         self.errors = 2
         self.streaks = 3
         self.integral = 4
-        self.integral_filtered = 5
+        self.integral_nn = 5
         self.data_counts = 6
         self.data_counts_filtered = 7
+        self.gt_type = 8
         self.t = self.get_N_HexCol(len(self.data))
-
+        # self.sort =  [x[-1] for x in self.data[:, self.names]]
         self.data = self.data[np.array(self.data[:, self.data_counts_filtered], dtype=int).argsort()]
+        self.percentages = np.array([x[0:4] for x in self.data[:, self.names]]).astype(float)
+        self.block_size = np.array([x[5] for x in self.data[:, self.names]]).astype(float)
+        self.whole_place = np.array([x[7] for x in self.data[:, self.names]]).astype(float)
+        self.sinlge_per_block = np.array([x[9] for x in self.data[:, self.names]]).astype(float)
+        self.cestlice = np.array([x[11:14] for x in self.data[:, self.names]]).astype(float)
+        self.strands = np.array([x[14:17] for x in self.data[:, self.names]]).astype(float)
+        self.data_count_arr = np.array(self.data[:, self.data_counts_filtered], dtype=int)
+        self.data_count_u_arr = np.array(self.data[:, self.data_counts], dtype=int)
+        self.integral_arr = np.array(self.data[:, self.integral], dtype=float)
+        self.integral_nn_arr = np.array(self.data[:, self.integral_nn], dtype=float)
+        self.gt_type_arr = np.array(self.data[:, self.gt_type], dtype=str)
+
+        # self.data = self.data[np.array(self.sort, dtype=int).argsort()]
 
     def load_csv_to_numpy(self):
         with open(self.csv_path, newline='') as csvfile:
@@ -43,49 +59,107 @@ class Results:
             hex_out.append('#%02x%02x%02x' % tuple(rgb))
         return hex_out
 
-    def plot_scatter(self, filter=False):
+    def plot_scatter(self, gt_type="", filter=False, NN = False, both = False):
         fig = plt.figure()
         ax = plt.gca()
         for i, data in enumerate(self.data):
+            if not gt_type in self.data[i][self.gt_type]:
+                continue
             if float(self.data[i][self.data_counts_filtered]) > 2000:
                 pass
                 if filter:
                     continue
-            ax.scatter(float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral_filtered]),
-                       label=self.data[i][self.names] + " " + self.data[i][self.data_counts_filtered], c=self.t[i],
+            if not NN or both:
+                ax.scatter(float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral_nn]),
+                       label=self.data[i][self.names]  + self.data[i][self.data_counts_filtered], c=self.t[i],
                        alpha=0.5)
-            ax.annotate(self.data[i][self.names],
-                        (float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral_filtered])))
-        plt.title(self.csv_name)
+                ax.annotate(self.data[i][self.names]+ " NN",
+                            (float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral_nn])))
+            if NN or both:
+                ax.scatter(float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral]),
+                       label=self.data[i][self.names] + self.data[i][self.data_counts_filtered], c=self.t[i],
+                       alpha=0.5)
+                ax.annotate(self.data[i][self.names],
+                        (float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral])))
+        plt.title(gt_type + str(NN))
 
-        # plt.ylim([0.43, 0.455]
-        # ax.set_yscale('log')
-        plt.xlabel("Integral")
-        plt.ylabel("Data count")
+        #plt.xlim([-0.1, 20000])
+        ax.set_xscale('symlog')
+        plt.ylabel("Integral")
+        plt.xlabel("Data count")
         # plt.legend()
-        plt.savefig(self.output_graph_path)
-        plt.show()
+        #plt.savefig(self.output_graph_path)
 
-    def plot_lines(self):
+    def correlate(self, gt_type=""):
+        integral = []
+        integral_nn = []
+        #for i in ["strands", "grief", "all"]:
+        for i in ["strands"]:
+
+            places = np.char.find(self.gt_type_arr, i)
+            integral.append(self.integral_arr[places == 0])
+            integral_nn.append(self.integral_nn_arr[places == 0])
+
+        corr = [self.data_count_arr, self.data_count_u_arr, self.data_count_u_arr - self.data_count_arr, self.percentages]
+
+                #self.percentages * self.strands, self.percentages * self.cestlice, self.strands]
+        names = ["data given (DG)", "data used", "data rejected","DG from whole",
+                 #"DG strands", "DG cestlice", "strands/cestlice",
+                 "strands",
+                "strands nn"
+                 ]
+                #"strands", "grief", "ALL",
+                #"strands nn", "grief nn", "ALL nn"]
+        # get only corr where gt_type is not in gt_type_arr
+        corr = np.transpose(corr)
+        corr = corr[places == 0]
+        corr = np.transpose(corr)
+        corr = np.concatenate((corr,integral))
+        corr = np.concatenate((corr,integral_nn))
+        R2 = np.corrcoef(corr)
+        df_cm = pd.DataFrame(R2, index=[i for i in names],
+                             columns=[i for i in names])
+        plt.figure()
+        plt.title(gt_type)
+        sn.heatmap(df_cm, annot=True)
+
+    def plot_lines(self, gt_type="", NN = False, both = False):
         # loads and plots AC_lines from line.pkl for each folder
         fig = plt.figure()
         ax = plt.gca()
         for i, data in enumerate(self.data):
+            if not gt_type in self.data[i][self.gt_type]:
+                continue
             if float(self.data[i][self.data_counts_filtered]) > 2000:
                 pass
                 # continue
-            with open(os.path.join(self.path, self.data[i][self.names], "line.pkl"), 'rb') as f:
-                line = pickle.load(f)
-            ax.plot(line[0], line[1], label=self.data[i][self.data_counts_filtered], c=self.t[i], alpha=0.5)
+            if NN or both:
+                type = "line_"
+                with open(os.path.join(self.path, self.data[i][self.names], type + gt_type + ".pkl"), 'rb') as f:
+                    line = pickle.load(f)
+                ax.plot(line[0], line[1], label=self.data[i][self.integral], c=self.t[i], alpha=0.5)
+            if not NN or both:
+                type = "line_NN_"
+                with open(os.path.join(self.path, self.data[i][self.names], type + gt_type + ".pkl"), 'rb') as f:
+                    line = pickle.load(f)
+                ax.plot(line[0], line[1], label=self.data[i][self.integral_nn] +  " NN", c=self.t[i], alpha=0.5)
+
+        plt.axvline(x=0.035, color='k')
         plt.legend()
-        plt.title("AC lines for different counts of teaching data images")
+        # plt.ylim([0.5, 1])
+        plt.xlim([0, 0.5])
+        plt.title(gt_type + str(NN))
         plt.xlabel("allowed image shift")
         plt.ylabel("probability of correct registration")
-        plt.show()
 
 
 if __name__ == "__main__":
-    results = Results(os.path.join(pwd, "backups", "strands-strands-6-2"), "output.csv")
-    results.plot_scatter()
-    results.plot_scatter(filter=True)
-    results.plot_lines()
+    # results = Results(os.path.join(pwd, "backups", "strands-all-6-2"), "output.csv")
+    #results = Results(os.path.join(pwd, "backups", "unfixed_init_2"), "output.csv")
+    results = Results(os.path.join(pwd, "experiments"), "output.csv")
+    results.correlate()
+    for i in ["strands", "grief"]:
+        print(i)
+        results.plot_scatter(gt_type=i,NN=False,both=True)
+        results.plot_lines(gt_type=i,NN=False,both=True)
+    plt.show()
