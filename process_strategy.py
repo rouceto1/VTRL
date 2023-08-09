@@ -36,6 +36,7 @@ def process(paths, exp_path, REDO=[False, False, False, False]):
         gt_in = pickle.load(handle)
     for exp in paths:
         estimates_grade = None
+        hist_nn = None
         file_list_train = None
         actual_teach_count = 0
         start_time = time.time()
@@ -54,10 +55,16 @@ def process(paths, exp_path, REDO=[False, False, False, False]):
         if "0.00" not in exp and (not os.path.exists(weights_eval) or REDO[0]):
             file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path,
                                                         init_weights=init_weights, conf=config)
-        # if not os.path.exists(estimates_train_out) or REDO[1]:
-        # estimates_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions, weights_eval,
-        #                                        _estimates_out=estimates_train_out, conf=config,
-        #                                        file_list=file_list_train)
+        if not os.path.exists(estimates_train_out) or REDO[1]:
+            hist_nn, file_list_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions,
+                                                             weights_eval,
+                                                             _estimates_out=estimates_train_out, conf=config,
+                                                             file_list=file_list_train)
+        if False:
+            p = process_ev_for_training(experiments_path, dataset_path, chosen_positions,
+                                        _estimates_in=estimates_train_out, conf=config,
+                                        file_list=file_list_train, hist_nn=hist_nn)
+
 
         if not os.path.exists(estimates_grade_out) or REDO[2]:
             with open(GT_file, 'rb') as handle:
