@@ -5,7 +5,6 @@ from annotate import *
 from python.grade_results import *
 import argparse
 from python.helper_functions import *
-from notify_run import Notify
 import time
 
 pwd = os.getcwd()
@@ -29,7 +28,6 @@ evaluation_paths = args.evaluation_paths
 evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
 gt_name = "GT_merge_s_g"
 GT_file = os.path.join(evaluation_prefix, gt_name + ".pickle")
-notify = Notify(endpoint="https://notify.run/cRRiMSUpAEL2LLH37uWZ")
 init_weights = os.path.join(pwd, "experiments", "init_weights.pt")
 
 def process(paths, REDO=[False, False, False, False]):
@@ -50,7 +48,7 @@ def process(paths, REDO=[False, False, False, False]):
         weights_eval = os.path.join(experiments_path, "weights.pt")
         estimates_grade_out = os.path.join(experiments_path, gt_name + "_estimates.pickle")
         estimates_train_out = os.path.join(experiments_path, "train.pickle")
-        config = load_config(os.path.join(pwd, "experiments", "NN_config.yaml"), 512)
+        config = load_config(os.path.join(pwd, "NN_config.yaml"), 512)
 
         if "0.00" not in exp and (not os.path.exists(weights_eval) or REDO[0]):
             file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path, init_weights=init_weights, conf=config)
@@ -81,8 +79,6 @@ def process(paths, REDO=[False, False, False, False]):
             grade_type(experiments_path, positions=chosen_positions, _GT=gt_in, estimates_file=estimates_grade_out,
                        estimates=estimates_grade, time_elapsed=time_taken,
                        data_count=[file_list_train_len, actual_teach_count], GT_name=gt_name)
-        notify.send('One finished: ' + exp)
-    notify.send('Finished')
 
 
 if __name__ == "__main__":
