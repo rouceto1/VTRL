@@ -28,7 +28,7 @@ class StrandsImgPairDataset(Dataset):
                 # print(self.GT[i])
                 path1 = pair[0]
                 path2 = pair[1]
-                self.data.append((path1, path2,i))
+                self.data.append((path1, path2, i))
         else:
 
             temp = self.training_input[:, 2].astype(np.float32) * self.width
@@ -43,8 +43,9 @@ class StrandsImgPairDataset(Dataset):
             qualifieds2 = np.array(self.fcount2) >= self.fcount_threshold
             qualifieds3 = abs(self.disp) < int(self.width - self.crop_width)
             self.nonzeros = np.count_nonzero(np.logical_and(qualifieds, qualifieds2, qualifieds3))
-            print("[+] {} images were qualified out of {} ".format(
-                self.nonzeros, len(qualifieds)))
+            print("[+] {} images qualified with t:{}  out of {}, f1: {}, f2: {}, shift > 0.5: {} ".format(
+                self.nonzeros, self.fcount_threshold, len(qualifieds), np.count_nonzero(qualifieds),
+                np.count_nonzero(qualifieds2), np.count_nonzero(qualifieds3)))
             if self.nonzeros == 0:
                 print("[-] no valid selection to teach on. Exiting")
                 exit(0)
@@ -89,7 +90,7 @@ class Strands(StrandsImgPairDataset):
 
     def __getitem__(self, idx):
         if self.train:
-            source, target, displ, data_idx,img_a,img_b = super().__getitem__(idx)
+            source, target, displ, data_idx, img_a, img_b = super().__getitem__(idx)
             # source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8) # for vlurring out the water mark
             # displ = displ*(512.0/self.width)
             cropped_target, crop_start, original_image, blacked_img = self.crop_img(target, displac=displ)
@@ -97,14 +98,14 @@ class Strands(StrandsImgPairDataset):
                 heatmap = self.get_heatmap(crop_start)
             else:
                 heatmap = self.get_smooth_heatmap(crop_start)
-            #plot_heatmap(source, target, cropped_target, displ, heatmap)
-            return source, cropped_target, heatmap, data_idx, original_image, displ, blacked_img,img_a,img_b
+            # plot_heatmap(source, target, cropped_target, displ, heatmap)
+            return source, cropped_target, heatmap, data_idx, original_image, displ, blacked_img, img_a, img_b
         else:
             # croping target when evalution is up to 504 pixels
-            source, target, data_idx,img_a,img_b = super().__getitem__(idx)
+            source, target, data_idx, img_a, img_b = super().__getitem__(idx)
             left = (self.width - self.crop_width) / 2
             right = (self.width - self.crop_width) / 2 + self.crop_width
-            return source, target[:, :, int(left):int(right)], data_idx, target,img_a,img_b
+            return source, target[:, :, int(left):int(right)], data_idx, target, img_a, img_b
 
     def crop_img(self, img, displac):
         # crop - avoid asking for unavailable crop
