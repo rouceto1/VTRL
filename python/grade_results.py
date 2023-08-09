@@ -177,14 +177,16 @@ def compute(displacement, gt, positions=None, plot=True, fig_place=None, hist=No
     displacement_filtered = filter_to_max(displacement, 1)
     #assert (count == count2 == 0)
 
-    disp = displacement_filtered - gt
-    max_reached = np.count_nonzero(displacement == 1)
+    disp = displacement - gt
+    max_reached = np.count_nonzero(abs(displacement) > 1)
     max_total = max_reached/len(displacement)
-    disp[displacement == 1] = max_total
-    disp = np.append(disp, 1)
+    disp[abs(displacement) > 1] = max_total
+    #disp = np.append(disp, 0.5)
     line = compute_AC_curve(disp)
-    line_2 = compute_AC_curve(disp)
+
     line_integral = get_integral_from_line(line)
+    disp_nn = np.argmax(hist, axis=1) * (1/63) - 0.5
+    line_2 = compute_AC_curve(disp_nn)
     line_2_integral = get_integral_from_line(line_2)
     streak = get_streak(filter_to_max(disp, 1))
     if plot is True:
@@ -200,7 +202,9 @@ def compute_AC_curve(error):
     if length == 0:
         return [[0], [0]]
     disp = np.sort(abs(error))
-    return [disp, np.array(range(length)) / length]
+    percentages = np.array(range(length)) / length
+    cut = (disp <= 0.5).sum()
+    return [np.append (0, np.append (disp[:cut],0.5)), np.append (0,np.append(percentages[:cut], 1))]
 
 
 def get_integral_from_line(values):
@@ -236,10 +240,12 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
             estimates = pickle.load(handle)
     experiemnt_name = os.path.basename(os.path.normpath(dest))
     path = Path(dest).parent
-
-    GT_versions = ["strands", "grief", "all"]
+    if "0.00_0" in experiemnt_name:
+        pass
+        return 0
+    GT_versions = ["strands", "grief"]
     slices = [[3054, None], [None, 3053], [None, None]]
-    exp_time = int(time.time() - time_elapsed)
+    exp_time = time_elapsed
     for index, G in enumerate(GT_versions):
         file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = estimates[0]
         file_list = file_list[slices[index][0]:slices[index][1]]
@@ -249,6 +255,7 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
         hist_nn = hist_nn[slices[index][0]:slices[index][1]]
         GT_reduced = _GT[slices[index][0]:slices[index][1]]
         gt = read_gt_file(file_list, GT_reduced)
+
         if "0.00_0_0_0_0.00.0" in experiemnt_name:
             displacements = displacements * 0.0
         if "0.00_0_0_0_0.00.1" in experiemnt_name:
