@@ -37,8 +37,9 @@ def process(paths, exp_path, REDO=[False, False, False, False]):
     for exp in paths:
         estimates_grade = None
         hist_nn = None
+        time_taken = None
         file_list_train = None
-        actual_teach_count = 0
+        actual_teach_count = None
         start_time = time.time()
         print(exp)
         experiments_path = os.path.join(pwd, exp_path, exp)
@@ -52,16 +53,17 @@ def process(paths, exp_path, REDO=[False, False, False, False]):
         estimates_train_out = os.path.join(experiments_path, "train.pickle")
         config = load_config(os.path.join(pwd, "NN_config.yaml"), 512)
 
-        if "0.00" not in exp and (not os.path.exists(weights_eval) or REDO[0]):
-            file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path,
+        if "0.00" not in exp:
+            if not os.path.exists(weights_eval) or REDO[0]:
+                file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path,
                                                         init_weights=init_weights, conf=config)
-        if not os.path.exists(estimates_train_out) or REDO[1]:
-            hist_nn, file_list_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions,
+            if not os.path.exists(estimates_train_out) or REDO[1]:
+                hist_nn, file_list_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions,
                                                              weights_eval,
                                                              _estimates_out=estimates_train_out, conf=config,
                                                              file_list=file_list_train)
-        if False:
-            p = process_ev_for_training(experiments_path, dataset_path, chosen_positions,
+            if False:
+                p = process_ev_for_training(experiments_path, dataset_path, chosen_positions,
                                         _estimates_in=estimates_train_out, conf=config,
                                         file_list=file_list_train, hist_nn=hist_nn)
 
@@ -81,8 +83,10 @@ def process(paths, exp_path, REDO=[False, False, False, False]):
             if file_list_train is None:
                 if os.path.exists(os.path.join(experiments_path, "possible_images.txt")):
                     file_list_train_len = np.loadtxt(os.path.join(experiments_path, "possible_images.txt"), int)
+            if actual_teach_count is None:
                 if os.path.exists(os.path.join(experiments_path, "used_images.txt")):
                     actual_teach_count = np.loadtxt(os.path.join(experiments_path, "used_images.txt"), int)
+            if time_taken is None:
                 if os.path.exists(os.path.join(experiments_path, "used_images.txt")):
                     time_taken = np.loadtxt(os.path.join(experiments_path, "timing.txt"), int)
             else:

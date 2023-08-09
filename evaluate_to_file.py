@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import numpy as np
+
 from python.evaluate import *
 
 from python.general_paths import *
@@ -25,9 +27,9 @@ def get_metric_of_well_understood_image_pairs(histograms, file_list):
     well_understood = []
     bad = []
     for i in range(len(entropies)):
-        if entropies[i] < mean + std:
+        if entropies[i] < mean + std*0.0:
             well_understood.append(file_list[i])
-        if entropies[i] >= mean + std:
+        if entropies[i] >= mean + std*0.0:
             bad.append(file_list[i])
     return well_understood, bad
 
@@ -53,36 +55,26 @@ def parse_given_file_list(file_list):
 
 
 def make_confusion_matrix_for_bad_files(bad_files, all_positions):
-    cs = all_positions[0] - 1
-    st = all_positions[1] - 1
+    cs = np.array(all_positions[0]) - 1
+    st = np.array(all_positions[1]) - 1
     for i in range(len(bad_files)):
         if bad_files[i][0][0] == "strands":
-            st[bad_files[i][0][2]][bad_files[i][1][2]] += 1
+            st[bad_files[i][0][2]][bad_files[i][0][1]] += 1
+            st[bad_files[i][1][2]][bad_files[i][1][1]] += 1
         else:
-            cs[bad_files[i][0][2]][bad_files[i][1][2]] += 1
+            cs[bad_files[i][0][2]][bad_files[i][0][1]] += 1
+            cs[bad_files[i][1][2]][bad_files[i][1][1]] += 1
 
     st_1 = st[:, (st != -1).any(axis=0)]
     cs_1 = cs[:, (cs != -1).any(axis=0)]
-    sns.heatmap(st_1, vmin=0)
-    sns.heatmap(st, vmin=0)
-
-    plt.imshow(st)
+    sns.heatmap(np.transpose(st_1), vmin=0)
+    plt.figure()
+    sns.heatmap(np.transpose(st), vmin=0)
     plt.show()
     return [cs, st]
 
 
-def evaluate_for_learning(out_path, _dataset_path, _chosen_positions, _weights_file,
-                          _estimates_out=None,
-                          _cache2=None, conf=None, file_list=None):
-    if file_list is None:
-        file_list = make_combos_for_teaching(_chosen_positions, _dataset_path,
-                                             filetype_FM, conf=conf)
-    hist_nn, displacement = NN_eval(choose_proper_filetype(filetype_NN, file_list),
-                                    out_path, _weights_file,
-                                    conf)
-    with open(_estimates_out, 'wb') as handle:
-        pickle.dump(hist_nn, handle)
-    return hist_nn, file_list
+
 
 
 def process_ev_for_training(out_path, _dataset_path, _chosen_positions,
@@ -101,6 +93,18 @@ def process_ev_for_training(out_path, _dataset_path, _chosen_positions,
     bad_list = parse_given_file_list(bad_nn)
     make_confusion_matrix_for_bad_files(bad_list, _chosen_positions)
 
+def evaluate_for_learning(out_path, _dataset_path, _chosen_positions, _weights_file,
+                          _estimates_out=None,
+                          _cache2=None, conf=None, file_list=None):
+    if file_list is None:
+        file_list = make_combos_for_teaching(_chosen_positions, _dataset_path,
+                                             filetype_FM, conf=conf)
+    hist_nn, displacement = NN_eval(file_list,
+                                    out_path, _weights_file,
+                                    conf)
+    with open(_estimates_out, 'wb') as handle:
+        pickle.dump(hist_nn, handle)
+    return hist_nn, file_list
 
 def evaluate_for_GT(out_path, _evaluation_prefix, _evaluation_paths, _weights_file, _GT=None,
                     _estimates_out=None,

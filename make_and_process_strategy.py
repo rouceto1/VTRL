@@ -169,7 +169,7 @@ def strategy_creator(name, experiments_path, percentage_to_explore, block_size=5
                                               dataset_weight[1], places=7)
     # print(percentage_to_explore,c1,c2,c1+c2)
     save_strategy(name, experiments_path, percentage_to_explore, block_size, whole_place_at_once,
-                  single_place_per_batch, dataset_weight, [places_out_cestlice, places_out_strands])
+                  single_place_per_batch, dataset_weight, [places_out_cestlice, places_out_strands],places_weights=[])
     return [places_out_cestlice, places_out_strands]
 
 
@@ -181,7 +181,7 @@ def biased_strategy_creator(name, experiments_path, percentage_to_explore, block
                                                          dataset_weight[0], places=271, places_weights=places_weights)
     places_out_strands, c2 = make_places_list_by_places(1007, percentage_to_explore, block_size, whole_place_at_once,
                                                         single_place_per_batch,
-                                                        dataset_weight[1], places=7, places_weights=places_weights)
+                                                        dataset_weight[1], places=8, places_weights=places_weights)
     # print(percentage_to_explore,c1,c2,c1+c2)
     save_strategy(name, experiments_path, percentage_to_explore, block_size, whole_place_at_once,
                   single_place_per_batch, dataset_weight, [places_out_cestlice, places_out_strands], places_weights=places_weights)
@@ -258,12 +258,10 @@ if __name__ == "__main__":
     np.random.seed(42)
     names, strategies = make_multiple_strategies(biased=True)
     # names, strategies = make_test_strategy()
-    # names, strategies = make_dummy_strategys(10)
+    #names, strategies = make_dummy_strategys(10)
     for index, strategy in enumerate(strategies):
-        # strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],dataset_weight=strategy[4])
-        biased_strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],
-                                whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],
-                                dataset_weight=strategy[4], places_weights=strategy[5])
+        #strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],dataset_weight=strategy[4])
+        biased_strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],whole_place_at_once=strategy[2], single_place_per_batch=strategy[3], dataset_weight=strategy[4], places_weights=strategy[5])
     names.sort()
     # names.append("none")
     process(names,"experiments")
