@@ -236,10 +236,10 @@ if __name__ == "__main__":
     names, strategies = make_multiple_strategies()
     #names, strategies = make_test_strategy()
     #names, strategies = make_dummy_strategys(10)
+    names, strategies = make_multiple_strategies_biased()
     for index, strategy in enumerate(strategies):
-        strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],
-                         whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],
-                         dataset_weight=strategy[4])
+        #strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],dataset_weight=strategy[4])
+        biased_strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1], whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],dataset_weight=strategy[4], places_weights=strategy[5])
     names.sort()
     #names.append("none")
     process(names)
