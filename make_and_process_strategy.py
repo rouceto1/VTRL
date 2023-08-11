@@ -131,8 +131,8 @@ def make_places_list(seasons, percentage_to_explore, block_size, whole_place_at_
     return seasons_out, count
 
 
-def save_strategy(name, experiments_path, percentage_to_explore, block_size, whole_place_at_once,
-                  single_place_per_batch, dataset_weights, places_out, places_weights):
+def save_plan(name, experiments_path, percentage_to_explore, block_size, whole_place_at_once,
+              single_place_per_batch, dataset_weights, places_out, places_weights):
     try:
         os.mkdir(os.path.join(experiments_path, name))
     except FileExistsError:
@@ -168,24 +168,30 @@ def strategy_creator(name, experiments_path, percentage_to_explore, block_size=5
                                               single_place_per_batch,
                                               dataset_weight[1], places=7)
     # print(percentage_to_explore,c1,c2,c1+c2)
-    save_strategy(name, experiments_path, percentage_to_explore, block_size, whole_place_at_once,
-                  single_place_per_batch, dataset_weight, [places_out_cestlice, places_out_strands],places_weights=[])
+    save_plan(name, experiments_path, percentage_to_explore, block_size, whole_place_at_once,
+              single_place_per_batch, dataset_weight, [places_out_cestlice, places_out_strands], places_weights=[])
     return [places_out_cestlice, places_out_strands]
 
+def append_make_new_strategy(old_plan, old_strategy, new_strategy):
+    new_plan = biased_plan_creator()
+    #### dve moznosti, bud se naprga na primo natvrdo pro tenhle spacifickej creator
+    #### ne se musi predelat biased_pal_creator aby bral i paramentr kde se ma zacit a kolik se ma vygenerovat
+    #### k tomu druhemu je potreba zacit cist ten startovni yaml pros strategii at se vybgeneruje znova
 
-def biased_strategy_creator(name, experiments_path, percentage_to_explore, block_size=5,
-                            whole_place_at_once=False, single_place_per_batch=False, dataset_weight=np.ones(2),
-                            places_weights=None):
-    places_out_cestlice, c1 = make_places_list_by_places(30, percentage_to_explore, block_size, whole_place_at_once,
+
+def biased_plan_creator(name, experiments_path, percentage_to_explore, block_size=5,
+                        whole_place_at_once=False, single_place_per_batch=False, dataset_weight=np.ones(2),
+                        places_weights=None):
+    plan_out_cestlice, c1 = make_places_list_by_places(30, percentage_to_explore, block_size, whole_place_at_once,
                                                          single_place_per_batch,
                                                          dataset_weight[0], places=271, places_weights=places_weights)
-    places_out_strands, c2 = make_places_list_by_places(1007, percentage_to_explore, block_size, whole_place_at_once,
+    plan_out_strands, c2 = make_places_list_by_places(1007, percentage_to_explore, block_size, whole_place_at_once,
                                                         single_place_per_batch,
                                                         dataset_weight[1], places=8, places_weights=places_weights)
     # print(percentage_to_explore,c1,c2,c1+c2)
-    save_strategy(name, experiments_path, percentage_to_explore, block_size, whole_place_at_once,
-                  single_place_per_batch, dataset_weight, [places_out_cestlice, places_out_strands], places_weights=places_weights)
-    return [places_out_cestlice, places_out_strands]
+    save_plan(name, experiments_path, percentage_to_explore, block_size, whole_place_at_once,
+              single_place_per_batch, dataset_weight, [plan_out_cestlice, plan_out_strands], places_weights=places_weights)
+    return [plan_out_cestlice, plan_out_strands]
 
 
 def make_multiple_strategies(biased=False):
@@ -205,7 +211,17 @@ def make_multiple_strategies(biased=False):
                          np.array([0.2, 0.2, 0.2, 0.2, 1.0, 1.0, 1.0, 1.0]),  # inside less
                          np.array([1.0, 1.0, 1.0, 0.2, 1.0, 1.0, 1.0, 1.0]),  # kitchen less
                          ]
-        place_weights = [0, 1, 2]
+        place_weights_contents = [np.array([1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
+                                  np.array([0.1, 1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
+                                  np.array([0.1, 0.1, 1.0, 0.1, 0.1, 0.1, 0.1, 0.1]),
+                                  np.array([0.1, 0.1, 0.1, 1.0, 0.1, 0.1, 0.1, 0.1]),
+                                  np.array([0.1, 0.1, 0.1, 0.1, 1.0, 0.1, 0.1, 0.1]),
+                                  np.array([0.1, 0.1, 0.1, 0.1, 0.1, 1.0, 0.1, 0.1]),
+                                  np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0, 0.1]),
+                                  np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0]),
+                                  np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+                             ]
+        place_weights = [range(len(place_weights_contents))]
     a = [percentage_to_explore_list, block_size_list, whole_place_at_once_list, single_place_per_batch_list,
          dataset_weights, place_weights]
     strategies = list(itertools.product(*a))
@@ -261,7 +277,7 @@ if __name__ == "__main__":
     #names, strategies = make_dummy_strategys(10)
     for index, strategy in enumerate(strategies):
         #strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],whole_place_at_once=strategy[2], single_place_per_batch=strategy[3],dataset_weight=strategy[4])
-        biased_strategy_creator(names[index], experiments_path, strategy[0], block_size=strategy[1],whole_place_at_once=strategy[2], single_place_per_batch=strategy[3], dataset_weight=strategy[4], places_weights=strategy[5])
+        biased_plan_creator(names[index], experiments_path, strategy[0], block_size=strategy[1], whole_place_at_once=strategy[2], single_place_per_batch=strategy[3], dataset_weight=strategy[4], places_weights=strategy[5])
     names.sort()
     # names.append("none")
     process(names,"experiments")

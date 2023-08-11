@@ -62,7 +62,7 @@ def process(paths, exp_path, REDO=[False, False, False, False]):
                                                              weights_eval,
                                                              _estimates_out=estimates_train_out, conf=config,
                                                              file_list=file_list_train)
-            if False:
+            if True:
                 p = process_ev_for_training(experiments_path, dataset_path, chosen_positions,
                                         _estimates_in=estimates_train_out, conf=config,
                                         file_list=file_list_train, hist_nn=hist_nn)

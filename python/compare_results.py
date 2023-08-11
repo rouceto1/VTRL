@@ -40,6 +40,15 @@ class Results:
         self.integral_arr = np.array(self.data[:, self.integral], dtype=float)
         self.integral_nn_arr = np.array(self.data[:, self.integral_nn], dtype=float)
         self.gt_type_arr = np.array(self.data[:, self.gt_type], dtype=str)
+        #load freom pickle
+        self.data_frames = []
+        paths = []
+        for i, data in enumerate(self.data):
+            p = os.path.join(path, self.data[i][self.names], "usage.pickle")
+            paths.append(p)
+            d = pickle.load(open(p, "rb"))
+            if p in paths:
+                self.data_frames.append(d)
 
         # self.data = self.data[np.array(self.sort, dtype=int).argsort()]
 
@@ -151,6 +160,36 @@ class Results:
         plt.title(gt_type + str(NN))
         plt.xlabel("allowed image shift")
         plt.ylabel("probability of correct registration")
+
+    def plot_recognition_corelation(self):
+        a = []
+        b = []
+        cof = []
+        names=[]
+        for frame in self.data_frames:
+            aa = frame.loc["P(used position)"].values #frame.loc["P(used position)"].values[0] + frame.loc["P(used position)"].values[3])
+            name = frame.loc["P(used position)"].values[0] + frame.loc["P(used position)"].values[3]
+            bb = frame.loc["used bad"].values
+            names.append(name)
+            a.append(aa)
+            b.append(bb)
+            cof.append(np.corrcoef(aa,bb)[0,1])
+        #df = pd.DataFrame(data=[a,b])
+        #df_cm = pd.DataFrame(R2, index=[i for i in names],
+        #                     columns=[i for i in names])
+        plt.figure()
+        R2 = np.corrcoef(np.array(a).flatten(),np.array(b).flatten())
+
+        print(R2)
+        sn.heatmap(R2)
+        R2 = np.corrcoef(np.array(a), np.array(b))
+
+        plt.figure()
+        #n.heatmap(R2)
+        print(cof)
+        plt.scatter(names,cof )#label=names)
+        plt.legend()
+
 
 
 if __name__ == "__main__":
