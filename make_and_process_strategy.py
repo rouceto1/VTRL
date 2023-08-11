@@ -199,7 +199,7 @@ def make_multiple_strategies(biased=False):
     b = np.arange(0.20, 0.50, 0.05)
     c = np.arange(0.50, 0.99, 0.2)
     percentage_to_explore_list = np.concatenate([a, b, c])
-    percentage_to_explore_list = np.array([0.01, 0.02, 0.03, 0.04, 0.05, 0.07, 0.10, 0.12, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50, 0.60])
+    percentage_to_explore_list = np.array([0.05, 0.07, 0.10, 0.12, 0.15, 0.20, 0.25, 0.30])
     block_size_list = [1]
     whole_place_at_once_list = [True]
     single_place_per_batch_list = [True]
@@ -221,7 +221,7 @@ def make_multiple_strategies(biased=False):
                                   np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0]),
                                   np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
                              ]
-        place_weights = [range(len(place_weights_contents))]
+        place_weights = range(len(place_weights_contents))
     a = [percentage_to_explore_list, block_size_list, whole_place_at_once_list, single_place_per_batch_list,
          dataset_weights, place_weights]
     strategies = list(itertools.product(*a))
