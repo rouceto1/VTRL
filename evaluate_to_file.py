@@ -119,28 +119,36 @@ def make_confusion_matrix_for_bad_files(bad_files, all_positions, file_pair_list
     # plt.show()
 
 
+def stratagy_mage(old_plan, old_plan_strategy, metrics):
+
+    pass
 
 
-def stratagy_mage(old_plan, old_strategy, metrics):
-    new_strategy = old_strategy.copy() * metrics
-    new_plan = append_make_new_strategy(old_plan, old_strategy, new_strategy)
-
-
-def make_new_strategy(metrics, old_plan, old_used, out_path, old_strategy=None):
+def make_new_strategy(metrics, old_plan, old_used, out_path):
     # append new infromation based on _chosen_position where after last nonzero collumn is new information
     # modify the original information based on the new metrics
     # save the new information
-    last_pose = get_last_given_position(old_plan)
+    old_plan_strategy = load_plan_strategy( out_path)
+    new_plan = stratagy_mage( old_plan, old_plan_strategy, metrics)
 
-    new_strategy = stratagy_mage(last_pose, old_plan, old_strategy, metrics)
+    return new_plan
 
 
-def process_ev_for_training(out_path, _dataset_path, _chosen_positions,
+def load_plan_strategy( _experiment_path):
+    #read json at _experiment_path to get basic params for strategy
+    import json
+    with open(os.path.join(_experiment_path, "input.json"), 'r') as f:
+        params = json.load(f)
+    return params
+
+def process_ev_for_training(exp_path, _dataset_path, old_plan,
                             _estimates_in=None,
                             hist_nn=None, conf=None, file_list=None):
     if file_list is None:
         file_list = make_combos_for_teaching(_chosen_positions, _dataset_path,
                                              filetype_FM, conf=conf)
+
+
     # read hist_nn from fole
     strategies = [np.array([1.0, 1.0, 1.0, 1.0, 0.2, 0.2, 0.2, 0.2]),  # outside less
                   np.array([0.2, 0.2, 0.2, 0.2, 1.0, 1.0, 1.0, 1.0]),  # inside less
@@ -165,8 +173,8 @@ def process_ev_for_training(out_path, _dataset_path, _chosen_positions,
     good_list = parse_given_file_list(well_understood_nn)
     bad_list = parse_given_file_list(bad_nn)
     file_pair_list = parse_given_file_list(file_list)
-    metrics = make_confusion_matrix_for_bad_files(bad_list, _chosen_positions, file_pair_list, out_path, strategies)
-    #new_strategy = make_new_strategy(metrics, _chosen_positions, file_pair_list, out_path, strategies[out_path[-1]])
+    metrics = make_confusion_matrix_for_bad_files(bad_list, _chosen_positions, file_pair_list, exp_path, strategies)
+    #new_strategy = make_new_strategy(metrics, _chosen_positions, file_pair_list, out_path)
 
 
 def evaluate_for_learning(out_path, _dataset_path, _chosen_positions, _weights_file,
