@@ -227,10 +227,10 @@ def grade_type(mission, _GT=None, estimates=None):
         #    displacements = displacements * 0.0
         # if "0.00_0_0_0_0.00.1" in experiemnt_name:
         #    displacements = np.array([random.uniform(-0.5, 0.5) for _ in range(len(displacements))])
-        mission.c_strategy.grading.append(
+        mission.c_strategy.grading.append([
             *compute_to_file(displacements, gt, mission.mission_folder, mission.c_strategy.plan,
                              fig_place=mission.plot_folder, hist_nn=hist_nn, hist_fm=histograms,
-                             matches=matches, name=G))
+                             matches=matches, name=G)])
 
 
 if __name__ == "__main__":
