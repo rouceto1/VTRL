@@ -44,16 +44,18 @@ def process_old(names, exp_folder_name):
         mission = Mission(int(mission_name))
         mission = mission.load(os.path.join(exp_folder_name, mission_name))
         mission.c_strategy.print_parameters()
-        process_plan(mission)  # trains and generates new metrics
-        grade_plan(mission)
+        trained = process_plan(mission)  # trains and generates new metrics
+        if trained:
+            grade_plan(mission)
         mission.save()
 
 def process_new(missions, exp_folder_name):
     setup_missions(missions, exp_folder_name)
     for mission in missions:
         mission.c_strategy.print_parameters()
-        process_plan(mission)  # trains and generates new metrics
-        grade_plan(mission)
+        trained = process_plan(mission)  # trains and generates new metrics
+        if trained:
+            grade_plan(mission)
         mission.save()
 
 
@@ -73,8 +75,10 @@ def grade_plan(mission, eval_to_file=False, grade=False):
 def process_plan(mission, enable_teach=False, enable_eval=False):
     start_time = time.time()
 
-    mission.c_strategy.file_list = make_combos_for_teaching(mission.c_strategy.plan, dataset_path)
-
+    mission.c_strategy.file_list, count = make_combos_for_teaching(mission.c_strategy.plan, dataset_path)
+    if count == 0:
+        print("No new combos")
+        return False
     if not os.path.exists(mission.c_strategy.model_path) or enable_teach:
         _ = teach(dataset_path, mission, init_weights=init_weights, conf=config)
         mission.c_strategy.train_time = time.time() - start_time
@@ -84,7 +88,7 @@ def process_plan(mission, enable_teach=False, enable_eval=False):
                                                        conf=config)
         mission.c_strategy.eval_time = time.time() - start_time2
         # p = process_ev_for_training(mission, dataset_path, conf=config, hist_nn=hist_nn)
-
+    return True
 
 if __name__ == "__main__":
     REDO = [False, False, True, True]

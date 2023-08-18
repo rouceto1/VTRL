@@ -151,7 +151,7 @@ def make_combos_for_teaching(chosen_positions, dataset_path):
     output, count = make_combos_for_dataset(cestlice, os.path.join(dataset_path, "cestlice"), image_file_template)
     output2, count2 = make_combos_for_dataset(strands, os.path.join(dataset_path, "strands"), image_file_template)
     output.extend(output2)
-    return output
+    return output, count + count2
 
 
 def make_combos_for_teaching_old(chosen_positions, dataset_path, filetype_fm, conf=None):
