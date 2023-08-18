@@ -183,6 +183,8 @@ class Strategy:
         self.training_time = None
         self.eval_time = None
         self.grading = []
+        self.is_faulty = False
+
 
     def get_given_teach_count(self):
         return len(self.file_list)

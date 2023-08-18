@@ -77,6 +77,7 @@ def process_plan(mission, enable_teach=False, enable_eval=False):
 
     mission.c_strategy.file_list, count = make_combos_for_teaching(mission.c_strategy.plan, dataset_path)
     if count == 0:
+        mission.c_strategy.is_faulty = True
         print("No new combos")
         return False
     if not os.path.exists(mission.c_strategy.model_path) or enable_teach:
