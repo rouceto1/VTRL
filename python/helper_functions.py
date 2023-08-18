@@ -139,7 +139,7 @@ def make_combos_for_dataset(input, path_dataset, image_file_template):
     return output, count
 
 
-def make_combos_for_teaching(chosen_positions, dataset_path, filetype_fm, conf=None):
+def make_combos_for_teaching(chosen_positions, dataset_path):
     # format of chosen_positions is: [cestlice[season0[place1 place2 place3 ... place271 ] season1[place1 place2 place3 ... place271 ] ... season30[place1 place2 place3 ... place271 ]]
     #                                       strands[season0[place1 place2 place3 ... place7 ] season1[place1 place2 place3 ... place7 ] ... season1007[place1 place2 place3 ... place7 ]]]
     # takes chosen postioins list and creates all possible teaching combinattaions for it

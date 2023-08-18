@@ -6,8 +6,8 @@ from python.grade_results import *
 import argparse
 from python.helper_functions import *
 import time
+from planner import Mission
 
-pwd = os.getcwd()
 parser = argparse.ArgumentParser(
     description='example: --dataset_path "full path" --evaluation_prefix "full path" --weights_folder "full path" '
                 '--file_out suffix.picke')
@@ -29,73 +29,63 @@ evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
 gt_name = "GT_merge_s_g"
 GT_file = os.path.join(evaluation_prefix, gt_name + ".pickle")
 init_weights = os.path.join(pwd, "init_weights.pt")
+config = load_config("NN_config.yaml", 512)
 
 
-def process(paths, exp_path, REDO=[False, False, False, False]):
-    with open(GT_file, 'rb') as handle:
-        gt_in = pickle.load(handle)
-    for exp in paths:
-        estimates_grade = None
-        hist_nn = None
-        time_taken = None
-        file_list_train = None
-        actual_teach_count = None
-        start_time = time.time()
-        print(exp)
-        experiments_path = os.path.join(pwd, exp_path, exp)
-        if os.path.exists(os.path.join(experiments_path, "input.pkl")):
-            with open(os.path.join(experiments_path, "input.pkl"), 'rb') as handle:
-                chosen_positions = pickle.load(handle)
-        else:
-            chosen_positions = np.loadtxt(os.path.join(experiments_path, "input.txt"), int)
-        weights_eval = os.path.join(experiments_path, "weights.pt")
-        estimates_grade_out = os.path.join(experiments_path, gt_name + "_estimates.pickle")
-        estimates_train_out = os.path.join(experiments_path, "train.pickle")
-        config = load_config(os.path.join(pwd, "NN_config.yaml"), 512)
+def setup_missions(missions, exp_folder_name):
+    for mission in missions:
+        mission.setup_mission(exp_folder_name)  # setups folderrs for specific missio
+        mission.plan_modifier()  # generates first plan for current strategy of the mission
+        mission.setup_current_strategy()  # sets up current mission
+        mission.save()
 
-        if "0.00" not in exp:
-            if not os.path.exists(weights_eval) or REDO[0]:
-                file_list_train, actual_teach_count = teach(dataset_path, chosen_positions, experiments_path,
-                                                        init_weights=init_weights, conf=config)
-            if not os.path.exists(estimates_train_out) or REDO[1]:
-                hist_nn, file_list_train = evaluate_for_learning(experiments_path, dataset_path, chosen_positions,
-                                                             weights_eval,
-                                                             _estimates_out=estimates_train_out, conf=config,
-                                                             file_list=file_list_train)
-            if True:
-                p = process_ev_for_training(experiments_path, dataset_path, chosen_positions,
-                                        _estimates_in=estimates_train_out, conf=config,
-                                        file_list=file_list_train, hist_nn=hist_nn)
+def process_old(names, exp_folder_name):
+    for mission_name in names:
+        mission = Mission(int(mission_name))
+        mission = mission.load(os.path.join(exp_folder_name, mission_name))
+        mission.c_strategy.print_parameters()
+        process_plan(mission)  # trains and generates new metrics
+        grade_plan(mission)
+        mission.save()
+
+def process_new(missions, exp_folder_name):
+    setup_missions(missions, exp_folder_name)
+    for mission in missions:
+        mission.c_strategy.print_parameters()
+        process_plan(mission)  # trains and generates new metrics
+        grade_plan(mission)
+        mission.save()
 
 
-        if not os.path.exists(estimates_grade_out) or REDO[2]:
-            with open(GT_file, 'rb') as handle:
-                gt_in = pickle.load(handle)
-            estimates_grade = evaluate_for_GT(os.path.join(experiments_path, "plots"), evaluation_prefix,
-                                              evaluation_paths, weights_eval,
-                                              _GT=gt_in,
-                                              _estimates_out=estimates_grade_out, conf=config)
-        with open(os.path.join(experiments_path, "timing.txt"), 'w') as f:
-            f.write('%d' % (int(time.time() - start_time)))
+def grade_plan(mission, eval_to_file=False, grade=False):
+    estimates_grade = None
+    if not os.path.exists(mission.c_strategy.grading_path) or eval_to_file:
+        with open(GT_file, 'rb') as _handle:
+            gt_in = pickle.load(_handle)
+        estimates_grade = evaluate_for_GT(mission, evaluation_prefix,
+                                          evaluation_paths,
+                                          _GT=gt_in, conf=config)
 
-        if not os.path.exists(os.path.join(experiments_path, "plots", "input.png")) and REDO[3]:
+    if not os.path.exists(os.path.join(mission.plot_folder, "input.png")) or grade:
+        grade_type(mission, _GT=gt_in, estimates=estimates_grade)
 
-            if file_list_train is None:
-                if os.path.exists(os.path.join(experiments_path, "possible_images.txt")):
-                    file_list_train_len = np.loadtxt(os.path.join(experiments_path, "possible_images.txt"), int)
-            if actual_teach_count is None:
-                if os.path.exists(os.path.join(experiments_path, "used_images.txt")):
-                    actual_teach_count = np.loadtxt(os.path.join(experiments_path, "used_images.txt"), int)
-            if time_taken is None:
-                if os.path.exists(os.path.join(experiments_path, "used_images.txt")):
-                    time_taken = np.loadtxt(os.path.join(experiments_path, "timing.txt"), int)
-            else:
-                file_list_train_len = len(file_list_train)
-            grade_type(experiments_path, positions=chosen_positions, _GT=gt_in, estimates_file=estimates_grade_out,
-                       estimates=estimates_grade, time_elapsed=time_taken,
-                       data_count=[file_list_train_len, actual_teach_count], GT_name=gt_name)
+
+def process_plan(mission, enable_teach=False, enable_eval=False):
+    start_time = time.time()
+
+    mission.c_strategy.file_list = make_combos_for_teaching(mission.c_strategy.plan, dataset_path)
+
+    if not os.path.exists(mission.c_strategy.model_path) or enable_teach:
+        _ = teach(dataset_path, mission, init_weights=init_weights, conf=config)
+        mission.c_strategy.train_time = time.time() - start_time
+    if not os.path.exists(mission.c_strategy.estimates_path) or enable_eval:
+        start_time2 = time.time()
+        hist_nn, displacements = evaluate_for_learning(mission, dataset_path,
+                                                       conf=config)
+        mission.c_strategy.eval_time = time.time() - start_time2
+        # p = process_ev_for_training(mission, dataset_path, conf=config, hist_nn=hist_nn)
 
 
 if __name__ == "__main__":
     REDO = [False, False, True, True]
-    process(["none"], REDO)
+    process_new(["none"], REDO)

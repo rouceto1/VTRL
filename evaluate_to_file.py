@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-import numpy as np
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from scipy.stats import entropy
 
 from python.evaluate import *
-
 from python.general_paths import *
-from scipy.stats import entropy
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-import pandas as pd
 
 
 def get_metric_of_well_understood_image_pairs(histograms, file_list):
@@ -141,13 +139,11 @@ def load_plan_strategy( _experiment_path):
         params = json.load(f)
     return params
 
-def process_ev_for_training(exp_path, _dataset_path, old_plan,
+def process_ev_for_training(mission,  _dataset_path, old_plan=None,
                             _estimates_in=None,
                             hist_nn=None, conf=None, file_list=None):
-    if file_list is None:
-        file_list = make_combos_for_teaching(_chosen_positions, _dataset_path,
-                                             filetype_FM, conf=conf)
 
+    file_list = mission.c_strategy.file_list
 
     # read hist_nn from fole
     strategies = [np.array([1.0, 1.0, 1.0, 1.0, 0.2, 0.2, 0.2, 0.2]),  # outside less
@@ -166,38 +162,34 @@ def process_ev_for_training(exp_path, _dataset_path, old_plan,
                               np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
                               ]
     if hist_nn is None:
-        with open(_estimates_in, 'rb') as handle:
+        with open(mission.c_strategy.estimates_path, 'rb') as handle:
             hist_nn = pickle.load(handle)
         # get list of images that are well understood
     well_understood_nn, bad_nn = get_metric_of_well_understood_image_pairs(hist_nn, file_list)
     good_list = parse_given_file_list(well_understood_nn)
     bad_list = parse_given_file_list(bad_nn)
     file_pair_list = parse_given_file_list(file_list)
-    metrics = make_confusion_matrix_for_bad_files(bad_list, _chosen_positions, file_pair_list, exp_path, strategies)
+    metrics = make_confusion_matrix_for_bad_files(bad_list, mission.c_strategy.plan, file_pair_list, mission.experiments_path, strategies)
     #new_strategy = make_new_strategy(metrics, _chosen_positions, file_pair_list, out_path)
 
 
-def evaluate_for_learning(out_path, _dataset_path, _chosen_positions, _weights_file,
-                          _estimates_out=None,
-                          _cache2=None, conf=None, file_list=None):
-    if file_list is None:
-        file_list = make_combos_for_teaching(_chosen_positions, _dataset_path,
-                                             filetype_FM, conf=conf)
-    hist_nn, displacement = NN_eval(file_list,
-                                    out_path, _weights_file,
+def evaluate_for_learning(mission, _dataset_path,
+                          _cache2=None, conf=None):
+    hist_nn, displacement = NN_eval(mission.c_strategy.file_list,
+                                    os.path.join(mission.experiments_path, mission.name) + "/plots", mission.c_strategy.model_path,
                                     conf)
-    with open(_estimates_out, 'wb') as handle:
+    with open(mission.c_strategy.estimates_path, 'wb') as handle:
         pickle.dump(hist_nn, handle)
-    return hist_nn, file_list
+    return hist_nn, displacement
 
-def evaluate_for_GT(out_path, _evaluation_prefix, _evaluation_paths, _weights_file, _GT=None,
-                    _estimates_out=None,
+def evaluate_for_GT(mission, _evaluation_prefix, _evaluation_paths, _GT=None,
+
                     _cache2="/tmp/cache.pkl", conf=None):
     file_list = make_file_list_from_gt(_evaluation_prefix, _GT)
-    out = [fm_nn_eval(file_list, filetype_NN, filetype_FM, out_path, _weights_file, _cache2, conf=conf)]
-    with open(_estimates_out, 'wb') as handle:
+    out = [fm_nn_eval(file_list, filetype_NN, filetype_FM, mission.plot_folder, mission.c_strategy.model_path, _cache2, conf=conf)]
+    with open(mission.c_strategy.grading_path, 'wb') as handle:
         pickle.dump(out, handle)
-    print("GT estiamtes output at:" + str(_estimates_out))
+    print("GT estiamtes output at:" + str(mission.c_strategy.grading_path))
     return out
 
 

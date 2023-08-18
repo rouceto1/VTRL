@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
 import marshal as pickle
 
-import numpy as np
+import cv2
 from matplotlib import image
 from matplotlib import pyplot as plt
+
 from .helper_functions import *
-from csv import writer
-from pathlib import Path
-import time
-import cv2
-from mpl_toolkits import mplot3d
 
 
 def filter_to_max(lst, threshold):
@@ -25,13 +21,13 @@ def add_img_to_plot(plot, img_path):
 
 def read_GT(gt):
     gt_disp = []
-    gt_features = []
+    # gt_features = []
     gt_place_a = []
-    gt_timeA = []
+    # gt_timeA = []
     gt_place_b = []
-    gt_timeB = []
-    gt_histogram_FM = []
-    gt_histogram_NN = []
+    # gt_timeB = []
+    # gt_histogram_FM = []
+    # gt_histogram_NN = []
     for place in gt:
         gt_disp.append(place[0])
         # gt_features.append(place[1])
@@ -71,17 +67,17 @@ def compute_AC_to_uncertainty(estimates, gt, hist_nn, hist_fm, matches):
     x = np.array([])
     y = np.array([])
     disp = estimates_filtered - gt
-    #disp = np.append(disp, 1)
-    #matches = np.append(matches, 1600)
+    # disp = np.append(disp, 1)
+    # matches = np.append(matches, 1600)
     for i in range(1600):
-        z = np.append(z,(matches < i).sum())
+        z = np.append(z, (matches < i).sum())
         l = np.array(compute_AC_curve(disp[(matches < i)]))
-        x = np.append(x,l[0])
-        y = np.append(y,l[1])
+        x = np.append(x, l[0])
+        y = np.append(y, l[1])
 
     z = np.array(z)
-    #x = np.array(x)
-    #y = np.array(y)
+    # x = np.array(x)
+    # y = np.array(y)
 
     line = compute_AC_curve(disp)
     ig = plt.figure()
@@ -96,7 +92,7 @@ def compute_to_file(estimates, gt, dist, positions, plot=True, fig_place=None, h
     line_out = os.path.join(dist, "line_" + name + ".pkl")
     line_2_out = os.path.join(dist, "line_NN_" + name + ".pkl")
     # file_list, histogram_fm, histogram_nn, feature_count, displacement, gt_disp = load_data(data, gt)
-    #compute_AC_to_uncertainty(estimates, gt, hist_nn, hist_fm, matches)
+    # compute_AC_to_uncertainty(estimates, gt, hist_nn, hist_fm, matches)
     errors, line, line_integral, line_2, line_2_integral, streak, streak_integral = compute(estimates, gt,
                                                                                             positions=positions,
                                                                                             plot=plot,
@@ -111,27 +107,6 @@ def compute_to_file(estimates, gt, dist, positions, plot=True, fig_place=None, h
         print("Line written " + str(line_2_out))
     return round(sum(errors) / len(errors), 5), round(streak_integral, 5), round(line_integral, 5), round(
         line_2_integral, 5)
-
-
-def compute_with_plot(data, gt):  # TODO full redo of this...
-    file_list, histogram_FM, histogram_NN, feature_count, displacement, gt_disp = load_data(data, gt)
-    disp, line, line_integral, line_2, line_2_integral, streak, streak_integral = compute(displacement, gt_disp)
-    for location in range(50, len(file_list)):
-        f, axarr = plt.subplots(3)
-        for i in [0, 1]:
-            add_img_to_plot(axarr[i], file_list[location][i])
-        # print(file_list[location])
-        r1 = range(-630, 630, 1260 // 63)  # for FM since it is using full imagees
-        r2 = range(-504, 504, 1008 // 63)  # for NN since it is using reduced images
-        axarr[2].axvline(x=gt_disp[location], ymin=0, ymax=1, c="b", ls="--")
-        axarr[2].axvline(x=displacement[location], ymin=0, ymax=1, c="k", ls="--")
-        axarr[2].plot(r1, histogram_FM[location] / max(histogram_FM[location]), c="r")
-        axarr[2].plot(r1, histogram_NN[location] / max(histogram_NN[location]), c="g")
-        axarr[2].legend(["GT", "displ", "h_FM", "h_NN"])
-        f.tight_layout()
-        plt.savefig("./comparison/" + file_list[location][1][-5:] + ".png")
-        plt.close()
-    return line, line_integral
 
 
 def filter_from_two_arrays_using_thrashold_to_first(a1, a2, threshold):
@@ -161,7 +136,7 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
     # plot3.ylabel("Place visited", fontsize=18)
     # plot3.xlabel("Timestamp [s]", fontsize=18)
     plt.tight_layout()
-    plt.savefig(os.path.join(save, "plots", "input_" + name + ".png"), dpi=800)
+    plt.savefig(os.path.join(save, "input.png"), dpi=800)
     pos = plot3.get_position()
     x = pos.x0 + 0.4
     y = pos.y0 + 0.4
@@ -172,20 +147,20 @@ def plot_all(disp, displacement_filtered, gt_filtered, line, line_2, streak, pos
 
 
 def compute(displacement, gt, positions=None, plot=True, fig_place=None, hist=None, name=""):
-    #displacement_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(displacement,
-                                                                                    #            np.array(gt), 0.5)
+    # displacement_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(displacement,
+    #            np.array(gt), 0.5)
     displacement_filtered = filter_to_max(displacement, 1)
-    #assert (count == count2 == 0)
+    # assert (count == count2 == 0)
 
     disp = displacement - gt
     max_reached = np.count_nonzero(abs(displacement) > 1)
-    max_total = max_reached/len(displacement)
+    max_total = max_reached / len(displacement)
     disp[abs(displacement) > 1] = max_total
-    #disp = np.append(disp, 0.5)
+    # disp = np.append(disp, 0.5)
     line = compute_AC_curve(disp)
 
     line_integral = get_integral_from_line(line)
-    disp_nn = np.argmax(hist, axis=1) * (1/63) - 0.5
+    disp_nn = np.argmax(hist, axis=1) * (1 / 63) - 0.5
     line_2 = compute_AC_curve(disp_nn)
     line_2_integral = get_integral_from_line(line_2)
     streak = get_streak(filter_to_max(disp, 1))
@@ -204,7 +179,7 @@ def compute_AC_curve(error):
     disp = np.sort(abs(error))
     percentages = np.array(range(length)) / length
     cut = (disp <= 0.5).sum()
-    return [np.append (0, np.append (disp[:cut],0.5)), np.append (0,np.append(percentages[:cut], 1))]
+    return [np.append(0, np.append(disp[:cut], 0.5)), np.append(0, np.append(percentages[:cut], 1))]
 
 
 def get_integral_from_line(values):
@@ -231,21 +206,13 @@ def show_estiamtes(file_list, displacements, feature_count_l, feature_count_r, m
         cv2.waitKey(0)
 
 
-def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=None, time_elapsed=None, data_count=None,
-               GT_name=""):
-    print("recieve offset estiamtes")
+def grade_type(mission, _GT=None, estimates=None):
     if estimates is None:
-        print("from " + str(estimates_file))
-        with open(estimates_file, 'rb') as handle:
+        print("from " + str(mission.c_strategy.grading_path))
+        with open(mission.c_strategy.grading_path, 'rb') as handle:
             estimates = pickle.load(handle)
-    experiemnt_name = os.path.basename(os.path.normpath(dest))
-    path = Path(dest).parent
-    if "0.00_0" in experiemnt_name:
-        pass
-        return 0
     GT_versions = ["strands", "grief"]
     slices = [[3054, None], [None, 3053], [None, None]]
-    exp_time = time_elapsed
     for index, G in enumerate(GT_versions):
         file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = estimates[0]
         file_list = file_list[slices[index][0]:slices[index][1]]
@@ -256,19 +223,14 @@ def grade_type(dest, positions=None, estimates_file=None, _GT=None, estimates=No
         GT_reduced = _GT[slices[index][0]:slices[index][1]]
         gt = read_gt_file(file_list, GT_reduced)
 
-        if "0.00_0_0_0_0.00.0" in experiemnt_name:
-            displacements = displacements * 0.0
-        if "0.00_0_0_0_0.00.1" in experiemnt_name:
-            displacements = np.array([random.uniform(-0.5, 0.5) for _ in range(len(displacements))])
-        out = [experiemnt_name, exp_time,
-               *compute_to_file(displacements, gt, dest, positions, fig_place=dest, hist_nn=hist_nn, hist_fm=histograms,
-                                matches=matches, name=G),
-               data_count[0], data_count[1], G]
-
-        with open(path / 'output.csv', 'a') as f_object:
-            writer_object = writer(f_object)
-            writer_object.writerow(out)
-            f_object.close()
+        # if "0.00_0_0_0_0.00.0" in experiemnt_name:
+        #    displacements = displacements * 0.0
+        # if "0.00_0_0_0_0.00.1" in experiemnt_name:
+        #    displacements = np.array([random.uniform(-0.5, 0.5) for _ in range(len(displacements))])
+        mission.c_strategy.grading.append(
+            *compute_to_file(displacements, gt, mission.mission_folder, mission.c_strategy.plan,
+                             fig_place=mission.plot_folder, hist_nn=hist_nn, hist_fm=histograms,
+                             matches=matches, name=G))
 
 
 if __name__ == "__main__":
@@ -287,4 +249,3 @@ if __name__ == "__main__":
     with open(gt_file_in, 'rb') as handle:
         gt_out = pickle.load(handle)
     print("loaded GT")
-    compute_with_plot(things_out, gt_out)

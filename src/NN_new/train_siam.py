@@ -19,6 +19,7 @@ def hard_negatives(batch, heatmaps):
         num = int(conf["batch_size_train"] * conf["negative_frac"])
         if num % 2 == 1:
             num -= 1
+
         indices = t.tensor(np.random.choice(np.arange(0, conf["batch_size_train"]), num), device=device)
         heatmaps[indices, :] = 0.0
         tmp_t = t.clone(batch[indices[:num // 2]])
@@ -89,7 +90,7 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path_ini
 
     dataset, histograms = get_dataset(data_path, train_data, conf, training=True)
     train_size = int(len(dataset) * 0.95)
-    val, train = t.utils.data.random_split(dataset, [len(dataset) - train_size, train_size])
+    val, train = t.utils.data.random_split(dataset, [len(dataset) - train_size, train_size],)
     train_loader = DataLoader(train, conf["batch_size_train"], shuffle=True, num_workers=10)
     val_loader = DataLoader(val, conf["batch_size_eval"], shuffle=False, num_workers=10)
     if conf["epochs"] % conf["eval_rate"] != 0:
@@ -115,19 +116,21 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path_ini
     return dataset.nonzeros
 
 
-def NNteach_from_python(training_data, data_path, init_weights, experiments_path, config):
+def NNteach_from_python(training_data, data_path, init_weights, mission, config):
     global conf
+    t.manual_seed(42)
+
     global device
     conf = config
     device = conf["device"]
     global batch_aug
     batch_aug = batch_augmentations.to(device)
-    print("trianing:" + str(experiments_path))
+    print("trianing:" + str(mission.name))
     image_count = teach_stuff(train_data=training_data, model_path_init=init_weights,
-                       model_path_out=os.path.join(experiments_path, "weights.pt"), out=experiments_path + "/plots",
-                       data_path=data_path)
-    with open(os.path.join(experiments_path, "used_images.txt"), 'w') as f:
-        f.write('%d' % image_count)
+                              model_path_out=mission.c_strategy.model_path, out=mission.plot_folder,
+                              data_path=data_path)
+    mission.c_strategy.used_teach_count = image_count
+
     return image_count
 
 
