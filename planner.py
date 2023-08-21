@@ -5,7 +5,7 @@ import os
 import pickle
 import random
 from json import JSONEncoder
-
+import copy
 import numpy as np
 
 pwd = os.getcwd()
@@ -30,20 +30,20 @@ class Mission:
         self.mission_folder = None
         self.description = description
         self.set_up = False
+        self.no_more_data = False
+
     def save(self):
-        #save mission to pickle? maybe mocap?
+        # save mission to pickle? maybe mocap?
         self.c_strategy.file_list = None
-        with open(os.path.join(self.mission_folder,"mission.pickle"), 'wb') as f:
+        for strategy in self.old_strategies:
+            strategy.file_list = None
+        with open(os.path.join(self.mission_folder, "mission.pickle"), 'wb') as f:
             pickle.dump(self, f)
 
     def load(self, mission_folder):
-        with open(os.path.join(mission_folder,"mission.pickle"), 'rb') as f:
+        with open(os.path.join(mission_folder, "mission.pickle"), 'rb') as f:
             m = pickle.load(f)
         return m
-
-
-
-
 
     def setup_current_strategy(self):
         self.c_strategy.setup_strategy(self.mission_folder)
@@ -67,10 +67,14 @@ class Mission:
             pass
         self.set_up = True
 
+    def advance_mission(self, metrics):
+        self.add_new_strategy(copy.deepcopy(self.c_strategy))
+        self.c_strategy.strategy_modifier(metrics)
+        self.plan_modifier(self.old_strategies[-1].plan, self.old_strategies[-1])
 
     def plan_modifier(self, old_plan=None, old_strategy=None):
         total_seasons = [30, 1007]
-        total_places = [271, 7]
+        total_places = [271, 8]
         places_out_cestlice, c1 = self.make_plan(old_plan, old_strategy, seasons=total_seasons[0],
                                                  places=total_places[0],
                                                  weight=self.c_strategy.dataset_weights[0],
@@ -93,6 +97,8 @@ class Mission:
                        self.c_strategy.time_limit, places_weights=self.c_strategy.place_weights,
                        iteration=self.c_strategy.iteration)
         self.c_strategy.plan = [places_out_cestlice, places_out_strands]
+        if c1 + c2 == 0:
+            self.no_more_data = True
         return [places_out_cestlice, places_out_strands], [c1, c2]
 
     def make_empty_plan(self, seasons, places):
@@ -123,8 +129,8 @@ class Mission:
 
         last_season = int(seasons * time_limit)
         if last_season > seasons:
-            print("Not enough time to make new plan")
-            return plan, 0
+            print("Not enough time to make new full plan")
+            last_season = seasons
 
         available_seasons = last_season - start
         new_season_count = available_seasons * uptime * weight
@@ -166,14 +172,18 @@ class Mission:
 
 # class strategy containing everything needed to make plan and eventually modify it
 class Strategy:
-    def __init__(self, uptime, block_size, dataset_weights, place_weights, time_limit, iteration):
+    def __init__(self, uptime, block_size, dataset_weights, place_weights, time_limit, time_advance, change_rate,
+                 iteration):
         # internal variables: percentage_to_explore, block_size, dataset_weights, place_weights, iteration
         self.uptime = uptime
         self.block_size = block_size
         self.dataset_weights = dataset_weights  # cestlice, strands
         self.place_weights = place_weights  # list of weights for each place TODO: make this strands agnostic
-        self.time_limit = time_limit
+        self.time_limit = time_limit #latest possible time to teach
         self.iteration = iteration
+        self.time_advance = time_advance # how much is each new data training
+        self.change_rate = change_rate # how much to modify TODO make soemthing else then boolean
+
         self.plan = None
         self.used_teach_count = 0
         self.file_list = None
@@ -190,8 +200,21 @@ class Strategy:
         return len(self.file_list)
 
     def print_parameters(self):
-        print(f"Uptime: {self.uptime}, Block size: {self.block_size}, place_weights: {self.place_weights}, time_limit: {self.time_limit}, iteration: {self.iteration}")
+        print(
+            f"Uptime: {self.uptime}, Block size: {self.block_size}, place_weights: {self.place_weights}, time_limit: {self.time_limit}, iteration: {self.iteration}")
+
     def setup_strategy(self, path):
         self.model_path = os.path.join(path, str(self.iteration) + "_weights.pt")
         self.estimates_path = os.path.join(path, str(self.iteration) + "_estimates.pkl")
         self.grading_path = os.path.join(path, str(self.iteration) + "_grading.pkl")
+
+    def strategy_modifier(self, metrics):
+        # gives back new place weight multiplier besed on metrics
+        # keeping the same exploration ratio
+        self.time_limit += self.time_advance
+
+        if self.change_rate == 0.0:
+            return
+        multiplier = sum(self.place_weights) / sum(metrics)
+        self.place_weights = metrics * multiplier
+        self.iteration += 1

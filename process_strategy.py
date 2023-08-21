@@ -39,24 +39,29 @@ def setup_missions(missions, exp_folder_name):
         mission.setup_current_strategy()  # sets up current mission
         mission.save()
 
-def process_old(names, exp_folder_name):
-    for mission_name in names:
-        mission = Mission(int(mission_name))
-        mission = mission.load(os.path.join(exp_folder_name, mission_name))
-        mission.c_strategy.print_parameters()
-        trained = process_plan(mission)  # trains and generates new metrics
-        if trained:
-            grade_plan(mission)
-        mission.save()
 
 def process_new(missions, exp_folder_name):
     setup_missions(missions, exp_folder_name)
     for mission in missions:
+        learning_loop(mission)
+
+
+def process_old(names, exp_folder_name):
+    for mission_name in names:
+        mission = Mission(int(mission_name))
+        mission = mission.load(os.path.join(exp_folder_name, mission_name))
+        learning_loop(mission)
+
+
+def learning_loop(mission, iterations=1):
+    while not mission.no_more_data:
+        print(mission.name)
         mission.c_strategy.print_parameters()
         trained = process_plan(mission)  # trains and generates new metrics
-        if trained:
-            grade_plan(mission)
         mission.save()
+    if trained:
+        grade_plan(mission)
+    mission.save()
 
 
 def grade_plan(mission, eval_to_file=False, grade=False):
@@ -72,9 +77,9 @@ def grade_plan(mission, eval_to_file=False, grade=False):
         grade_type(mission, _GT=gt_in, estimates=estimates_grade)
 
 
-def process_plan(mission, enable_teach=False, enable_eval=False):
+def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=True):
     start_time = time.time()
-
+    hist_nn = None
     mission.c_strategy.file_list, count = make_combos_for_teaching(mission.c_strategy.plan, dataset_path)
     if count == 0:
         mission.c_strategy.is_faulty = True
@@ -88,8 +93,11 @@ def process_plan(mission, enable_teach=False, enable_eval=False):
         hist_nn, displacements = evaluate_for_learning(mission, dataset_path,
                                                        conf=config)
         mission.c_strategy.eval_time = time.time() - start_time2
-        # p = process_ev_for_training(mission, dataset_path, conf=config, hist_nn=hist_nn)
+    if enable_metrics:
+        metrics = process_ev_for_training(mission, dataset_path, conf=config, hist_nn=hist_nn)
+        mission.advance_mission(metrics)
     return True
+
 
 if __name__ == "__main__":
     REDO = [False, False, True, True]

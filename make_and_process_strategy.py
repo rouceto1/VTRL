@@ -7,10 +7,10 @@ import numpy as np
 
 from planner import Strategy, Mission
 from process_strategy import process_new
+from json import JSONEncoder
 
 pwd = os.getcwd()
 experiments_path = os.path.join(pwd, "experiments")
-from json import JSONEncoder
 
 
 class NumpyArrayEncoder(JSONEncoder):
@@ -21,15 +21,9 @@ class NumpyArrayEncoder(JSONEncoder):
 
 
 def make_multiple_missions():
-    a = np.arange(0.02, 0.20, 0.02)
-    b = np.arange(0.20, 0.50, 0.05)
-    c = np.arange(0.50, 0.99, 0.2)
     time_limits = np.array([0.3])
     block_size_list = [1]
-    whole_place_at_once_list = [True]
-    single_place_per_batch_list = [True]
     dataset_weights = [np.array([0.0, 1.0])]
-    place_weights = [np.array([0.0, 1.0])]
     place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 0.2, 0.2, 0.2, 0.2]),  # outside less
                               np.array([0.2, 0.2, 0.2, 0.2, 1.0, 1.0, 1.0, 1.0]),  # inside less
                               np.array([1.0, 1.0, 1.0, 0.2, 1.0, 1.0, 1.0, 1.0]),
@@ -43,17 +37,22 @@ def make_multiple_missions():
                               np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0]),
                               np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
                               ]
-    uptime_list = np.array([0.15, 0.20, 0.30, 0.40])
-    a = [uptime_list, block_size_list, dataset_weights, place_weights_contents, time_limits]
+    uptime_list = np.array([0.30])
+    time_advance_list = np.array([0.0])
+    change_rate_list = np.array([1.0, 0.0])
+    a = [uptime_list, block_size_list, dataset_weights, place_weights_contents, time_limits, time_advance_list,
+         change_rate_list]
     combinations = list(itertools.product(*a))
     missions = []
     strategies = []
     for combination in combinations:
-        strategy = Strategy(combination[0], combination[1], combination[2], combination[3], combination[4], iteration=0)
+        strategy = Strategy(uptime=combination[0], block_size=combination[1], dataset_weights=combination[2],
+                            place_weights=combination[3], time_limit=combination[4], time_advance=combination[4],
+                            change_rate=combination[6], iteration=0)  # TODO make time_advance agnostic of time_limit
         strategies.append(strategy)
-    strategies.sort(key=lambda x: x.uptime, reverse=False)
+    strategies.sort(key=lambda x: x.uptime * sum(x.place_weights), reverse=False)
 
-    #this is split to compute supposedly fast strategies first
+    # this is split to compute supposedly fast strategies first
     for index, strategy in enumerate(strategies):
         mission = Mission(index)
         mission.c_strategy = strategy

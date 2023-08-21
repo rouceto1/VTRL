@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import matplotlib.pyplot as plt
-import pandas as pd
 import seaborn as sns
 from scipy.stats import entropy
 
@@ -56,9 +54,9 @@ def parse_given_file_list(file_list):
     return pairs
 
 
-def make_confusion_matrix_for_bad_files(bad_files, all_positions, file_pair_list, name, place_weights_contents):
-    bad_strands = np.zeros_like(all_positions[1], dtype=float)
-    used_strands = np.zeros_like(all_positions[1], dtype=float)
+def make_confusion_matrix_for_bad_files(mission, bad_files, file_pair_list):
+    bad_strands = np.zeros_like(mission.c_strategy.plan[1], dtype=float)
+    used_strands = np.zeros_like(mission.c_strategy.plan[1], dtype=float)
     for i in range(len(bad_files)):
         if bad_files[i][0][0] == "strands":
             bad_strands[bad_files[i][0][2]][bad_files[i][0][1]] += 1.0
@@ -70,7 +68,7 @@ def make_confusion_matrix_for_bad_files(bad_files, all_positions, file_pair_list
 
     bedness_per_image = bad_strands.copy()
     bedness_per_image[used_strands != 0] /= used_strands[used_strands != 0]
-    given_strands = np.array(all_positions[1])
+    given_strands = np.array(mission.c_strategy.plan[1])
 
     #### info per place
     sum_given_place = np.sum(given_strands, axis=0)  # given IMAGE count per place
@@ -80,7 +78,7 @@ def make_confusion_matrix_for_bad_files(bad_files, all_positions, file_pair_list
     badness_per_place = np.sum(bad_strands, axis=0)
     badness_per_place[sum_used_place != 0] /= sum_used_place[sum_used_place != 0]  ##actually used data that is bad
 
-    data_frame1 = pd.DataFrame([place_weights_contents[int(name[-1])], sum_given_place / max(sum_given_place),
+    data_frame1 = pd.DataFrame([mission.c_strategy.place_weights, sum_given_place / max(sum_given_place),
                                 sum_used_place / max(sum_used_place), badness_per_place],
                                index=["P(used position)", "P(given)", "used", "used bad"],
                                columns=["krajnas", "office street", "office stairs", "kitchen",
@@ -89,15 +87,15 @@ def make_confusion_matrix_for_bad_files(bad_files, all_positions, file_pair_list
     plt.figure()
     sns.heatmap(np.transpose(data_frame1), xticklabels=1, yticklabels=1, annot=True)
     plt.tight_layout()
-    plt.savefig(os.path.join(name, "plots", "usage.png"), dpi=800)
+    plt.savefig(os.path.join(mission.plot_folder, "usage.png"), dpi=800)
     #### plot used positions and weighted bad positions, each bad position is sum how many times/ how many times used
-    temp = np.array(all_positions[1]) - 1.0
+    temp = np.array(mission.c_strategy.plan[1]) - 1.0
     times_used = temp + used_strands
 
     fig, axs = plt.subplots(3)
-    fig.suptitle(str(place_weights_contents[int(name[-1])]) + " all times actually used")
+    fig.suptitle(str(mission.c_strategy.place_weights) + " all times actually used")
     sns.heatmap(np.transpose(times_used), vmin=-1, ax=axs[0])
-    plt.title(str(place_weights_contents[int(name[-1])]) + " strands")
+    plt.title(str(mission.c_strategy.place_weights) + " strands")
     sns.heatmap(np.transpose(bedness_per_image), ax=axs[1])
     t = (np.sum(used_strands, axis=1) != 0)
     filtered_w_bad_s = bedness_per_image[t, :]
@@ -107,86 +105,49 @@ def make_confusion_matrix_for_bad_files(bad_files, all_positions, file_pair_list
                                        "office outside entrance", "sofas outside", "office outside", "office outisde2"])
     sns.heatmap(np.transpose(data_frame), ax=axs[2], xticklabels=1, yticklabels=1)
 
-    fig.savefig(os.path.join(name, "plots", "usage_heatmap.png"), dpi=800)
+    fig.savefig(os.path.join(mission.plot_folder, str(mission.name) + "usage_heatmap.png"), dpi=800)
 
     # save data to pickle
-    with open(os.path.join(name, "usage.pickle"), 'wb') as handle:
+    with open(os.path.join(mission.name, "usage.pickle"), 'wb') as handle:
         pickle.dump(data_frame1, handle)
 
-    return
+    return badness_per_place
     # plt.show()
 
 
-def stratagy_mage(old_plan, old_plan_strategy, metrics):
-
-    pass
-
-
-def make_new_strategy(metrics, old_plan, old_used, out_path):
-    # append new infromation based on _chosen_position where after last nonzero collumn is new information
-    # modify the original information based on the new metrics
-    # save the new information
-    old_plan_strategy = load_plan_strategy( out_path)
-    new_plan = stratagy_mage( old_plan, old_plan_strategy, metrics)
-
-    return new_plan
-
-
-def load_plan_strategy( _experiment_path):
-    #read json at _experiment_path to get basic params for strategy
-    import json
-    with open(os.path.join(_experiment_path, "input.json"), 'r') as f:
-        params = json.load(f)
-    return params
-
-def process_ev_for_training(mission,  _dataset_path, old_plan=None,
+def process_ev_for_training(mission, _dataset_path, old_plan=None,
                             _estimates_in=None,
-                            hist_nn=None, conf=None, file_list=None):
-
+                            hist_nn=None,conf=None):
     file_list = mission.c_strategy.file_list
-
-    # read hist_nn from fole
-    strategies = [np.array([1.0, 1.0, 1.0, 1.0, 0.2, 0.2, 0.2, 0.2]),  # outside less
-                  np.array([0.2, 0.2, 0.2, 0.2, 1.0, 1.0, 1.0, 1.0]),  # inside less
-                  np.array([1.0, 1.0, 1.0, 0.2, 1.0, 1.0, 1.0, 1.0]),  # kitchen less
-                  ]
-
-    strategies = [np.array([1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
-                              np.array([0.1, 1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
-                              np.array([0.1, 0.1, 1.0, 0.1, 0.1, 0.1, 0.1, 0.1]),
-                              np.array([0.1, 0.1, 0.1, 1.0, 0.1, 0.1, 0.1, 0.1]),
-                              np.array([0.1, 0.1, 0.1, 0.1, 1.0, 0.1, 0.1, 0.1]),
-                              np.array([0.1, 0.1, 0.1, 0.1, 0.1, 1.0, 0.1, 0.1]),
-                              np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0, 0.1]),
-                              np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0]),
-                              np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
-                              ]
     if hist_nn is None:
         with open(mission.c_strategy.estimates_path, 'rb') as handle:
             hist_nn = pickle.load(handle)
         # get list of images that are well understood
     well_understood_nn, bad_nn = get_metric_of_well_understood_image_pairs(hist_nn, file_list)
-    good_list = parse_given_file_list(well_understood_nn)
-    bad_list = parse_given_file_list(bad_nn)
-    file_pair_list = parse_given_file_list(file_list)
-    metrics = make_confusion_matrix_for_bad_files(bad_list, mission.c_strategy.plan, file_pair_list, mission.experiments_path, strategies)
-    #new_strategy = make_new_strategy(metrics, _chosen_positions, file_pair_list, out_path)
-
+    good_list = parse_given_file_list(well_understood_nn)  # array of [tuples(place, season)]
+    bad_list = parse_given_file_list(bad_nn)  # array of [tuples(place, season)]
+    file_pair_list = parse_given_file_list(file_list)  # array of [tuples(place, season)]
+    metrics = make_confusion_matrix_for_bad_files(mission, bad_list,  file_pair_list)
+    return metrics
 
 def evaluate_for_learning(mission, _dataset_path,
                           _cache2=None, conf=None):
-    hist_nn, displacement = NN_eval(mission.c_strategy.file_list,
-                                    os.path.join(mission.experiments_path, mission.name) + "/plots", mission.c_strategy.model_path,
-                                    conf)
+    hist_nn, displacement_nn = NN_eval(mission.c_strategy.file_list,
+                                       os.path.join(mission.experiments_path, mission.name) + "/plots",
+                                       mission.c_strategy.model_path,
+                                       conf)
     with open(mission.c_strategy.estimates_path, 'wb') as handle:
         pickle.dump(hist_nn, handle)
-    return hist_nn, displacement
+
+    return hist_nn, displacement_nn
+
 
 def evaluate_for_GT(mission, _evaluation_prefix, _evaluation_paths, _GT=None,
 
                     _cache2="/tmp/cache.pkl", conf=None):
     file_list = make_file_list_from_gt(_evaluation_prefix, _GT)
-    out = [fm_nn_eval(file_list, filetype_NN, filetype_FM, mission.plot_folder, mission.c_strategy.model_path, _cache2, conf=conf)]
+    out = [fm_nn_eval(file_list, filetype_NN, filetype_FM, mission.plot_folder, mission.c_strategy.model_path, _cache2,
+                      conf=conf)]
     with open(mission.c_strategy.grading_path, 'wb') as handle:
         pickle.dump(out, handle)
     print("GT estiamtes output at:" + str(mission.c_strategy.grading_path))
