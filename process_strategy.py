@@ -9,10 +9,12 @@ import time
 from planner import Mission
 
 import logging
+import warnings
 
 logger = logging.getLogger()
 old_level = logger.level
 logger.setLevel(100)
+warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser(
     description='example: --dataset_path "full path" --evaluation_prefix "full path" --weights_folder "full path" '
