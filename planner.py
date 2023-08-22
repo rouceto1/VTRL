@@ -130,6 +130,8 @@ class Mission:
         if last_season > seasons:
             print("Not enough time to make new full plan")
             last_season = seasons
+            return plan, 0
+
 
         available_seasons = last_season - start
         new_season_count = available_seasons * uptime * weight
