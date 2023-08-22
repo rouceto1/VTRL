@@ -108,7 +108,7 @@ def make_confusion_matrix_for_bad_files(mission, bad_files, file_pair_list):
     fig.savefig(os.path.join(mission.plot_folder, str(mission.name) + "usage_heatmap.png"), dpi=800)
 
     # save data to pickle
-    with open(os.path.join(mission.name, "usage.pickle"), 'wb') as handle:
+    with open(os.path.join(mission.mission_folder, "usage.pickle"), 'wb') as handle:
         pickle.dump(data_frame1, handle)
 
     return badness_per_place

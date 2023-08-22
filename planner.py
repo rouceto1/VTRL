@@ -22,7 +22,7 @@ class NumpyArrayEncoder(JSONEncoder):
 class Mission:
     def __init__(self, index, description=None):
         self.index = index
-        self.name = str(index)
+        self.name = f"{index:02d}"
         self.c_strategy = None
         self.old_strategies = []
         self.experiments_path = None
@@ -39,10 +39,12 @@ class Mission:
             strategy.file_list = None
         with open(os.path.join(self.mission_folder, "mission.pickle"), 'wb') as f:
             pickle.dump(self, f)
+        print("saved mission: " + str(os.path.join(self.mission_folder, "mission.pickle")))
 
     def load(self, mission_folder):
         with open(os.path.join(mission_folder, "mission.pickle"), 'rb') as f:
             m = pickle.load(f)
+        print("Loaded mission: " + str(os.path.join(mission_folder, "mission.pickle")))
         return m
 
     def setup_current_strategy(self):
@@ -70,12 +72,13 @@ class Mission:
     def advance_mission(self, metrics):
         self.add_new_strategy(copy.deepcopy(self.c_strategy))
         self.c_strategy.strategy_modifier(metrics)
+        self.setup_current_strategy()
         self.plan_modifier(self.old_strategies[-1].plan, self.old_strategies[-1])
 
-    def plan_modifier(self, old_plan=None, old_strategy=None):
+    def plan_modifier(self, old_plan=[None,None], old_strategy=None):
         total_seasons = [30, 1007]
         total_places = [271, 8]
-        places_out_cestlice, c1 = self.make_plan(old_plan, old_strategy, seasons=total_seasons[0],
+        places_out_cestlice, c1 = self.make_plan(old_plan[0], old_strategy, seasons=total_seasons[0],
                                                  places=total_places[0],
                                                  weight=self.c_strategy.dataset_weights[0],
                                                  uptime=self.c_strategy.uptime, block_size=self.c_strategy.block_size,
@@ -83,7 +86,7 @@ class Mission:
                                                  place_weights=self.c_strategy.place_weights,
                                                  iteration=self.c_strategy.iteration)
 
-        places_out_strands, c2 = self.make_plan(old_plan, old_strategy, seasons=total_seasons[1],
+        places_out_strands, c2 = self.make_plan(old_plan[1], old_strategy, seasons=total_seasons[1],
                                                 places=total_places[1],
                                                 weight=self.c_strategy.dataset_weights[1],
                                                 uptime=self.c_strategy.uptime, block_size=self.c_strategy.block_size,
@@ -120,11 +123,7 @@ class Mission:
         start = 0
         newly_added = 0
         if old_plan is not None:
-            # get index of  first column of old_plan that is all zeros TODO get this from old_strategy
-            for i in range(len(old_plan[0])):
-                if not np.any(old_plan[:, i]):
-                    start = i
-                    break
+            start = int(old_strategy.time_limit * seasons)
             plan = old_plan
 
         last_season = int(seasons * time_limit)
@@ -179,10 +178,13 @@ class Strategy:
         self.block_size = block_size
         self.dataset_weights = dataset_weights  # cestlice, strands
         self.place_weights = place_weights  # list of weights for each place TODO: make this strands agnostic
-        self.time_limit = time_limit #latest possible time to teach
+        self.time_limit = time_limit  # latest possible time to teach
         self.iteration = iteration
-        self.time_advance = time_advance # how much is each new data training
-        self.change_rate = change_rate # how much to modify TODO make soemthing else then boolean
+        self.time_advance = time_advance  # how much is each new data training
+        self.change_rate = change_rate  # how much to modify TODO make soemthing else then boolean
+        self.duty_cycle = 4.0
+
+        self.place_weights = self.process_weights(self.place_weights, np.ones(8), self.duty_cycle)
 
         self.plan = None
         self.used_teach_count = 0
@@ -194,7 +196,6 @@ class Strategy:
         self.eval_time = None
         self.grading = []
         self.is_faulty = False
-
 
     def get_given_teach_count(self):
         return len(self.file_list)
@@ -215,6 +216,34 @@ class Strategy:
 
         if self.change_rate == 0.0:
             return
-        multiplier = sum(self.place_weights) / sum(metrics)
-        self.place_weights = metrics * multiplier
+
+        self.place_weights = self.process_weights(self.place_weights, metrics, self.duty_cycle)
         self.iteration += 1
+
+    def process_weights(self,weights, metrics=np.ones(8), duty_cycle=1.0):
+        ratio = sum(weights * metrics)
+        new_weights = weights * metrics * (duty_cycle / ratio)
+        return self.clip_weights(new_weights)
+
+    def clip_weights(self, weights):
+        # clip weights to be between 0 and 1, distribute teh rest between
+        remainder = 0.0
+        # clip any weights to 1 and distribute teh reminder to the other weights
+        for i in range(len(weights)):
+            if weights[i] > 1.0:
+                remainder += weights[i] - 1.0
+                weights[i] = 1.0
+        # distribute the reminder evenly between the other non one weights
+        if remainder == 0.0:
+            return weights
+        none_one = sum(weights < 1.0)
+        for i in range(len(weights)):
+            if weights[i] < 1.0:
+                weights[i] += remainder/none_one
+
+        return self.clip_weights(weights)
+
+
+
+
+
