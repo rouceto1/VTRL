@@ -200,6 +200,7 @@ def grade_type(mission, _GT=None, estimates=None):
         mission.c_strategy.grading[index].compute(displacements, gt, mission.mission_folder, mission.c_strategy.plan,
                                            fig_place=mission.plot_folder, hist_nn=hist_nn, hist_fm=histograms,
                                            matches=matches, name=G)
+    print("Grading done")
 
 
 def filter_to_max(lst, threshold):

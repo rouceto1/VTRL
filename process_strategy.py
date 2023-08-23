@@ -67,10 +67,11 @@ def learning_loop(mission, iterations=1):
         print(mission.name)
         mission.c_strategy.print_parameters()
         trained = process_plan(mission)  # trains and generates new metrics
-        mission.save()
         if not trained:
             break
         grade_plan(mission)
+        mission.save()
+        print("Metrics: ", mission.c_strategy.next_metrics)
         mission.advance_mission(mission.c_strategy.next_metrics)
     mission.save()
 
