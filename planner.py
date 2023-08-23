@@ -72,6 +72,7 @@ class Mission:
     def advance_mission(self, metrics):
         self.add_new_strategy(copy.deepcopy(self.c_strategy))
         self.c_strategy.strategy_modifier(metrics)
+        self.c_strategy.progress = 0
         self.setup_current_strategy()
         self.plan_modifier(self.old_strategies[-1].plan, self.old_strategies[-1])
 
