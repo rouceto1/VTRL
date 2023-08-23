@@ -62,6 +62,7 @@ def process_old(names, exp_folder_name):
 
 
 def learning_loop(mission, iterations=1):
+    print("-----------------------------------------------------------------------")
     while not mission.no_more_data:
         print(mission.name)
         mission.c_strategy.print_parameters()

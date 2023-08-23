@@ -121,7 +121,6 @@ class Mission:
         if uptime * weight == 0.0:
             return plan, 0
         start = 0
-        newly_added = 0
         if old_plan is not None:
             start = int(old_strategy.time_limit * seasons)
             plan = old_plan
