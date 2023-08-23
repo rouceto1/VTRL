@@ -100,7 +100,7 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path_ini
     if conf["epochs"] == 0:
         save_model_to_file(model, model_path_out, 0, optimizer)
         return
-    for epoch in tqdm(range(1, conf["epochs"] + 1)):
+    for epoch in tqdm(range(1, conf["epochs"] + 1), desc="Training: "):
         if epoch % conf["eval_rate"] == 0 or conf["epochs"] == epoch:  # and epoch > 0:
             err = eval_loop(val_loader, model, epoch, histograms, out)
             meaes.append(err)
@@ -109,8 +109,8 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path_ini
                 best_model = copy.deepcopy(model)
         model, loss = train_loop(epoch, model, train_loader, optimizer, out)
         losses.append(loss)
-    print("Training ended with losses: " + str(losses))
-    print("Training progressed with meaes: " + str(meaes))
+    #print("Training ended with losses: " + str(losses))
+    #print("Training progressed with meaes: " + str(meaes))
 
     save_model_to_file(best_model, model_path_out, lowest_err, optimizer)
     return dataset.nonzeros
