@@ -199,6 +199,7 @@ class Strategy:
         self.grading = [None, None]
         self.is_faulty = False
         self.progress = 0
+        self.next_metrics = None
 
     def get_given_teach_count(self):
         return len(self.file_list)

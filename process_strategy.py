@@ -70,6 +70,7 @@ def learning_loop(mission, iterations=1):
         if not trained:
             break
         grade_plan(mission)
+        mission.advance_mission(mission.c_strategy.next_metrics)
     mission.save()
 
 
@@ -107,7 +108,7 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         mission.c_strategy.eval_time = time.time() - start_time2
     if mission.c_strategy.progress == 2:
         metrics = process_ev_for_training(mission, dataset_path, conf=config, hist_nn=hist_nn)
-        mission.advance_mission(metrics)
+        mission.c_strategy.next_metrics = metrics
         mission.c_strategy.progress = 3
     return True
 
