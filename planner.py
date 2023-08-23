@@ -206,7 +206,8 @@ class Strategy:
 
     def print_parameters(self):
         print(
-            f"Uptime: {self.uptime}, Block size: {self.block_size}, place_weights: {self.place_weights}, time_limit: {self.time_limit}, iteration: {self.iteration}")
+            f"Uptime: {self.uptime}, Block size: {self.block_size}, place_weights: {np.array2string(self.place_weights, precision=2, floatmode='fixed')}, time_limit: {self.time_limit}, "
+            f"iteration: {self.iteration}, change_rate: {self.change_rate}, time_advance: {self.time_advance}")
 
     def setup_strategy(self, path):
         self.model_path = os.path.join(path, str(self.iteration) + "_weights.pt")
