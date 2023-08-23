@@ -15,6 +15,7 @@ class Grading:
         self.AC_nn_integral = None
         self.streak = None
         self.streak_integral = None
+        self.name = None
 
     def read_GT(gt):
         gt_disp = []
@@ -39,6 +40,7 @@ class Grading:
     def compute(self, displacement, gt, positions=None, plot=True, fig_place=None, hist=None, name=""):
         # displacement_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(displacement,
         #            np.array(gt), 0.5)
+        self.name = name
         displacement_filtered = filter_to_max(displacement, 1)
         disp = displacement - gt
         max_reached = np.count_nonzero(abs(displacement) > 1)
@@ -194,8 +196,8 @@ def grade_type(mission, _GT=None, estimates=None):
         hist_nn = hist_nn[slices[index][0]:slices[index][1]]
         GT_reduced = _GT[slices[index][0]:slices[index][1]]
         gt = read_gt_file(file_list, GT_reduced)
-        mission.c_strategy.grading = Grading()
-        mission.c_strategy.grading.compute(displacements, gt, mission.mission_folder, mission.c_strategy.plan,
+        mission.c_strategy.grading[index] = Grading()
+        mission.c_strategy.grading[index].compute(displacements, gt, mission.mission_folder, mission.c_strategy.plan,
                                            fig_place=mission.plot_folder, hist_nn=hist_nn, hist_fm=histograms,
                                            matches=matches, name=G)
 

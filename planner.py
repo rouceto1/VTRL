@@ -196,7 +196,7 @@ class Strategy:
         self.grading_path = None
         self.training_time = None
         self.eval_time = None
-        self.grading = None
+        self.grading = [None, None]
         self.is_faulty = False
         self.progress = 0
 
