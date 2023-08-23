@@ -67,22 +67,24 @@ def learning_loop(mission, iterations=1):
         mission.c_strategy.print_parameters()
         trained = process_plan(mission)  # trains and generates new metrics
         mission.save()
-    if trained:
+        if not trained:
+            break
         grade_plan(mission)
     mission.save()
 
 
 def grade_plan(mission, eval_to_file=False, grade=False):
     estimates_grade = None
-    if not os.path.exists(mission.c_strategy.grading_path) or eval_to_file:
+    if mission.c_strategy.progress == 3 or eval_to_file:
         with open(GT_file, 'rb') as _handle:
             gt_in = pickle.load(_handle)
         estimates_grade = evaluate_for_GT(mission, evaluation_prefix,
                                           evaluation_paths,
                                           _GT=gt_in, conf=config)
-
-    if not os.path.exists(os.path.join(mission.plot_folder, "input.png")) or grade:
+        mission.c_strategy.progress = 4
+    if mission.c_strategy.progress == 4 or grade:
         grade_type(mission, _GT=gt_in, estimates=estimates_grade)
+        mission.c_strategy.progress = 5
 
 
 def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=True):
@@ -93,17 +95,20 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         mission.c_strategy.is_faulty = True
         print("No new combos")
         return False
-    if not os.path.exists(mission.c_strategy.model_path) or enable_teach:
+    if mission.c_strategy.progress == 0 or enable_teach:
         _ = teach(dataset_path, mission, init_weights=init_weights, conf=config)
+        mission.c_strategy.progress = 1
         mission.c_strategy.train_time = time.time() - start_time
-    if not os.path.exists(mission.c_strategy.estimates_path) or enable_eval:
+    if mission.c_strategy.progress == 1 or enable_eval:
         start_time2 = time.time()
         hist_nn, displacements = evaluate_for_learning(mission, dataset_path,
                                                        conf=config)
+        mission.c_strategy.progress = 2
         mission.c_strategy.eval_time = time.time() - start_time2
-    if enable_metrics:
+    if mission.c_strategy.progress == 2:
         metrics = process_ev_for_training(mission, dataset_path, conf=config, hist_nn=hist_nn)
         mission.advance_mission(metrics)
+        mission.c_strategy.progress = 3
     return True
 
 
