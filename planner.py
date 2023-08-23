@@ -138,6 +138,7 @@ class Mission:
         np.random.seed(42)
 
         selected_seasons = rng.choice(range(start, last_season), size=int(new_season_count), replace=False)
+        newly_added = 0
 
         for season in range(start, last_season):
             if season in selected_seasons:
