@@ -196,7 +196,7 @@ class Strategy:
         self.grading_path = None
         self.training_time = None
         self.eval_time = None
-        self.grading = []
+        self.grading = None
         self.is_faulty = False
 
     def get_given_teach_count(self):
