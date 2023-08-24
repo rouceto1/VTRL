@@ -174,8 +174,8 @@ class Mission:
 
 # class strategy containing everything needed to make plan and eventually modify it
 class Strategy:
-    def __init__(self, uptime, block_size, dataset_weights, place_weights, time_limit, time_advance, change_rate,
-                 iteration):
+    def __init__(self, uptime=None, block_size=None, dataset_weights=None, place_weights=None, time_limit=None, time_advance=None, change_rate=None,
+                 iteration=None, duty_cycle=None):
         # internal variables: percentage_to_explore, block_size, dataset_weights, place_weights, iteration
         self.uptime = uptime
         self.block_size = block_size
@@ -185,9 +185,9 @@ class Strategy:
         self.iteration = iteration
         self.time_advance = time_advance  # how much is each new data training
         self.change_rate = change_rate  # how much to modify TODO make soemthing else then boolean
-        self.duty_cycle = 4.0
-
-        self.place_weights = self.process_weights(self.place_weights, np.ones(8), self.duty_cycle)
+        self.duty_cycle = duty_cycle
+        if place_weights is not None:
+            self.place_weights = self.process_weights(self.place_weights, np.ones(8), self.duty_cycle)
 
         self.plan = None
         self.used_teach_count = 0
@@ -210,6 +210,11 @@ class Strategy:
             f"Uptime: {self.uptime}, Block size: {self.block_size}, place_weights: {np.array2string(self.place_weights, precision=2, floatmode='fixed')}, time_limit: {self.time_limit}, "
             f"iteration: {self.iteration}, change_rate: {self.change_rate}, time_advance: {self.time_advance}")
 
+    def title_parameters(self):
+        if self.place_weights is None:
+            return f"U:{self.uptime},i:{self.time_limit} "
+        return f"U:{self.uptime},{np.array2string(self.place_weights, precision=1, floatmode='fixed')},i:{self.time_limit} "
+
     def setup_strategy(self, path):
         self.model_path = os.path.join(path, str(self.iteration) + "_weights.pt")
         self.estimates_path = os.path.join(path, str(self.iteration) + "_estimates.pkl")
@@ -219,12 +224,12 @@ class Strategy:
         # gives back new place weight multiplier besed on metrics
         # keeping the same exploration ratio
         self.time_limit += self.time_advance
+        self.iteration += 1
 
         if self.change_rate == 0.0:
             return
 
         self.place_weights = self.process_weights(self.place_weights, metrics, self.duty_cycle)
-        self.iteration += 1
 
     def process_weights(self,weights, metrics=np.ones(8), duty_cycle=1.0):
         ratio = sum(weights * metrics)
