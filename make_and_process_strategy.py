@@ -21,12 +21,11 @@ class NumpyArrayEncoder(JSONEncoder):
 
 
 def make_multiple_missions():
-    time_limits = np.array([0.3])
+    time_limits = np.array([0.143])
     block_size_list = [1]
     dataset_weights = [np.array([0.0, 1.0])]
     place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 0.2, 0.2, 0.2, 0.2]),  # outside less
                               np.array([0.2, 0.2, 0.2, 0.2, 1.0, 1.0, 1.0, 1.0]),  # inside less
-                              np.array([1.0, 1.0, 1.0, 0.2, 1.0, 1.0, 1.0, 1.0]),
                               np.array([1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
                               np.array([0.1, 1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
                               np.array([0.1, 0.1, 1.0, 0.1, 0.1, 0.1, 0.1, 0.1]),
@@ -38,19 +37,20 @@ def make_multiple_missions():
                               np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
                               ]
     uptime_list = np.array([0.30])
-    time_advance_list = np.array([0.0])
+    duty_cycle_list = np.array([4.0, 2.0])
+    time_advance_list = np.array([0.143])
     change_rate_list = np.array([1.0, 0.0])
     a = [uptime_list, block_size_list, dataset_weights, place_weights_contents, time_limits, time_advance_list,
-         change_rate_list]
+         change_rate_list,duty_cycle_list]
     combinations = list(itertools.product(*a))
     missions = []
     strategies = []
     for combination in combinations:
         strategy = Strategy(uptime=combination[0], block_size=combination[1], dataset_weights=combination[2],
-                            place_weights=combination[3], time_limit=combination[4], time_advance=combination[4],
-                            change_rate=combination[6], iteration=0)  # TODO make time_advance agnostic of time_limit
+                            place_weights=combination[3], time_limit=combination[4], time_advance=combination[5],
+                            change_rate=combination[6], iteration=0, duty_cycle=combination[7])  # TODO make time_advance agnostic of time_limit
         strategies.append(strategy)
-    strategies.sort(key=lambda x: x.uptime * sum(x.place_weights), reverse=False)
+    strategies.sort(key=lambda x: x.uptime * sum(x.place_weights)*x.duty_cycle, reverse=False)
 
     # this is split to compute supposedly fast strategies first
     for index, strategy in enumerate(strategies):
