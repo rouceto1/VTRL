@@ -27,8 +27,8 @@ train:
   help:
 eval:
   help: 30
-plot_training: True
-plot_eval_in_train: True
-plot_eval: True
+plot_training: False
+plot_eval_in_train: False
+plot_eval: False
 #tolerance: 32
 
