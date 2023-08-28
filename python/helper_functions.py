@@ -21,8 +21,11 @@ image_file_template = "season_%04d/%09d"
 def choose_proper_filetype(filetype, lst):
     file_lst = copy.deepcopy(lst).tolist()
     for i, f in enumerate(lst):
-        file_lst[i][0] = f[0] + filetype
-        file_lst[i][1] = f[1] + filetype
+        if not f[0].endswith(filetype):
+            file_lst[i][0] = f[0] + filetype
+            file_lst[i][1] = f[1] + filetype
+        else:
+            file_lst[i] = f
     return file_lst
 
 
