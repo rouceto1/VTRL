@@ -229,12 +229,16 @@ class Strategy:
             return
         if self.change_rate == -1.0:
             np.random.seed()
-            self.place_weights = self.process_weights(self.place_weights, np.random.rand(len(self.place_weights)),
+            self.place_weights = self.process_weights(np.random.rand(len(self.place_weights)), np.random.rand(len(self.place_weights)),
                                                       self.duty_cycle)
             np.random.seed(42)
-        self.place_weights = self.process_weights(self.place_weights, metrics, self.duty_cycle)
+            return
+        if self.iteration == 1:
+            self.place_weights = self.process_weights(np.ones(8), metrics, self.duty_cycle)
+        else:
+            self.place_weights = self.process_weights(self.place_weights, metrics, self.duty_cycle)
 
-    def process_weights(self, weights, metrics=np.ones(8), duty_cycle=1.0):
+    def process_weights(self, weights=np.ones(8), metrics=np.ones(8), duty_cycle=1.0):
         ratio = sum(weights * metrics)
         new_weights = weights * metrics * (duty_cycle / ratio)
         return self.clip_weights(new_weights)
