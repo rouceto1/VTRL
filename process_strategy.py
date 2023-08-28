@@ -104,9 +104,14 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         print("No new combos")
         return False
     if mission.c_strategy.progress == 0 or enable_teach:
-        _ = teach(dataset_path, mission, init_weights=init_weights, conf=config)
+        if mission.c_strategy.iteration == 0:
+            weights = init_weights
+        else:
+            weights = mission.old_strategies[-1].model_path
+        _ = teach(dataset_path, mission, init_weights=weights, conf=config)
         mission.c_strategy.progress = 1
         mission.c_strategy.train_time = time.time() - start_time
+
     if mission.c_strategy.progress == 1 or enable_eval:
         start_time2 = time.time()
         hist_nn, displacements = evaluate_for_learning(mission, dataset_path,

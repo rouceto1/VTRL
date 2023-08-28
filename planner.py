@@ -47,8 +47,8 @@ class Mission:
         print("Loaded mission: " + str(os.path.join(mission_folder, "mission.pickle")))
         return m
 
-    def setup_current_strategy(self):
-        self.c_strategy.setup_strategy(self.mission_folder)
+    def setup_current_strategy(self, init_weights=None):
+        self.c_strategy.setup_strategy(self.mission_folder, init_weights)
 
     def add_new_strategy(self, strategy):
         self.old_strategies.append(self.c_strategy)
@@ -207,15 +207,15 @@ class Strategy:
 
     def print_parameters(self):
         print(
-            f"Uptime: {self.uptime}, Block size: {self.block_size}, place_weights: {np.array2string(self.place_weights, precision=2, floatmode='fixed')}, time_limit: {self.time_limit}, "
-            f"iteration: {self.iteration}, change_rate: {self.change_rate}, time_advance: {self.time_advance}")
+            f"Up: {self.uptime}, Bs: {self.block_size}, pw: {np.array2string(self.place_weights, precision=2, floatmode='fixed')}, lim e: {self.time_limit}, "
+            f"it: {self.iteration}, cr: {self.change_rate}, ta {self.time_advance}")
 
     def title_parameters(self):
         if self.place_weights is None:
             return f"U:{self.uptime},i:{self.time_limit},c:{self.change_rate}"
         return f"U:{self.uptime},{np.array2string(self.place_weights, precision=1, floatmode='fixed')},i:{self.time_limit:.1f}:c:{self.change_rate}"
 
-    def setup_strategy(self, path):
+    def setup_strategy(self, path, init_weights):
         self.model_path = os.path.join(path, str(self.iteration) + "_weights.pt")
         self.estimates_path = os.path.join(path, str(self.iteration) + "_estimates.pkl")
         self.grading_path = os.path.join(path, str(self.iteration) + "_grading.pkl")
