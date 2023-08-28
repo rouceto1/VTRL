@@ -76,7 +76,7 @@ class Mission:
         self.setup_current_strategy()
         self.plan_modifier(self.old_strategies[-1].plan, self.old_strategies[-1])
 
-    def plan_modifier(self, old_plan=[None,None], old_strategy=None):
+    def plan_modifier(self, old_plan=[None, None], old_strategy=None):
         total_seasons = [30, 1007]
         total_places = [271, 8]
         places_out_cestlice, c1 = self.make_plan(old_plan[0], old_strategy, seasons=total_seasons[0],
@@ -139,20 +139,15 @@ class Mission:
 
         selected_seasons = rng.choice(range(start, last_season), size=int(new_season_count), replace=False)
         newly_added = 0
-
+        r = np.random.rand(len(plan), len(plan[0]))
         for season in range(start, last_season):
             if season in selected_seasons:
                 for p in range(places):
-                    if self.bool_based_on_probability(place_weights[p]):
+                    if r[season][p] < place_weights[p]:
                         newly_added += 1
                         plan[season][p] = True
 
         return plan, newly_added
-
-    def bool_based_on_probability(self, probability=0.5):
-        random.seed(42)
-
-        return random.random() < probability
 
     def save_plan(self, name, experiments_path, uptime, block_size, dataset_weights,
                   plan, time_limit, places_weights=None, iteration=0):

@@ -45,6 +45,7 @@ def setup_missions(missions, exp_folder_name):
         mission.setup_mission(exp_folder_name)  # setups folderrs for specific missio
         mission.plan_modifier()  # generates first plan for current strategy of the mission
         mission.setup_current_strategy()  # sets up current mission
+        mission.c_strategy.print_parameters()
         mission.save()
 
 
