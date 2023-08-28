@@ -93,6 +93,7 @@ def combine_GT(GT1, GT2):
     # extend GT2 by 2000 random entries form GT1
     rng = np.random.default_rng()
     numbers = rng.choice(len(GT1), size=2000, replace=False)
+    print("The divide is at: ", len(GT2), " minus all other lines: ")
     for i in numbers:
         GT2.append(GT1[i])
 
@@ -141,5 +142,6 @@ if __name__ == "__main__":
     grief_gt_combined = combine_annotations(grief_gt_basic)
 
     gt_out = combine_GT(strands_gt_combined, grief_gt_combined)
+    gt_out = combine_GT(strands_gt_combined, [])
     gt_chacked = sanity_check(gt_out)
     save_GT(final_GT_path, gt_chacked)
