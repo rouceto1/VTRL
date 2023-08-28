@@ -63,7 +63,9 @@ def process_old(names, exp_folder_name):
 
 def learning_loop(mission, iterations=1):
     print("-----------------------------------------------------------------------")
+    save = False
     while not mission.no_more_data:
+        save = True
         print(mission.name)
         mission.c_strategy.print_parameters()
         trained = process_plan(mission)  # trains and generates new metrics
@@ -73,7 +75,8 @@ def learning_loop(mission, iterations=1):
         mission.save()
         print("Metrics: ", mission.c_strategy.next_metrics)
         mission.advance_mission(mission.c_strategy.next_metrics)
-    mission.save()
+    if save:
+        mission.save()
 
 
 def grade_plan(mission, eval_to_file=False, grade=False):
