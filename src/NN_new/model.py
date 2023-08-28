@@ -191,7 +191,7 @@ def save_model(model, name, epoch, optimizer=None):
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict() if optimizer is not None else None
     }, "./results_" + name + "/model_" + str(epoch) + ".pt")
-    print("Model saved to: " + "./results_" + name + "/model_" + str(epoch) + ".pt")
+    #print("Model saved to: " + "./results_" + name + "/model_" + str(epoch) + ".pt")
 
 
 def save_model_to_file(model, file_path, epoch, optimizer=None):

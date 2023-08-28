@@ -63,6 +63,7 @@ def process_old(names, exp_folder_name):
 
 def learning_loop(mission, iterations=1):
     print("-----------------------------------------------------------------------")
+    s_time = time.time()
     save = False
     while not mission.no_more_data:
         save = True
@@ -77,6 +78,7 @@ def learning_loop(mission, iterations=1):
         mission.advance_mission(mission.c_strategy.next_metrics)
     if save:
         mission.save()
+    print("Mission processing:", time.time() - s_time)
 
 
 def grade_plan(mission, eval_to_file=False, grade=False):

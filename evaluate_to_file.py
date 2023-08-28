@@ -150,7 +150,7 @@ def evaluate_for_GT(mission, _evaluation_prefix, _evaluation_paths, _GT=None,
                       conf=conf)]
     with open(mission.c_strategy.grading_path, 'wb') as handle:
         pickle.dump(out, handle)
-    print("GT estiamtes output at:" + str(mission.c_strategy.grading_path))
+    #print("GT estiamtes output at:" + str(mission.c_strategy.grading_path))
     return out
 
 
