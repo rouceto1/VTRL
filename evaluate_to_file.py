@@ -80,7 +80,7 @@ def calculate_metrics(mission, bad_files, file_pair_list):
 
     data_frame1 = pd.DataFrame([mission.c_strategy.place_weights, sum_given_place / max(sum_given_place),
                                 sum_used_place / max(sum_used_place), badness_per_place],
-                               index=["P(used position)", "P(given)", "used", "used bad"],
+                               index=["weights", "P(given)", "used", "metrics"],
                                columns=["krajnas", "office street", "office stairs", "kitchen",
                                         "office outside entrance", "sofas outside",
                                         "office outside", "office outisde2"])
@@ -93,9 +93,8 @@ def calculate_metrics(mission, bad_files, file_pair_list):
     times_used = temp + used_strands
 
     fig, axs = plt.subplots(3)
-    fig.suptitle(str(mission.c_strategy.place_weights) + " all times actually used")
+    fig.suptitle("Given per place:" + str(sum_given_place))
     sns.heatmap(np.transpose(times_used), vmin=-1, ax=axs[0])
-    plt.title(str(mission.c_strategy.place_weights) + " strands")
     sns.heatmap(np.transpose(bedness_per_image), ax=axs[1])
     t = (np.sum(used_strands, axis=1) != 0)
     filtered_w_bad_s = bedness_per_image[t, :]
@@ -108,8 +107,10 @@ def calculate_metrics(mission, bad_files, file_pair_list):
     fig.savefig(os.path.join(mission.c_strategy.usage_path), dpi=800)
 
     # save data to pickle
-    with open(os.path.join(mission.mission_folder, "usage.pickle"), 'wb') as handle:
+    with open(os.path.join(mission.c_strategy.metrics_path) + ".pkl", 'wb') as handle:
         pickle.dump(data_frame1, handle)
+    with open(os.path.join(mission.c_strategy.usage_path) + ".pkl", 'wb') as handle:
+        pickle.dump(data_frame, handle)
 
     return badness_per_place
     # plt.show()
