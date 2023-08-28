@@ -25,9 +25,9 @@ def get_metric_of_well_understood_image_pairs(histograms, file_list):
     well_understood = []
     bad = []
     for i in range(len(entropies)):
-        if entropies[i] < mean + std * 0.0:
+        if entropies[i] < mean + std * 0.1:
             well_understood.append(file_list[i])
-        if entropies[i] >= mean + std * 0.0:
+        if entropies[i] >= mean + std * 0.1:
             bad.append(file_list[i])
     return well_understood, bad
 
@@ -54,7 +54,7 @@ def parse_given_file_list(file_list):
     return pairs
 
 
-def make_confusion_matrix_for_bad_files(mission, bad_files, file_pair_list):
+def calculate_metrics(mission, bad_files, file_pair_list):
     bad_strands = np.zeros_like(mission.c_strategy.plan[1], dtype=float)
     used_strands = np.zeros_like(mission.c_strategy.plan[1], dtype=float)
     for i in range(len(bad_files)):
@@ -87,7 +87,7 @@ def make_confusion_matrix_for_bad_files(mission, bad_files, file_pair_list):
     plt.figure()
     sns.heatmap(np.transpose(data_frame1), xticklabels=1, yticklabels=1, annot=True)
     plt.tight_layout()
-    plt.savefig(os.path.join(mission.plot_folder, "usage.png"), dpi=800)
+    plt.savefig(os.path.join(mission.c_strategy.metrics_path), dpi=800)
     #### plot used positions and weighted bad positions, each bad position is sum how many times/ how many times used
     temp = np.array(mission.c_strategy.plan[1]) - 1.0
     times_used = temp + used_strands
@@ -105,7 +105,7 @@ def make_confusion_matrix_for_bad_files(mission, bad_files, file_pair_list):
                                        "office outside entrance", "sofas outside", "office outside", "office outisde2"])
     sns.heatmap(np.transpose(data_frame), ax=axs[2], xticklabels=1, yticklabels=1)
 
-    fig.savefig(os.path.join(mission.plot_folder, str(mission.name) + "usage_heatmap.png"), dpi=800)
+    fig.savefig(os.path.join(mission.c_strategy.usage_path), dpi=800)
 
     # save data to pickle
     with open(os.path.join(mission.mission_folder, "usage.pickle"), 'wb') as handle:
@@ -127,7 +127,7 @@ def process_ev_for_training(mission, _dataset_path, old_plan=None,
     good_list = parse_given_file_list(well_understood_nn)  # array of [tuples(place, season)]
     bad_list = parse_given_file_list(bad_nn)  # array of [tuples(place, season)]
     file_pair_list = parse_given_file_list(file_list)  # array of [tuples(place, season)]
-    metrics = make_confusion_matrix_for_bad_files(mission, bad_list,  file_pair_list)
+    metrics = calculate_metrics(mission, bad_list,  file_pair_list)
     return metrics
 
 def evaluate_for_learning(mission, _dataset_path,

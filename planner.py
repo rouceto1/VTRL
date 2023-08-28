@@ -132,7 +132,6 @@ class Mission:
             last_season = seasons
             return plan, 0
 
-
         available_seasons = last_season - start
         new_season_count = available_seasons * uptime * weight
         rng = np.random.default_rng()
@@ -174,7 +173,8 @@ class Mission:
 
 # class strategy containing everything needed to make plan and eventually modify it
 class Strategy:
-    def __init__(self, uptime=None, block_size=None, dataset_weights=None, place_weights=None, time_limit=None, time_advance=None, change_rate=None,
+    def __init__(self, uptime=None, block_size=None, dataset_weights=None, place_weights=None, time_limit=None,
+                 time_advance=None, change_rate=None,
                  iteration=None, duty_cycle=None):
         # internal variables: percentage_to_explore, block_size, dataset_weights, place_weights, iteration
         self.uptime = uptime
@@ -195,6 +195,8 @@ class Strategy:
         self.model_path = None
         self.estimates_path = None
         self.grading_path = None
+        self.usage_path = None
+        self.metrics_path = None
         self.training_time = None
         self.eval_time = None
         self.grading = [None, None]
@@ -219,6 +221,8 @@ class Strategy:
         self.model_path = os.path.join(path, str(self.iteration) + "_weights.pt")
         self.estimates_path = os.path.join(path, str(self.iteration) + "_estimates.pkl")
         self.grading_path = os.path.join(path, str(self.iteration) + "_grading.pkl")
+        self.usage_path = os.path.join(path, str(self.iteration) + "_usage.png")
+        self.metrics_path = os.path.join(path, str(self.iteration) + "_metrics.png")
 
     def strategy_modifier(self, metrics):
         # gives back new place weight multiplier besed on metrics
@@ -230,11 +234,12 @@ class Strategy:
             return
         if self.change_rate == -1.0:
             np.random.seed()
-            self.place_weights = self.process_weights(self.place_weights,np.random.rand(len(self.place_weights)),self.duty_cycle)
+            self.place_weights = self.process_weights(self.place_weights, np.random.rand(len(self.place_weights)),
+                                                      self.duty_cycle)
             np.random.seed(42)
         self.place_weights = self.process_weights(self.place_weights, metrics, self.duty_cycle)
 
-    def process_weights(self,weights, metrics=np.ones(8), duty_cycle=1.0):
+    def process_weights(self, weights, metrics=np.ones(8), duty_cycle=1.0):
         ratio = sum(weights * metrics)
         new_weights = weights * metrics * (duty_cycle / ratio)
         return self.clip_weights(new_weights)
@@ -253,11 +258,6 @@ class Strategy:
         none_one = sum(weights < 1.0)
         for i in range(len(weights)):
             if weights[i] < 1.0:
-                weights[i] += remainder/none_one
+                weights[i] += remainder / none_one
 
         return self.clip_weights(weights)
-
-
-
-
-
