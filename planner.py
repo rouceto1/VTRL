@@ -60,14 +60,15 @@ class Mission:
         try:
             os.mkdir(self.mission_folder)
         except FileExistsError:
-            # print("Strategy already exists " + os.path.join(experiments_path, name))
-            pass
+            print("Mission already exists " + os.path.join(experiments_path))
+            return 0
         try:
             self.plot_folder = os.path.join(self.experiments_path, self.name) + "/plots"
             os.mkdir(self.plot_folder)
         except FileExistsError:
-            pass
+            return 0
         self.set_up = True
+        return 1
 
     def advance_mission(self, metrics):
         self.add_new_strategy(copy.deepcopy(self.c_strategy))
@@ -170,7 +171,7 @@ class Mission:
 class Strategy:
     def __init__(self, uptime=None, block_size=None, dataset_weights=None, place_weights=None, time_limit=None,
                  time_advance=None, change_rate=None,
-                 iteration=None, duty_cycle=None):
+                 iteration=None, duty_cycle=None, preteach=None):
         # internal variables: percentage_to_explore, block_size, dataset_weights, place_weights, iteration
         self.uptime = uptime
         self.block_size = block_size
@@ -181,6 +182,7 @@ class Strategy:
         self.time_advance = time_advance  # how much is each new data training
         self.change_rate = change_rate  # how much to modify TODO make soemthing else then boolean
         self.duty_cycle = duty_cycle
+        self.preteach = preteach
         if place_weights is not None:
             self.place_weights = self.process_weights(self.place_weights, np.ones(8), self.duty_cycle)
 
@@ -197,6 +199,7 @@ class Strategy:
         self.grading = [None, None]
         self.is_faulty = False
         self.progress = 0
+
         self.next_metrics = None
 
     def get_given_teach_count(self):
@@ -209,8 +212,8 @@ class Strategy:
 
     def title_parameters(self):
         if self.place_weights is None:
-            return f"U:{self.uptime},i:{self.time_limit},c:{self.change_rate}"
-        return f"U:{self.uptime},{np.array2string(self.place_weights, precision=1, floatmode='fixed')},i:{self.time_limit:.1f}:c:{self.change_rate}"
+            return f"U:{self.uptime},i:{self.iteration},c:{self.change_rate}"
+        return f"U:{self.uptime},{np.array2string(self.place_weights, precision=1, floatmode='fixed')},i:{self.iteration}:c:{int(self.change_rate)}"
 
     def setup_strategy(self, path, init_weights):
         self.model_path = os.path.join(path, str(self.iteration) + "_weights.pt")

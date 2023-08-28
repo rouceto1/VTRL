@@ -21,40 +21,38 @@ class NumpyArrayEncoder(JSONEncoder):
 
 
 def make_multiple_missions():
-    time_limits = np.array([0.24])
+    time_limits = np.array([0.20])
     block_size_list = [1]
     dataset_weights = [np.array([0.0, 1.0])]
-    place_weights_contents = [np.array([1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
-                              np.array([0.1, 1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
-                              np.array([0.1, 0.1, 0.1, 1.0, 0.1, 0.1, 0.1, 0.1]),
-                              np.array([0.1, 0.1, 0.1, 0.1, 0.1, 1.0, 0.1, 0.1]),
-                              np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0, 0.1]),
-                              np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0]),
-                              np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+    place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 0.2, 0.2, 0.2, 0.2]),
+                              np.array([1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
+                              np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+                              np.array([1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0])
                               ]
-    uptime_list = np.array([0.30])
-    duty_cycle_list = np.array([4.0, 2.0])
-    time_advance_list = np.array([0.24])
-    change_rate_list = np.array([1.0, 0.0])
+    preteach_list = [True, False]
+    uptime_list = np.array([0.25, 0.40, 0.10])
+    duty_cycle_list = np.array([1.0, 3.0, 5.0])
+    time_advance_list = np.array([0.20])
+    change_rate_list = np.array([1.0, 0.0, -1.0])
     a = [uptime_list, block_size_list, dataset_weights, place_weights_contents, time_limits, time_advance_list,
-         change_rate_list, duty_cycle_list]
+         change_rate_list, duty_cycle_list,preteach_list]
     combinations = list(itertools.product(*a))
     missions = []
     strategies = []
     for combination in combinations:
         strategy = Strategy(uptime=combination[0], block_size=combination[1], dataset_weights=combination[2],
                             place_weights=combination[3], time_limit=combination[4], time_advance=combination[5],
-                            change_rate=combination[6], iteration=0, duty_cycle=combination[7])  # TODO make time_advance agnostic of time_limit
+                            change_rate=combination[6], iteration=0, duty_cycle=combination[7], preteach=combination[8])  # TODO make time_advance agnostic of time_limit
         strategies.append(strategy)
     random_strategy_1 = Strategy(uptime=combination[0], block_size=combination[1], dataset_weights=combination[2],
                             place_weights=np.random.rand(len(combination[3])), time_limit=combination[4], time_advance=combination[5],
-                            change_rate=-1.0, iteration=0, duty_cycle=duty_cycle_list[0])
-    random_strategy_2 = Strategy(uptime=combination[0], block_size=combination[1], dataset_weights=combination[2],
-                            place_weights=np.random.rand(len(combination[3])), time_limit=combination[4], time_advance=combination[5],
-                            change_rate=-1.0, iteration=0, duty_cycle=duty_cycle_list[1])
-    strategies.append(random_strategy_1)
+                            change_rate=-1.0, iteration=0, duty_cycle=duty_cycle_list[0], preteach=combination[8])
+    random_strategy_2 = Strategy(uptime=0.99, block_size=combination[1], dataset_weights=combination[2],
+                            place_weights=np.ones(len(combination[3])), time_limit=combination[4], time_advance=combination[5],
+                            change_rate=0.0, iteration=0, duty_cycle=8.0, preteach=True)
+    #strategies.append(random_strategy_1)
     strategies.append(random_strategy_2)
-    strategies.sort(key=lambda x: x.uptime * sum(x.place_weights)*x.duty_cycle, reverse=False)
+    strategies.sort(key=lambda x: x.uptime * x.duty_cycle, reverse=False)
 
     # this is split to compute supposedly fast strategies first
     for index, strategy in enumerate(strategies):

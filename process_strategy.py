@@ -42,7 +42,9 @@ config = load_config("NN_config.yaml", 512)
 
 def setup_missions(missions, exp_folder_name):
     for mission in missions:
-        mission.setup_mission(exp_folder_name)  # setups folderrs for specific missio
+        exists = mission.setup_mission(exp_folder_name)  # setups folderrs for specific missio
+        if exists:
+            continue
         mission.plan_modifier()  # generates first plan for current strategy of the mission
         mission.setup_current_strategy()  # sets up current mission
         mission.c_strategy.print_parameters()
@@ -106,7 +108,7 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         print("No new combos")
         return False
     if mission.c_strategy.progress == 0 or enable_teach:
-        if mission.c_strategy.iteration == 0:
+        if not mission.c_strategy.preteach:
             weights = init_weights
         else:
             weights = mission.old_strategies[-1].model_path

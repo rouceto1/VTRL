@@ -59,8 +59,8 @@ def calculate_metrics(mission, bad_files, file_pair_list):
     used_strands = np.zeros_like(mission.c_strategy.plan[1], dtype=float)
     for i in range(len(bad_files)):
         if bad_files[i][0][0] == "strands":
-            bad_strands[bad_files[i][0][2]][bad_files[i][0][1]] += 1.0
-            bad_strands[bad_files[i][1][2]][bad_files[i][1][1]] += 1.0
+            bad_strands[bad_files[i][0][2]][bad_files[i][0][1]] += 1.0 #bad_files[i][0][3]
+            bad_strands[bad_files[i][1][2]][bad_files[i][1][1]] += 1.0 #bad_files[i][1][3]
     for i in range(len(file_pair_list)):
         if file_pair_list[i][0][0] == "strands":
             used_strands[file_pair_list[i][0][2]][file_pair_list[i][0][1]] += 1.0
