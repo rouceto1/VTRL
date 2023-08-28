@@ -212,8 +212,8 @@ class Strategy:
 
     def title_parameters(self):
         if self.place_weights is None:
-            return f"U:{self.uptime},i:{self.time_limit} "
-        return f"U:{self.uptime},{np.array2string(self.place_weights, precision=1, floatmode='fixed')},i:{self.time_limit} "
+            return f"U:{self.uptime},i:{self.time_limit},c:{self.change_rate}"
+        return f"U:{self.uptime},{np.array2string(self.place_weights, precision=1, floatmode='fixed')},i:{self.time_limit:.1f}:c:{self.change_rate}"
 
     def setup_strategy(self, path):
         self.model_path = os.path.join(path, str(self.iteration) + "_weights.pt")
@@ -228,7 +228,10 @@ class Strategy:
 
         if self.change_rate == 0.0:
             return
-
+        if self.change_ratae == -1.0:
+            np.random.seed()
+            self.place_weights = self.process_weights(self.place_weights,np.random.rand(len(self.place_weights)),self.duty_cycle)
+            np.random.seed(42)
         self.place_weights = self.process_weights(self.place_weights, metrics, self.duty_cycle)
 
     def process_weights(self,weights, metrics=np.ones(8), duty_cycle=1.0):
