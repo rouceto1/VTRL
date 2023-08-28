@@ -21,16 +21,12 @@ class NumpyArrayEncoder(JSONEncoder):
 
 
 def make_multiple_missions():
-    time_limits = np.array([0.143])
+    time_limits = np.array([0.24])
     block_size_list = [1]
     dataset_weights = [np.array([0.0, 1.0])]
-    place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 0.2, 0.2, 0.2, 0.2]),  # outside less
-                              np.array([0.2, 0.2, 0.2, 0.2, 1.0, 1.0, 1.0, 1.0]),  # inside less
-                              np.array([1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
+    place_weights_contents = [np.array([1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
                               np.array([0.1, 1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
-                              np.array([0.1, 0.1, 1.0, 0.1, 0.1, 0.1, 0.1, 0.1]),
                               np.array([0.1, 0.1, 0.1, 1.0, 0.1, 0.1, 0.1, 0.1]),
-                              np.array([0.1, 0.1, 0.1, 0.1, 1.0, 0.1, 0.1, 0.1]),
                               np.array([0.1, 0.1, 0.1, 0.1, 0.1, 1.0, 0.1, 0.1]),
                               np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0, 0.1]),
                               np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 1.0]),
@@ -38,7 +34,7 @@ def make_multiple_missions():
                               ]
     uptime_list = np.array([0.30])
     duty_cycle_list = np.array([4.0, 2.0])
-    time_advance_list = np.array([0.143])
+    time_advance_list = np.array([0.24])
     change_rate_list = np.array([1.0, 0.0])
     a = [uptime_list, block_size_list, dataset_weights, place_weights_contents, time_limits, time_advance_list,
          change_rate_list, duty_cycle_list]
