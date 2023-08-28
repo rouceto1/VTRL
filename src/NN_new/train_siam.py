@@ -20,7 +20,7 @@ def hard_negatives(batch, heatmaps):
         if num % 2 == 1:
             num -= 1
 
-        indices = t.tensor(np.random.choice(np.arange(0, conf["batch_size_train"]), num), device=device)
+        indices = t.tensor(np.random.choice(np.arange(0, len(heatmaps)), num), device=device)
         heatmaps[indices, :] = 0.0
         tmp_t = t.clone(batch[indices[:num // 2]])
         batch[indices[:num // 2]] = batch[indices[num // 2:]]
