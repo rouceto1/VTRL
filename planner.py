@@ -228,7 +228,7 @@ class Strategy:
 
         if self.change_rate == 0.0:
             return
-        if self.change_ratae == -1.0:
+        if self.change_rate == -1.0:
             np.random.seed()
             self.place_weights = self.process_weights(self.place_weights,np.random.rand(len(self.place_weights)),self.duty_cycle)
             np.random.seed(42)
