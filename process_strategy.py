@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 from evaluate_to_file import *
 from teach import *
-from annotate import *
-from python.grade_results import *
+from metrics import *
+#from annotate import *
+from python.grading.grade_results import *
 import argparse
 from python.helper_functions import *
 import time
@@ -130,5 +131,15 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
 
 
 if __name__ == "__main__":
-    REDO = [False, False, True, True]
-    process_new(["none"], REDO)
+    pwd = os.getcwd()
+    exp_path = "experiments"
+    # exp_path = "backups/learning"
+    experiments_path = os.path.join(pwd, exp_path)
+    paths = [item for item in os.listdir(experiments_path) if os.path.isdir(os.path.join(experiments_path, item))]
+    teach = False
+    e_teach = False
+    e_grade = False
+    grade = True
+    redo = [teach, e_teach, e_grade, grade]
+    paths.sort()
+    process_old(paths, exp_folder_name=exp_path)

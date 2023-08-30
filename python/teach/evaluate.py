@@ -6,6 +6,29 @@ import src.FM.python.python_module as grief
 import cv2 as cv
 import matplotlib.pyplot as plt
 
+def evaluate_for_learning(mission, _dataset_path,
+                          _cache2=None, conf=None):
+    hist_nn, displacement_nn = NN_eval(mission.c_strategy.file_list,
+                                       os.path.join(mission.experiments_path, mission.name) + "/plots",
+                                       mission.c_strategy.model_path,
+                                       conf)
+    with open(mission.c_strategy.estimates_path, 'wb') as handle:
+        pickle.dump(hist_nn, handle)
+
+    return hist_nn, displacement_nn
+
+
+def evaluate_for_GT(mission, _evaluation_prefix, _evaluation_paths, _GT=None,
+
+                    _cache2="/tmp/cache.pkl", conf=None):
+    file_list = make_file_list_from_gt(_evaluation_prefix, _GT)
+    out = [fm_nn_eval(file_list, filetype_NN, filetype_FM, mission.plot_folder, mission.c_strategy.model_path, _cache2,
+                      conf=conf)]
+    with open(mission.c_strategy.grading_path, 'wb') as handle:
+        pickle.dump(out, handle)
+    #print("GT estiamtes output at:" + str(mission.c_strategy.grading_path))
+    return out
+
 
 def NN_eval(file_list_nn, out_path, weights_file, conf):
     if conf["old"]:
@@ -61,23 +84,6 @@ def fm_nn_eval(file_list, filetype_nn, filetype_fm, out_path, weights_file, cach
     # file_list = np.array(file_list)[:count]
     np.set_printoptions(threshold=sys.maxsize)
     return file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn
-
-
-def plot_fm_list(list):
-    for entry in list:
-        f, axarr = plt.subplots(2)
-        image1 = cv.imread(entry[0] + ".bmp")
-        image2 = cv.imread(entry[1] + ".bmp")
-        x1 = int(image1.shape[1] / 2 - image1.shape[1] * float(entry[2]))
-        x2 = int(image1.shape[1] / 2 + image1.shape[1] * float(entry[2]))
-        cv.line(image1, (image1.shape[1] // 2, 0), (image1.shape[1] // 2, image1.shape[0]), (0, 255, 0), thickness=2)
-        cv.line(image2, (x1, 0), (x1, image1.shape[0]), (0, 255, 0), thickness=2)
-        cv.line(image2, (x2, 0), (x2, image1.shape[0]), (255, 0, 0), thickness=2)
-        axarr[0].imshow(image1)
-        axarr[1].imshow(image2)
-        axarr[0].set_xlabel(entry[3])
-        axarr[1].set_xlabel(entry[4])
-        # plt.show()
 
 
 ##

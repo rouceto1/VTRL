@@ -1,10 +1,10 @@
 import os
-import csv
-import numpy as np
-import pickle
+
 import matplotlib.pyplot as plt
-import seaborn as sn
+import numpy as np
 import pandas as pd
+import seaborn as sn
+
 from planner import Mission, Strategy
 
 pwd = os.getcwd()
@@ -86,14 +86,14 @@ class Results:
             hex_out.append('#%02x%02x%02x' % tuple(rgb))
         return hex_out
 
-    def is_strategy_same_as_params(self, strategy, params):
+    def is_strategy_same_as_params(self, strategy, params, exclude):
 
         strategy_keys = ["uptime", "block_size", "dataset_weights", "used_teach_count", "place_weights", "time_limit",
                          "time_advance", "change_rate", "iteration", "duty_cycle"]
         p = get_only_keys(strategy_keys, vars(params))
         m = get_only_keys(strategy_keys, vars(strategy))
+        e = get_only_keys(strategy_keys, vars(exclude))
         # compare dicts p and m and return true if non None values from p are same in m
-        print(p["iteration"], m["iteration"])
         for key in p:
             if p[key] is not None:
                 if key in ["used_teach_count"]:
@@ -106,9 +106,23 @@ class Results:
                         return False
                 elif p[key] != m[key]:
                     return False
+
+        for key in e:
+            if e[key] is not None:
+                if key in ["used_teach_count"]:
+                    if e[key] == 0:
+                        continue
+                    if e[key] >= m[key]:
+                        return False
+                elif key in ["place_weights"]:
+                    if np.array_equal(p[key], m[key]):
+                        return False
+                elif e[key] == m[key]:
+                    return False
+
         return True
 
-    def prepare_plot(self, mission_params=None, stategy_params=None, sorting_params=None):
+    def filter_strategies(self, mission_params=None, stategy_params=None, exclude_strategy=None, sorting_params=None):
 
         # dam inclusion param pro mise // napr mise se specifickym polem na startu
         # dam inclusion param pro strategie //napr pouze 3. iterace
@@ -118,7 +132,7 @@ class Results:
         strategies = []
         for mission in self.missions:
             for strategy in mission.old_strategies:
-                if not self.is_strategy_same_as_params(strategy, stategy_params):
+                if not self.is_strategy_same_as_params(strategy, stategy_params, exclude_strategy):
                     continue
                 if getattr(strategy, sorting_params) not in values:
                     values.append(getattr(strategy, sorting_params))
@@ -126,28 +140,66 @@ class Results:
 
         # TODO make this by sortin_params, prolly use getattribute....
         strategies.sort(key=lambda x: getattr(x, sorting_params), reverse=False)
-        colors = self.get_N_HexCol(len(strategies) // 2)
+        colors = self.get_N_HexCol(len(strategies))
         return strategies, colors, values
 
-    def plot_lines(self, filter_strategy=Strategy()):
+    def scatter(self, filter_strategy=Strategy(), sorting_paramteres="change_rate", exclude_strategy=Strategy()):
         fig = plt.figure()
         ax = plt.gca()
-        sort = "change_rate"
-        strategies_to_plot, colors, values = self.prepare_plot(stategy_params=filter_strategy, sorting_params=sort)
-        styles = ["solid","dashed","dashdot","dotted"]
+        strategies_to_plot, colors, values = self.filter_strategies(stategy_params=filter_strategy,
+                                                                    sorting_params=sorting_paramteres,
+                                                                    exclude_strategy=exclude_strategy)
         GT_versions = ["strands", "grief"]
         for s, strategy in enumerate(strategies_to_plot):
             grading = strategy.grading
             for grade in grading:
+                if grade is None:
+                    continue
                 if grade.name == "grief":
                     continue
-                style = "solid"
+                style = "."
+                styles = [".", "P", "*", "d"]
+                t = strategy.title_parameters()
+
                 if len(values) <= len(styles):
-                    style = styles[values.index(getattr(strategy, sort))]
+                    style = styles[values.index(getattr(strategy, sorting_paramteres))]
+                ax.scatter(getattr(strategy, sorting_paramteres), grade.AC_fm_integral,
+                           label=t, c=colors[s],
+                           alpha=0.5, marker=style)
+                ax.annotate(t, (getattr(strategy, sorting_paramteres), grade.AC_fm_integral))
+
+        ax.set_xscale('symlog')
+        plt.ylabel("Integral")
+        plt.xlabel(sorting_paramteres)
+        # plt.legend()
+        # plt.savefig(self.output_graph_path)
+
+    def plot(self, filter_strategy=Strategy(), sorting_paramteres="change_rate",exclude_strategy=Strategy()):
+        fig = plt.figure()
+        ax = plt.gca()
+        strategies_to_plot, colors, values = self.filter_strategies(stategy_params=filter_strategy,
+                                                                    sorting_params=sorting_paramteres,
+                                                                    exclude_strategy=exclude_strategy)
+        GT_versions = ["strands", "grief"]
+        for s, strategy in enumerate(strategies_to_plot):
+            grading = strategy.grading
+            for grade in grading:
+                if grade is None:
+                    continue
+                if grade.name == "grief":
+                    pass
+                    continue
+                style = "solid"
+                styles = ["solid", "dashed", "dashdot", "dotted"]
+                if len(values) <= len(styles):
+                    style = styles[values.index(getattr(strategy, sorting_paramteres))]
+                    print(values.index(getattr(strategy, sorting_paramteres)))
                 line_fm = grade.AC_fm
                 line_nn = grade.AC_nn
-                ax.plot(line_fm[0], line_fm[1], label=strategy.title_parameters(), c=colors[s // 2], alpha=0.5,linestyle=style)
-                ax.plot(line_nn[0], line_nn[1], label=strategy.title_parameters(), c=colors[s // 2], alpha=0.5,linestyle=style)
+                ax.plot(line_fm[0], line_fm[1], label=strategy.title_parameters(), c=colors[s], alpha=0.5,
+                        linestyle=style)
+                # ax.plot(line_nn[0], line_nn[1], label=strategy.title_parameters(), c=colors[s], alpha=0.5,
+                #        linestyle=style)
 
         plt.axvline(x=0.035, color='k')
         plt.legend()
@@ -155,100 +207,45 @@ class Results:
         plt.title(filter_strategy.title_parameters())
         plt.xlabel("allowed image shift")
         plt.ylabel("probability of correct registration")
-        plt.show()
 
-    def plot_scatter(self, gt_type="", filter=False, NN=False, both=False):
-        fig = plt.figure()
-        ax = plt.gca()
-        for i, data in enumerate(self.data):
-            if not gt_type in self.data[i][self.gt_type]:
-                continue
-            if float(self.data[i][self.data_counts_filtered]) > 2000:
-                pass
-                if filter:
-                    continue
-            if not NN or both:
-                ax.scatter(float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral_nn]),
-                           label=self.data[i][self.names] + self.data[i][self.data_counts_filtered], c=self.t[i],
-                           alpha=0.5)
-                ax.annotate(self.data[i][self.names] + " NN",
-                            (float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral_nn])))
-            if NN or both:
-                ax.scatter(float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral]),
-                           label=self.data[i][self.names] + self.data[i][self.data_counts_filtered], c=self.t[i],
-                           alpha=0.5)
-                ax.annotate(self.data[i][self.names],
-                            (float(self.data[i][self.data_counts_filtered]), float(self.data[i][self.integral])))
-        plt.title(gt_type + str(NN))
+    def get_corr_from_strategy(self, startegies, var=[], type="standart"):
+        out = []
+        text = []
+        for v in var:
+            o = []
+            t = []
+            for s in startegies:
+                if type == "grade":
+                    for grade in s.grading:
+                        if grade is None:
+                            continue
+                        if grade.name == "grief":
+                            continue
+                        o.append(getattr(grade, v))
+                        t.append(str(v))
+                else:
+                    o.append(getattr(s, v))
+                    t.append(str(v))
+            out.append(o)
+            text.append(t)
+        return out, text
 
-        # plt.xlim([-0.1, 20000])
-        ax.set_xscale('symlog')
-        plt.ylabel("Integral")
-        plt.xlabel("Data count")
-        # plt.legend()
-        # plt.savefig(self.output_graph_path)
+    def correlate(self, filter_strategy=Strategy(), sorting_parameters="change_rate", correlation_var=[],
+                  grading_var=["AC_fm_integral"], exclude_strategy=Strategy()):
+        strategies_to_corelate, colors, values = self.filter_strategies(stategy_params=filter_strategy,
+                                                                        sorting_params=sorting_parameters,
+                                                                        exclude_strategy=exclude_strategy)
 
-    def correlate(self, gt_type=""):
-        integral = []
-        integral_nn = []
-        # for i in ["strands", "grief", "all"]:
-        for i in ["strands"]:
-            places = np.char.find(self.gt_type_arr, i)
-            integral.append(self.integral_arr[places == 0])
-            integral_nn.append(self.integral_nn_arr[places == 0])
+        v1, t1 = (self.get_corr_from_strategy(strategies_to_corelate, correlation_var))
+        v2, t2 = (self.get_corr_from_strategy(strategies_to_corelate, grading_var, type="grade"))
+        corr = np.concatenate([v1, v2])
+        names = np.concatenate([correlation_var, grading_var])
 
-        corr = [self.data_count_arr, self.data_count_u_arr, self.data_count_u_arr - self.data_count_arr,
-                self.percentages]
-
-        # self.percentages * self.strands, self.percentages * self.cestlice, self.strands]
-        names = ["data given (DG)", "data used", "data rejected", "DG from whole",
-                 # "DG strands", "DG cestlice", "strands/cestlice",
-                 "strands",
-                 "strands nn"
-                 ]
-        # "strands", "grief", "ALL",
-        # "strands nn", "grief nn", "ALL nn"]
-        # get only corr where gt_type is not in gt_type_arr
-        corr = np.transpose(corr)
-        corr = corr[places == 0]
-        corr = np.transpose(corr)
-        corr = np.concatenate((corr, integral))
-        corr = np.concatenate((corr, integral_nn))
         R2 = np.corrcoef(corr)
         df_cm = pd.DataFrame(R2, index=[i for i in names],
                              columns=[i for i in names])
         plt.figure()
-        plt.title(gt_type)
         sn.heatmap(df_cm, annot=True)
-
-    def plot_lines_old(self, gt_type="", NN=False, both=False):
-        # loads and plots AC_lines from line.pkl for each folder
-        fig = plt.figure()
-        ax = plt.gca()
-        for i, data in enumerate(self.data):
-            if not gt_type in self.data[i][self.gt_type]:
-                continue
-            if float(self.data[i][self.data_counts_filtered]) > 2000:
-                pass
-                # continue
-            if NN or both:
-                type = "line_"
-                with open(os.path.join(self.path, self.data[i][self.names], type + gt_type + ".pkl"), 'rb') as f:
-                    line = pickle.load(f)
-                ax.plot(line[0], line[1], label=self.data[i][self.integral], c=self.t[i], alpha=0.5)
-            if not NN or both:
-                type = "line_NN_"
-                with open(os.path.join(self.path, self.data[i][self.names], type + gt_type + ".pkl"), 'rb') as f:
-                    line = pickle.load(f)
-                ax.plot(line[0], line[1], label=self.data[i][self.integral_nn] + " NN", c=self.t[i], alpha=0.5)
-
-        plt.axvline(x=0.035, color='k')
-        plt.legend()
-        # plt.ylim([0.5, 1])
-        plt.xlim([0, 0.5])
-        plt.title(gt_type + str(NN))
-        plt.xlabel("allowed image shift")
-        plt.ylabel("probability of correct registration")
 
     def plot_recognition_corelation(self):
         a = []
@@ -282,11 +279,16 @@ class Results:
 
 
 if __name__ == "__main__":
-    results = Results(os.path.join("backups", "full_run"))
+    results = Results(os.path.join("backups", "new"))
     # results = Results(os.path.join(pwd, "backups", "unfixed_init_2"), "output.csv")
     # results = Results(os.path.join("experiments"))
-    # results.correlate()
+    results.correlate(correlation_var=["change_rate", "iteration", "duty_cycle","used_teach_count"], grading_var=["AC_fm_integral"],
+                      filter_strategy=Strategy(iteration=3))
+    results.correlate(correlation_var=["change_rate", "iteration", "duty_cycle","used_teach_count"], grading_var=["AC_fm_integral"])
+    results.correlate(correlation_var=["change_rate", "iteration", "duty_cycle","used_teach_count"], grading_var=["AC_fm_integral"],
+                      filter_strategy=Strategy(iteration=3,change_rate=0.0))#, exclude_strategy=Strategy(change_rate=1.0))
     # results.plot_scatter(Strategy(place_weights=np.array([1.0, 1.0, 1.0, 1.0, 0.2, 0.2, 0.2, 0.2])))
-    results.plot_lines(Strategy())
+    results.plot(filter_strategy=Strategy(), sorting_paramteres="change_rate")
+    results.scatter(filter_strategy=Strategy(), sorting_paramteres="change_rate")
     # results.plot_recognition_corelation()
     plt.show()

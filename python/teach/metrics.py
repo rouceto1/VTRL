@@ -130,31 +130,3 @@ def process_ev_for_training(mission, _dataset_path, old_plan=None,
     file_pair_list = parse_given_file_list(file_list)  # array of [tuples(place, season)]
     metrics = calculate_metrics(mission, bad_list,  file_pair_list)
     return metrics
-
-def evaluate_for_learning(mission, _dataset_path,
-                          _cache2=None, conf=None):
-    hist_nn, displacement_nn = NN_eval(mission.c_strategy.file_list,
-                                       os.path.join(mission.experiments_path, mission.name) + "/plots",
-                                       mission.c_strategy.model_path,
-                                       conf)
-    with open(mission.c_strategy.estimates_path, 'wb') as handle:
-        pickle.dump(hist_nn, handle)
-
-    return hist_nn, displacement_nn
-
-
-def evaluate_for_GT(mission, _evaluation_prefix, _evaluation_paths, _GT=None,
-
-                    _cache2="/tmp/cache.pkl", conf=None):
-    file_list = make_file_list_from_gt(_evaluation_prefix, _GT)
-    out = [fm_nn_eval(file_list, filetype_NN, filetype_FM, mission.plot_folder, mission.c_strategy.model_path, _cache2,
-                      conf=conf)]
-    with open(mission.c_strategy.grading_path, 'wb') as handle:
-        pickle.dump(out, handle)
-    #print("GT estiamtes output at:" + str(mission.c_strategy.grading_path))
-    return out
-
-
-if __name__ == "__main__":
-    config = load_config("NN_config_test.yaml", 512)
-    pass
