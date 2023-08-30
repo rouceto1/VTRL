@@ -1,4 +1,4 @@
-from python.evaluate import *
+from python.teach.evaluate import *
 from python.general_paths import *
 import src.NN_new.train_siam as nn_train
 

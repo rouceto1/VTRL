@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-from evaluate_to_file import *
-from teach import *
-from metrics import *
+
+from python.teach.teach import *
+from python.teach.metrics import *
 #from annotate import *
 from python.grading.grade_results import *
 import argparse
 from python.helper_functions import *
 import time
-from planner import Mission
+from python.teach.planner import Mission
 
 import logging
 import warnings
@@ -44,8 +44,6 @@ config = load_config("NN_config.yaml", 512)
 def setup_missions(missions, exp_folder_name):
     for mission in missions:
         exists = mission.setup_mission(exp_folder_name)  # setups folderrs for specific missio
-        if exists:
-            continue
         mission.plan_modifier()  # generates first plan for current strategy of the mission
         mission.setup_current_strategy()  # sets up current mission
         mission.c_strategy.print_parameters()
@@ -109,7 +107,7 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         print("No new combos")
         return False
     if mission.c_strategy.progress == 0 or enable_teach:
-        if not mission.c_strategy.preteach:
+        if not mission.c_strategy.preteach or mission.c_strategy.iteration == 0:
             weights = init_weights
         else:
             weights = mission.old_strategies[-1].model_path

@@ -3,7 +3,7 @@
 import seaborn as sns
 from scipy.stats import entropy
 
-from python.evaluate import *
+from python.teach.evaluate import *
 from python.general_paths import *
 
 

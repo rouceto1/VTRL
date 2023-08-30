@@ -5,7 +5,7 @@ import random
 
 import numpy as np
 
-from planner import Strategy, Mission
+from python.teach.planner import Strategy, Mission
 from process_strategy import process_new
 from json import JSONEncoder
 

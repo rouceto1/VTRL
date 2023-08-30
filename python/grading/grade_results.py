@@ -2,7 +2,7 @@
 import marshal as pickle
 import cv2
 from matplotlib import pyplot as plt
-from .helper_functions import *
+from ..helper_functions import *
 
 
 class Grading:
