@@ -23,7 +23,8 @@ class Results:
         self.missions, self.generator = self.load_missions(path)
         self.output_graph_path = os.path.join(path, "compare.png")
         if self.generator is not None:
-            self.generator.print()
+            for g in self.generator:
+                print(g.replace("\n", ""))
         else:
             for m in self.missions:
                 m.c_strategy.print_parameters()
@@ -40,9 +41,9 @@ class Results:
     def load_missions(self, path):
         experiments_path = os.path.join(pwd, path)
         gen = None
-        if os.path.exists(os.path.join(experiments_path, "generator.pkl")):
-            with open(os.path.join(experiments_path, "generator.pkl"), 'rb') as f:
-                gen = pickle.load(f)
+        if os.path.exists(os.path.join(experiments_path, "generator.txt")):
+            with open(os.path.join(experiments_path, "generator.txt")) as f:
+                gen = f.readlines()
         paths = [item for item in os.listdir(experiments_path) if os.path.isdir(os.path.join(experiments_path, item))]
         paths.sort()
         missions = []

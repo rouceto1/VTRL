@@ -50,7 +50,7 @@ def setup_missions(missions, params, exp_folder_name):
 
 
 def process_new(generator, params, exp_folder_name):
-    generator.save(exp_folder_name)
+    generator.save_gen(exp_folder_name, generator.get_txt())
     setup_missions(generator.missions, params, exp_folder_name)
     for mission in generator.missions:
         learning_loop(mission)
