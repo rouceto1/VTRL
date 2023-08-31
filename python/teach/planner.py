@@ -184,7 +184,7 @@ class Mission:
 class Strategy:
     def __init__(self, uptime=None, block_size=None, dataset_weights=None, place_weights=None, time_limit=None,
                  time_advance=None, change_rate=None,
-                 iteration=None, duty_cycle=None, preteach=None):
+                 iteration=None, duty_cycle=None, preteach=None,m_type=None,):
         # internal variables: percentage_to_explore, block_size, dataset_weights, place_weights, iteration
         self.uptime = uptime
         self.block_size = block_size
@@ -196,6 +196,7 @@ class Strategy:
         self.change_rate = change_rate  # how much to modify TODO make soemthing else then boolean
         self.duty_cycle = duty_cycle
         self.preteach = preteach
+        self.metrics_type = m_type
         if place_weights is not None:
             self.place_weights = self.process_weights(self.place_weights, np.ones(8), self.duty_cycle)
 
