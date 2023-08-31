@@ -11,6 +11,19 @@ import numpy as np
 pwd = os.getcwd()
 experiments_path = os.path.join(pwd, "experiments")
 
+class RenameUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        renamed_module = module
+        if module == "planner":
+            renamed_module = "python.teach.planner"
+        if module == "python.grade_results":
+                renamed_module = "python.grading.grade_results"
+
+        return super(RenameUnpickler, self).find_class(renamed_module, name)
+
+
+def renamed_load(file_obj):
+    return RenameUnpickler(file_obj).load()
 
 class NumpyArrayEncoder(JSONEncoder):
     def default(self, obj):
@@ -43,7 +56,7 @@ class Mission:
 
     def load(self, mission_folder):
         with open(os.path.join(mission_folder, "mission.pickle"), 'rb') as f:
-            m = pickle.load(f)
+            m = renamed_load(f)
         print("Loaded mission: " + str(os.path.join(mission_folder, "mission.pickle")))
         return m
 

@@ -2,12 +2,11 @@
 
 from python.teach.teach import *
 from python.teach.metrics import *
-#from annotate import *
 from python.grading.grade_results import *
 import argparse
 from python.helper_functions import *
 import time
-from python.teach.planner import Mission
+from python.teach.planner import Mission, Strategy
 
 import logging
 import warnings
@@ -41,7 +40,7 @@ init_weights = os.path.join(pwd, "init_weights.pt")
 config = load_config("NN_config.yaml", 512)
 
 
-def setup_missions(missions, exp_folder_name):
+def setup_missions(missions, params, exp_folder_name):
     for mission in missions:
         exists = mission.setup_mission(exp_folder_name)  # setups folderrs for specific missio
         mission.plan_modifier()  # generates first plan for current strategy of the mission
@@ -50,9 +49,10 @@ def setup_missions(missions, exp_folder_name):
         mission.save()
 
 
-def process_new(missions, exp_folder_name):
-    setup_missions(missions, exp_folder_name)
-    for mission in missions:
+def process_new(generator, params, exp_folder_name):
+    generator.save(exp_folder_name)
+    setup_missions(generator.missions, params, exp_folder_name)
+    for mission in generator.missions:
         learning_loop(mission)
 
 
@@ -134,10 +134,5 @@ if __name__ == "__main__":
     # exp_path = "backups/learning"
     experiments_path = os.path.join(pwd, exp_path)
     paths = [item for item in os.listdir(experiments_path) if os.path.isdir(os.path.join(experiments_path, item))]
-    teach = False
-    e_teach = False
-    e_grade = False
-    grade = True
-    redo = [teach, e_teach, e_grade, grade]
     paths.sort()
     process_old(paths, exp_folder_name=exp_path)
