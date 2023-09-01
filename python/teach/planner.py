@@ -11,19 +11,21 @@ import numpy as np
 pwd = os.getcwd()
 experiments_path = os.path.join(pwd, "experiments")
 
+
 class RenameUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
         renamed_module = module
         if module == "planner":
             renamed_module = "python.teach.planner"
         if module == "python.grade_results":
-                renamed_module = "python.grading.grade_results"
+            renamed_module = "python.grading.grade_results"
 
         return super(RenameUnpickler, self).find_class(renamed_module, name)
 
 
 def renamed_load(file_obj):
     return RenameUnpickler(file_obj).load()
+
 
 class NumpyArrayEncoder(JSONEncoder):
     def default(self, obj):
@@ -74,14 +76,14 @@ class Mission:
             os.mkdir(self.mission_folder)
         except FileExistsError:
             print("Mission already exists " + os.path.join(experiments_path))
-            return 0
+            return False
         try:
             self.plot_folder = os.path.join(self.experiments_path, self.name) + "/plots"
             os.mkdir(self.plot_folder)
         except FileExistsError:
-            return 0
+            return False
         self.set_up = True
-        return 1
+        return False
 
     def advance_mission(self, metrics):
         self.add_new_strategy(copy.deepcopy(self.c_strategy))
@@ -99,7 +101,8 @@ class Mission:
                                                  uptime=self.c_strategy.uptime, block_size=self.c_strategy.block_size,
                                                  time_limit=self.c_strategy.time_limit,
                                                  place_weights=self.c_strategy.place_weights,
-                                                 iteration=self.c_strategy.iteration)
+                                                 iteration=self.c_strategy.iteration,
+                                                 rolling=self.c_strategy.roll_data)
 
         places_out_strands, c2 = self.make_plan(old_plan[1], old_strategy, seasons=total_seasons[1],
                                                 places=total_places[1],
@@ -107,7 +110,8 @@ class Mission:
                                                 uptime=self.c_strategy.uptime, block_size=self.c_strategy.block_size,
                                                 time_limit=self.c_strategy.time_limit,
                                                 place_weights=self.c_strategy.place_weights,
-                                                iteration=self.c_strategy.iteration)
+                                                iteration=self.c_strategy.iteration,
+                                                rolling=self.c_strategy.roll_data)
         # print(percentage_to_explore,c1,c2,c1+c2)
         self.save_plan(self.name, self.experiments_path, self.c_strategy.uptime, self.c_strategy.block_size,
                        self.c_strategy.dataset_weights,
@@ -131,14 +135,15 @@ class Mission:
 
     def make_plan(self, old_plan, old_strategy, seasons, places, weight, uptime=1.0,
                   place_weights=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
-                  block_size=1, time_limit=1.0, iteration=0):
+                  block_size=1, time_limit=1.0, iteration=0, rolling=False):
         plan = self.make_empty_plan(seasons, places)
         if uptime * weight == 0.0:
             return plan, 0
         start = 0
         if old_plan is not None:
             start = int(old_strategy.time_limit * seasons)
-            plan = old_plan
+            if not rolling:
+                plan = old_plan
 
         last_season = int(seasons * time_limit)
         if last_season > seasons:
@@ -184,7 +189,7 @@ class Mission:
 class Strategy:
     def __init__(self, uptime=None, block_size=None, dataset_weights=None, place_weights=None, time_limit=None,
                  time_advance=None, change_rate=None,
-                 iteration=None, duty_cycle=None, preteach=None,m_type=None,):
+                 iteration=None, duty_cycle=None, preteach=None, m_type=None, roll_data=None):
         # internal variables: percentage_to_explore, block_size, dataset_weights, place_weights, iteration
         self.uptime = uptime
         self.block_size = block_size
@@ -196,6 +201,7 @@ class Strategy:
         self.change_rate = change_rate  # how much to modify TODO make soemthing else then boolean
         self.duty_cycle = duty_cycle
         self.preteach = preteach
+        self.roll_data = roll_data
         self.metrics_type = m_type
         if place_weights is not None:
             self.place_weights = self.process_weights(self.place_weights, np.ones(8), self.duty_cycle)
@@ -222,7 +228,7 @@ class Strategy:
     def print_parameters(self):
         print(
             f"Up: {self.uptime}, Bs: {self.block_size}, pw: {np.array2string(self.place_weights, precision=2, floatmode='fixed')}, lim e: {self.time_limit}, "
-            f"it: {self.iteration}, cr: {self.change_rate}, ta {self.time_advance}")
+            f"it: {self.iteration}, cr: {self.change_rate}, ta {self.time_advance}, pt {self.preteach}")
 
     def title_parameters(self):
         if self.place_weights is None:
@@ -246,7 +252,8 @@ class Strategy:
             return
         if self.change_rate == -1.0:
             np.random.seed()
-            self.place_weights = self.process_weights(np.random.rand(len(self.place_weights)), np.random.rand(len(self.place_weights)),
+            self.place_weights = self.process_weights(np.random.rand(len(self.place_weights)),
+                                                      np.random.rand(len(self.place_weights)),
                                                       self.duty_cycle)
             np.random.seed(42)
             return

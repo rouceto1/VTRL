@@ -23,7 +23,7 @@ class NumpyArrayEncoder(JSONEncoder):
 class Mission_generator:
 
     def __init__(self, uptime, block_size, dataset_weights, place_weights, time_limit, time_advance, change_rate,
-                 duty_cycle, preteach, metrics_type):
+                 duty_cycle, preteach, metrics_type,roll_data):
         self.uptime = uptime
         self.block_size = block_size
         self.dataset_weights = dataset_weights  # cestlice, strands
@@ -34,9 +34,9 @@ class Mission_generator:
         self.duty_cycle = duty_cycle
         self.preteach = preteach
         self.matrics_type = metrics_type
-
+        self.roll_data = roll_data
         self.mission_count = 0
-        #self.missions = None
+        self.missions = None
 
     def make_single_mission(self, strategy):
         self.mission_count += 1
@@ -46,7 +46,7 @@ class Mission_generator:
 
     def make_multiple_missions(self):
         a = [self.uptime, self.block_size, self.dataset_weights, self.place_weights, self.time_limit,
-             self.time_advance, self.change_rate, self.duty_cycle, self.preteach, self.matrics_type]
+             self.time_advance, self.change_rate, self.duty_cycle, self.preteach, self.matrics_type,self.roll_data]
         combinations = list(itertools.product(*a))
         missions = []
         strategies = []
@@ -55,7 +55,7 @@ class Mission_generator:
                                 place_weights=combination[3], time_limit=combination[4], time_advance=combination[5],
                                 change_rate=combination[6], iteration=0, duty_cycle=combination[7],
                                 preteach=combination[8],
-                                m_type=combination[9])  # TODO make time_advance agnostic of time_limit
+                                m_type=combination[9], roll_data=combination[10])  # TODO make time_advance agnostic of time_limit
             strategies.append(strategy)
         strategies.sort(key=lambda x: x.uptime * x.duty_cycle, reverse=False)
 
@@ -83,6 +83,7 @@ class Mission_generator:
         txt += "preteach " + str(self.preteach) + "\n"
         txt += "matrics_type " + str(self.matrics_type) + "\n"
         txt += "mission_count " + str(self.mission_count) + "\n"
+        txt += "roll_data" + str(self.roll_data) + "\n"
         return txt
 
     def save_gen(self,path,text):
@@ -90,28 +91,26 @@ class Mission_generator:
             handle.write(text)
 
 if __name__ == "__main__":
-    uptime_list = np.array([0.25, 0.40, 0.10])
+    uptime_list = np.array([0.25, 0.50])
 
-    time_limits = np.array([0.20])
+    time_limits = np.array([0.14])
     block_size_list = [1]
     dataset_weights = [np.array([0.0, 1.0])]
-    place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 0.2, 0.2, 0.2, 0.2]),
-                              np.array([1.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]),
-                              np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
-                              np.array([1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0])
+    place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
                               ]
     preteach_list = [True, False]
-    duty_cycle_list = np.array([1.0, 3.0, 5.0])
-    time_advance_list = np.array([0.20])
+    roll_data_list = [True, False]
+    duty_cycle_list = np.array([1.0, 5.0])
+    time_advance_list = np.array([0.14])
     change_rate_list = np.array([1.0, 0.0, -1.0])
     metrics_type_list = np.array([0])
 
     gen = Mission_generator(uptime_list, block_size_list, dataset_weights, place_weights_contents, time_limits,
-                    time_advance_list, change_rate_list, duty_cycle_list, preteach_list, metrics_type_list)
+                    time_advance_list, change_rate_list, duty_cycle_list, preteach_list, metrics_type_list, roll_data_list)
 
     random.seed(42)
     np.random.seed(42)
-    m, a = gen.make_multiple_missions()
+    gen.missions, a = gen.make_multiple_missions()
 
     # random_strategy_2 = Strategy(uptime=0.99, block_size=block_size_list[0], dataset_weights=dataset_weights[0],
     #                             place_weights=np.ones(len(place_weights_contents[0])), time_limit=time_limits[0],

@@ -40,7 +40,7 @@ init_weights = os.path.join(pwd, "init_weights.pt")
 config = load_config("NN_config.yaml", 512)
 
 
-def setup_missions(missions, params, exp_folder_name):
+def setup_missions(missions, exp_folder_name):
     for mission in missions:
         exists = mission.setup_mission(exp_folder_name)  # setups folderrs for specific missio
         mission.plan_modifier()  # generates first plan for current strategy of the mission
@@ -49,9 +49,9 @@ def setup_missions(missions, params, exp_folder_name):
         mission.save()
 
 
-def process_new(generator, params, exp_folder_name):
+def process_new(generator, exp_folder_name):
     generator.save_gen(exp_folder_name, generator.get_txt())
-    setup_missions(generator.missions, params, exp_folder_name)
+    setup_missions(generator.missions, exp_folder_name)
     for mission in generator.missions:
         learning_loop(mission)
 
