@@ -30,9 +30,12 @@ def teach(_dataset_path, _mission, init_weights=None, _cache=None, conf=None):
                                                                                                       conf)
             fm_out = np.array([displacements, feature_count_l, feature_count_r], dtype=np.float32).T
             files_with_displacement = np.append(file_list, fm_out, axis=1)
-
-    actual_teaching_count = nn_train.NNteach_from_python(files_with_displacement, "strands", init_weights,
+    try:
+        actual_teaching_count = nn_train.NNteach_from_python(files_with_displacement, "strands", init_weights,
                                                          _mission, conf)
+    except(ValueError):
+        print("No new combos")
+        return 0
     return actual_teaching_count  # TODO make it reaturn model and pass it to eval
 
 
