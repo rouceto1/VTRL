@@ -10,7 +10,7 @@ from python.general_paths import *
 def enthropy_std(histograms, file_list):
     entropies = []
     for h in histograms:
-        entropies.append(entropy(h),base=len(h))
+        entropies.append(entropy(h,base=len(h)))
     mean = np.mean(entropies)
     std = np.std(entropies)
     well_understood = []
@@ -28,7 +28,7 @@ def entrhopy_weighted(histograms, file_list):
     weights = []
     for i, h in enumerate(histograms):
         files.append(file_list[i])
-        weights.append(entropy(h), base=len(h))
+        weights.append(entropy(h,base=len(h)))
     return files, weights
 
 
