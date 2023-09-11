@@ -203,6 +203,11 @@ class Strategy:
         self.preteach = preteach
         self.roll_data = roll_data
         self.metrics_type = m_type
+        #0: entropies[i] < mean + std * 0.1:
+        #    well_understood.append(file_list[i])
+        # boolean
+        #1:
+
         if place_weights is not None:
             self.place_weights = self.process_weights(self.place_weights, np.ones(8), self.duty_cycle)
 
