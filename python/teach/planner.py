@@ -113,11 +113,7 @@ class Mission:
                                                 iteration=self.c_strategy.iteration,
                                                 rolling=self.c_strategy.roll_data)
         # print(percentage_to_explore,c1,c2,c1+c2)
-        self.save_plan(self.name, self.experiments_path, self.c_strategy.uptime, self.c_strategy.block_size,
-                       self.c_strategy.dataset_weights,
-                       [places_out_cestlice, places_out_strands],
-                       self.c_strategy.time_limit, places_weights=self.c_strategy.place_weights,
-                       iteration=self.c_strategy.iteration)
+        self.save_plan(self.name, self.experiments_path, self.c_strategy)
         self.c_strategy.plan = [places_out_cestlice, places_out_strands]
         if c1 + c2 == 0:
             self.no_more_data = True
@@ -168,17 +164,23 @@ class Mission:
 
         return plan, newly_added
 
-    def save_plan(self, name, experiments_path, uptime, block_size, dataset_weights,
-                  plan, time_limit, places_weights=None, iteration=0):
-        iteration = "_" + str(iteration)
+    def save_plan(self, name, experiments_path, strategy):
+        iteration = "_" + str(strategy.iteration)
         with open(os.path.join(experiments_path, name) + "/plan" + iteration + ".pkl", 'wb') as handle:
-            pickle.dump(plan, handle)
+            pickle.dump(strategy.plan, handle)
         dictionary = {
-            "uptime_percent": uptime,
-            "block_size": block_size,
-            "dataset_weights": dataset_weights,
-            "places_weights": places_weights,
-            "time_limit": time_limit
+            "uptime": strategy.uptime,
+            "block_size": strategy.block_size,
+            "dataset_weights": strategy.dataset_weights,
+            "place_weights": strategy.place_weights,
+            "time_limit": strategy.time_limit,
+            "iteration": strategy.iteration,
+            "time_advance": strategy.time_advance,
+            "change_rate": strategy.change_rate,
+            "duty_cycle": strategy.duty_cycle,
+            "preteach": strategy.preteach,
+            "roll_data": strategy.roll_data,
+            "metrics_type": int(strategy.metrics_type)
         }
         json_object = json.dumps(dictionary, cls=NumpyArrayEncoder)
         with open(os.path.join(experiments_path, name) + "/strategy" + iteration + ".json", "w") as outfile:
@@ -203,10 +205,10 @@ class Strategy:
         self.preteach = preteach
         self.roll_data = roll_data
         self.metrics_type = m_type
-        #0: entropies[i] < mean + std * 0.1:
+        # 0: entropies[i] < mean + std * 0.1:
         #    well_understood.append(file_list[i])
         # boolean
-        #1:
+        # 1:
 
         if place_weights is not None:
             self.place_weights = self.process_weights(self.place_weights, np.ones(8), self.duty_cycle)
