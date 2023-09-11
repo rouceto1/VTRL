@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
 from python.teach.planner import Mission, Strategy
+from python.grading.std_plots import *
 import matplotlib.pyplot as plt
+import matplotlib.cm as cum
 import numpy as np
 import pandas as pd
 import seaborn as sn
 import pickle
 import os
+
 pwd = os.getcwd()
 import colorsys
+
+strategy_keys = ["uptime", "block_size", "dataset_weights", "used_teach_count", "place_weights", "time_limit",
+                 "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data"]
+df_keys = ["uptime", "new_param", "block_size", "dataset_weights", "used_teach_count", "place_weights", "time_limit",
+                 "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "metrics_type", "train_time"]
+df_grading_keys = ["AC_fm_integral", "AC_nn_integral", "streak_integral", "AC_fm", "AC_nn"]
 
 def get_only_keys(keys, dictionary):
     out = {}
@@ -25,12 +34,11 @@ class Results:
         if self.generator is not None:
             for g in self.generator:
                 print(g.replace("\n", ""))
-        else:
-            for m in self.missions:
-                m.c_strategy.print_parameters()
+        for m in self.missions:
+            m.c_strategy.print_parameters()
         # self.t = self.get_N_HexCol(len(self.data))
 
-    def add_missions(self,path):
+    def add_missions(self, path):
         new, gen2 = self.load_missions(path)
         self.missions.extend(new)
         if gen2 is not None:
@@ -38,6 +46,7 @@ class Results:
         else:
             for m in new:
                 m.c_strategy.print_parameters()
+
     def load_missions(self, path):
         experiments_path = os.path.join(pwd, path)
         gen = None
@@ -51,20 +60,10 @@ class Results:
             mission = Mission(int(mission_name))
             mission = mission.load(os.path.join(path, mission_name))
             missions.append(mission)
-        return missions , gen
-
-    def get_N_HexCol(self, N=5):
-        HSV_tuples = [(x * 1.0 / (N * 1.5), 1, 1) for x in range(N)]
-        hex_out = []
-        for rgb in HSV_tuples:
-            rgb = map(lambda x: int(x * 255), colorsys.hsv_to_rgb(*rgb))
-            hex_out.append('#%02x%02x%02x' % tuple(rgb))
-        return hex_out
+        return missions, gen
 
     def is_strategy_same_as_params(self, strategy, params, exclude):
 
-        strategy_keys = ["uptime", "block_size", "dataset_weights", "used_teach_count", "place_weights", "time_limit",
-                         "time_advance", "change_rate", "iteration", "duty_cycle"]
         p = get_only_keys(strategy_keys, vars(params))
         m = get_only_keys(strategy_keys, vars(strategy))
         e = get_only_keys(strategy_keys, vars(exclude))
@@ -97,6 +96,26 @@ class Results:
 
         return True
 
+    def get_name_from_strategy_params(self, strategy):
+        # return names and values of stategy variables taht are not none
+
+        p = get_only_keys(strategy_keys, vars(strategy))
+        name = ""
+        for key in p:
+            if p[key] is not None:
+                if key in ["used_teach_count"]:
+                    if p[key] == 0:
+                        continue
+                name += key + "=" + str(p[key])
+        return name
+
+    def concatenate_params(self, strategy, params):
+        out = []
+        for p in params:
+            v = getattr(strategy, p)
+            out.append(v)
+        strategy.new_param = out
+
     def filter_strategies(self, mission_params=None, stategy_params=None, exclude_strategy=None, sorting_params=None):
 
         # dam inclusion param pro mise // napr mise se specifickym polem na startu
@@ -105,6 +124,7 @@ class Results:
         # ono to vyradi a sortne v poradi strategie
         values = []
         strategies = []
+        names = []
         override = False
         for mission in self.missions:
             if len(mission.old_strategies) == 0:
@@ -114,146 +134,28 @@ class Results:
             for strategy in mission.old_strategies:
                 if not self.is_strategy_same_as_params(strategy, stategy_params, exclude_strategy) or override:
                     continue
+
                 if sorting_params == "place_weights":
                     if len(values) == 0:
                         values.append(strategy.place_weights)
                     is_in_list = np.any(np.all(strategy.place_weights == values, axis=1))
                     if not is_in_list:
                         values.append(strategy.place_weights)
+                elif len(sorting_params) > 1:
+                    self.concatenate_params(strategy, sorting_params)
+                    if getattr(strategy, "new_param") not in values:
+                        values.append(getattr(strategy, "new_param"))
                 else:
-                    if getattr(strategy, sorting_params) not in values:
-                        values.append(getattr(strategy, sorting_params))
+                    if getattr(strategy, sorting_params[0]) not in values:
+                        values.append(getattr(strategy, sorting_params[0]))
+
                 strategies.append(strategy)
 
         # TODO make this by sortin_params, prolly use getattribute....
-        if sorting_params != "place_weights":
-            strategies.sort(key=lambda x: getattr(x, sorting_params), reverse=False)
-        colors = self.get_N_HexCol(len(strategies))
-        return strategies, colors, values
-
-    def scatter(self, filter_strategy=Strategy(), sorting_paramteres="change_rate", exclude_strategy=Strategy()):
-        fig = plt.figure()
-        ax = plt.gca()
-        strategies_to_plot, colors, values = self.filter_strategies(stategy_params=filter_strategy,
-                                                                    sorting_params=sorting_paramteres,
-                                                                    exclude_strategy=exclude_strategy)
-        GT_versions = ["strands", "grief"]
-        for s, strategy in enumerate(strategies_to_plot):
-            grading = strategy.grading
-            for grade in grading:
-                if grade is None:
-                    continue
-                if grade.name == "grief":
-                    continue
-                style = "."
-                styles = [".", "P", "*", "d"]
-                t = strategy.title_parameters()
-
-                if len(values) <= len(styles):
-                    style = styles[values.index(getattr(strategy, sorting_paramteres))]
-                ax.scatter(getattr(strategy, sorting_paramteres), grade.AC_fm_integral,
-                           label=t, c=colors[s],
-                           alpha=0.5, marker=style)
-                ax.annotate(t, (getattr(strategy, sorting_paramteres), grade.AC_fm_integral))
-
-        ax.set_xscale('symlog')
-        plt.ylabel("Integral")
-        plt.xlabel(sorting_paramteres)
-        # plt.legend()
-        # plt.savefig(self.output_graph_path)
-
-    def plot_std(self, filter_strategy=Strategy(), sorting_paramteres="change_rate",exclude_strategy=Strategy(), mission_params=[]):
-        fig = plt.figure()
-        ax = plt.gca()
-        strategies_to_plot, colors, values = self.filter_strategies(mission_params = mission_params,stategy_params=filter_strategy,
-                                                                    sorting_params=sorting_paramteres,
-                                                                    exclude_strategy=exclude_strategy)
-        GT_versions = ["strands", "grief"]
-        data = []
-        for v in values:
-            data.append([])
-
-        for s, strategy in enumerate(strategies_to_plot):
-            grading = strategy.grading
-            for grade in grading:
-                if grade is None:
-                    continue
-                if grade.name == "grief":
-                    pass
-                    continue
-                line_fm = grade.AC_fm
-                line_nn = grade.AC_nn
-                v = getattr(strategy, sorting_paramteres)
-                if sorting_paramteres == "place_weights":
-                    i = next((i for i, val in enumerate(values) if np.all(val == v)), -1)
-                else:
-                    i = values.index(v)
-                data[i].append(np.array(line_fm).T)
-        colors = self.get_N_HexCol(len(values))
-        for idx, d in enumerate(data):
-            #get std for each d wich is array of [(x,y),..]
-            x, y, s = self.interp(*d)
-            ax.plot(x, y, label=values[idx], c=colors[idx])
-            ax.fill_between(x, y-s,y+s, alpha=0.2, color=colors[idx])
-
-
-        plt.legend()
-        plt.xlim([0, 0.5])
-        plt.ylim([0.8, 1])
-        plt.title(sorting_paramteres)
-        plt.xlabel("allowed image shift")
-        plt.ylabel("probability of correct registration")
-
-    def interp(self, *axis_list):
-        min_max_xs = [(min(axis[:, 0]), max(axis[:, 0])) for axis in axis_list]
-
-        new_axis_xs = [np.linspace(min_x, max_x, 100) for min_x, max_x in min_max_xs]
-        new_axis_ys = [np.interp(new_x_axis, axis[:, 0], axis[:, 1]) for axis, new_x_axis in
-                       zip(axis_list, new_axis_xs)]
-
-        midx = [np.mean([new_axis_xs[axis_idx][i] for axis_idx in range(len(axis_list))]) for i in range(100)]
-        midy = [np.mean([new_axis_ys[axis_idx][i] for axis_idx in range(len(axis_list))]) for i in range(100)]
-        stdx = [np.std([new_axis_ys[axis_idx][i] for axis_idx in range(len(axis_list))]) for i in range(100)]
-
-        #for axis in axis_list:
-        #    plt.plot(axis[:, 0], axis[:, 1], c='black')
-        #plt.plot(midx, midy, '--', c='black')
-        #plt.show()
-        return np.array(midx), np.array(midy), np.array(stdx)
-
-    def plot(self, filter_strategy=Strategy(), sorting_paramteres="change_rate",exclude_strategy=Strategy()):
-        fig = plt.figure()
-        ax = plt.gca()
-        strategies_to_plot, colors, values = self.filter_strategies(stategy_params=filter_strategy,
-                                                                    sorting_params=sorting_paramteres,
-                                                                    exclude_strategy=exclude_strategy)
-        GT_versions = ["strands", "grief"]
-        for s, strategy in enumerate(strategies_to_plot):
-            grading = strategy.grading
-            for grade in grading:
-                if grade is None:
-                    continue
-                if grade.name == "grief":
-                    pass
-                    continue
-                style = "solid"
-                styles = ["solid", "dashed", "dashdot", "dotted"]
-                if len(values) <= len(styles):
-                    style = styles[values.index(getattr(strategy, sorting_paramteres))]
-                    #print(values.index(getattr(strategy, sorting_paramteres)))
-                line_fm = grade.AC_fm
-                line_nn = grade.AC_nn
-                ax.plot(line_fm[0], line_fm[1], label=strategy.title_parameters(), c=colors[s], alpha=0.5,
-                        linestyle=style)
-                # ax.plot(line_nn[0], line_nn[1], label=strategy.title_parameters(), c=colors[s], alpha=0.5,
-                #        linestyle=style)
-
-        plt.axvline(x=0.035, color='k')
-        plt.legend()
-        plt.xlim([0, 0.5])
-        plt.title(filter_strategy.title_parameters())
-        plt.xlabel("allowed image shift")
-        plt.ylabel("probability of correct registration")
+        if sorting_params != "place_weights" and len(sorting_params) == 1:
+            strategies.sort(key=lambda x: getattr(x, sorting_params[0]), reverse=False)
+        colors = get_N_HexCol(len(strategies))
+        return strategies, colors, values, self.make_pandas_df(strategies, sorting_paramteres=sorting_params)
 
     def get_corr_from_strategy(self, startegies, var=[], type="standart"):
         out = []
@@ -277,9 +179,9 @@ class Results:
             text.append(t)
         return out, text
 
-    def correlate(self, filter_strategy=Strategy(), sorting_parameters="change_rate", correlation_var=[],
+    def correlate(self, filter_strategy=Strategy(), sorting_parameters=["change_rate"], correlation_var=[],
                   grading_var=["AC_fm_integral"], exclude_strategy=Strategy()):
-        strategies_to_corelate, colors, values = self.filter_strategies(stategy_params=filter_strategy,
+        strategies_to_corelate, colors, values, df  = self.filter_strategies(stategy_params=filter_strategy,
                                                                         sorting_params=sorting_parameters,
                                                                         exclude_strategy=exclude_strategy)
 
@@ -294,52 +196,67 @@ class Results:
         plt.figure()
         sn.heatmap(df_cm, annot=True)
 
-    def plot_recognition_corelation(self):
-        a = []
-        b = []
-        cof = []
-        names = []
-        for frame in self.data_frames:
-            aa = frame.loc[
-                "P(used position)"].values  # frame.loc["P(used position)"].values[0] + frame.loc["P(used position)"].values[3])
-            name = frame.loc["P(used position)"].values[0] + frame.loc["P(used position)"].values[3]
-            bb = frame.loc["used bad"].values
-            names.append(name)
-            a.append(aa)
-            b.append(bb)
-            cof.append(np.corrcoef(aa, bb)[0, 1])
-        # df = pd.DataFrame(data=[a,b])
-        # df_cm = pd.DataFrame(R2, index=[i for i in names],
-        #                     columns=[i for i in names])
-        plt.figure()
-        R2 = np.corrcoef(np.array(a).flatten(), np.array(b).flatten())
+    def make_pandas_df(self, strategies,sorting_paramteres=None):
+        out = []
 
-        print(R2)
-        sn.heatmap(R2)
-        R2 = np.corrcoef(np.array(a), np.array(b))
+        for s in strategies:
+             a = get_only_keys(df_keys, vars(s))
+             b = get_only_keys(df_grading_keys, vars(s.grading[0]))
+             out.append(a|b)
+        df = pd.DataFrame(out)
+        if sorting_paramteres is not None and "preteach" in sorting_paramteres and "roll_data" in sorting_paramteres:
+            df['preteach_roll_data'] = df.apply(self.agreagate_preteach_roll_data, axis=1)
+        if sorting_paramteres is not None and "change_rate" in sorting_paramteres:
+            df['change_rate'] = df.apply(self.name_change_rate, axis=1)
+        return df
 
-        plt.figure()
-        # n.heatmap(R2)
-        print(cof)
-        plt.scatter(names, cof)  # label=names)
-        plt.legend()
+    def agreagate_preteach_roll_data(self, dataframe):
+        #add new collumn to dataframe that is preteach (bool) and roll_data (bool) agregated into one
+        n = ""
+        if dataframe["preteach"] == True:
+            n += "continued weights"
+        else:
+            n += "initial weights"
+        if dataframe["roll_data"] == True:
+            n += "+ new data"
+        else:
+            n += "+ all data"
+        return n
 
+    def name_change_rate(self, dataframe):
+        if dataframe["change_rate"] == 1.0:
+            return "adaptive change"
+        elif dataframe["change_rate"] == 0.0:
+            return "no change"
+        elif dataframe["change_rate"] == -1.0:
+            return "random change"
 
 if __name__ == "__main__":
-    results = Results(os.path.join("backups", "new2"))
-    #results.add_missions(os.path.join("backups","new2"))
+    results = Results(os.path.join("backups", "compare"))
+    # results.add_missions(os.path.join("backups","new2"))
 
-    results.plot_std(filter_strategy=Strategy(), sorting_paramteres="change_rate")
-    results.plot_std(filter_strategy=Strategy(iteration=3), sorting_paramteres="change_rate")
-    results.plot_std(filter_strategy=Strategy(iteration=3), sorting_paramteres="place_weights")
-    results.correlate(correlation_var=["change_rate", "iteration", "duty_cycle", "used_teach_count"], grading_var=["AC_fm_integral"],
-                      filter_strategy=Strategy(iteration=3))
-    #results.correlate(correlation_var=["change_rate", "iteration", "duty_cycle","used_teach_count"], grading_var=["AC_fm_integral"])
-    #results.correlate(correlation_var=["change_rate", "iteration", "duty_cycle","used_teach_count"], grading_var=["AC_fm_integral"],
+    # results.plot_std(filter_strategy=Strategy(), sorting_paramteres="change_rate")
+    # results.plot_std(filter_strategy=Strategy(iteration=3), sorting_paramteres="change_rate")
+    # results.plot_std(filter_strategy=Strategy(), sorting_paramteres="change_rate")
+    # results.plot_std(filter_strategy=Strategy(), sorting_paramteres="change_rate")
+    plot_std(results, filter_strategy=Strategy(), sorting_paramteres=["roll_data", "preteach"])
+    plot_std(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["roll_data", "preteach"])
+    plot_std_pandas(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["change_rate", "duty_cycle"])
+    plot_std(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["change_rate", "duty_cycle"])
+
+    results.correlate(
+        correlation_var=["change_rate", "iteration", "duty_cycle", "used_teach_count", "preteach", "roll_data"],
+        grading_var=["AC_fm_integral"],
+        filter_strategy=Strategy(iteration=3))
+    # results.correlate(correlation_var=["change_rate", "iteration", "duty_cycle","used_teach_count"], grading_var=["AC_fm_integral"])
+    # results.correlate(correlation_var=["change_rate", "iteration", "duty_cycle","used_teach_count"], grading_var=["AC_fm_integral"],
     #                  filter_strategy=Strategy(iteration=3,change_rate=0.0))#, exclude_strategy=Strategy(change_rate=1.0))
-    # results.plot_scatter(Strategy(place_weights=np.array([1.0, 1.0, 1.0, 1.0, 0.2, 0.2, 0.2, 0.2])))
-
-    #results.plot_std(filter_strategy=Strategy(iteration=0, duty_cycle=4.0), sorting_paramteres="place_weights")
-    #results.scatter(filter_strategy=Strategy(), sorting_paramteres="change_rate")
+    # scatter(results,Strategy(),sorting_paramteres=["preteach"])
+    scatter_violin(results, Strategy(), sorting_paramteres=["change_rate"])
+    scatter_violin(results, Strategy(), sorting_paramteres=["metrics_type"])
+    scatter_violin(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["roll_data", "preteach"])
+    scatter_violin(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["change_rate", "duty_cycle"])
+    # results.plot(filter_strategy=Strategy(preteach=True), sorting_paramteres="iteration")
+    # results.scatter(filter_strategy=Strategy(), sorting_paramteres="change_rate")
     # results.plot_recognition_corelation()
     plt.show()
