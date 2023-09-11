@@ -10,7 +10,7 @@ from python.general_paths import *
 def enthropy_std(histograms, file_list):
     entropies = []
     for h in histograms:
-        entropies.append(entropy(h))
+        entropies.append(entropy(h),base=len(h))
     mean = np.mean(entropies)
     std = np.std(entropies)
     well_understood = []
@@ -28,7 +28,7 @@ def entrhopy_weighted(histograms, file_list):
     weights = []
     for i, h in enumerate(histograms):
         files.append(file_list[i])
-        weights.append(entropy(h))
+        weights.append(entropy(h), base=len(h))
     return files, weights
 
 
@@ -127,7 +127,7 @@ def plot_and_save(mission, sum_given_place, sum_used_place, badness_per_place, u
     data_frame = pd.DataFrame(filtered_w_bad_s, index=used_seasons,
                               columns=["krajnas", "office street", "office stairs", "kitchen",
                                        "office outside entrance", "sofas outside", "office outside", "office outisde2"])
-    sns.heatmap(np.transpose(data_frame), ax=axs[2], xticklabels=1, yticklabels=1)
+    sns.heatmap(np.transpose(data_frame), ax=axs[2], xticklabels=1, yticklabels=1,annot=True, annot_kws={"fontsize":6})
 
     fig.savefig(os.path.join(mission.c_strategy.usage_path), dpi=800)
 
