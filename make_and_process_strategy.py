@@ -91,21 +91,21 @@ class Mission_generator:
             handle.write(text)
 
 if __name__ == "__main__":
-    uptime_list = np.array([0.25, 0.50])
+    uptime_list = np.array([0.1, 0.5, 0.8])
     #uptime_list = np.array([0.25])
     time_limits = np.array([0.14])
     block_size_list = [1]
     dataset_weights = [np.array([0.0, 1.0])]
     place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
                               ]
-    preteach_list = [True, False]
+    preteach_list = [True]
     roll_data_list = [True, False]
-    duty_cycle_list = np.array([1.0, 5.0])
+    duty_cycle_list = np.array([0.5, 4.0, 8.0])
     #duty_cycle_list = np.array([1.0])
     time_advance_list = np.array([0.14])
     change_rate_list = np.array([1.0, 0.0, -1.0])
-    change_rate_list = np.array([1.0])
-    metrics_type_list = np.array([1, 2])
+    #change_rate_list = np.array([1.0])
+    metrics_type_list = np.array([0])
 
     gen = Mission_generator(uptime_list, block_size_list, dataset_weights, place_weights_contents, time_limits,
                     time_advance_list, change_rate_list, duty_cycle_list, preteach_list, metrics_type_list, roll_data_list)
