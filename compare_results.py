@@ -15,7 +15,7 @@ import colorsys
 strategy_keys = ["uptime", "block_size", "dataset_weights", "used_teach_count", "place_weights", "time_limit",
                  "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data"]
 df_keys = ["uptime", "new_param", "block_size", "dataset_weights", "used_teach_count", "place_weights", "time_limit",
-                 "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "metrics_type", "train_time"]
+                 "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "train_time","metrics_type", "train_time"]
 df_grading_keys = ["AC_fm_integral", "AC_nn_integral", "streak_integral", "AC_fm", "AC_nn"]
 
 def get_only_keys(keys, dictionary):
@@ -42,10 +42,10 @@ class Results:
         new, gen2 = self.load_missions(path)
         self.missions.extend(new)
         if gen2 is not None:
-            gen2.print()
-        else:
-            for m in new:
-                m.c_strategy.print_parameters()
+            for g in gen2:
+                print(g.replace("\n", ""))
+        for m in new:
+            m.c_strategy.print_parameters()
 
     def load_missions(self, path):
         experiments_path = os.path.join(pwd, path)
@@ -196,7 +196,7 @@ class Results:
         plt.figure()
         sn.heatmap(df_cm, annot=True)
 
-    def make_pandas_df(self, strategies,sorting_paramteres=None):
+    def make_pandas_df(self, strategies, sorting_paramteres=None):
         out = []
 
         for s in strategies:
@@ -204,24 +204,23 @@ class Results:
              b = get_only_keys(df_grading_keys, vars(s.grading[0]))
              out.append(a|b)
         df = pd.DataFrame(out)
-        if sorting_paramteres is not None and "preteach" in sorting_paramteres and "roll_data" in sorting_paramteres:
-            df['preteach_roll_data'] = df.apply(self.agreagate_preteach_roll_data, axis=1)
-        if sorting_paramteres is not None and "change_rate" in sorting_paramteres:
-            df['change_rate'] = df.apply(self.name_change_rate, axis=1)
+        df['preteach'] = df.apply(self.agreagate_preteach, axis=1)
+        df['roll_data'] = df.apply(self.agreagate_roll_data, axis=1)
+        df['change_rate'] = df.apply(self.name_change_rate, axis=1)
+        df['roll_pretech'] = df['roll_data'] + " " + df['preteach']
         return df
 
-    def agreagate_preteach_roll_data(self, dataframe):
-        #add new collumn to dataframe that is preteach (bool) and roll_data (bool) agregated into one
-        n = ""
+    def agreagate_preteach(self, dataframe):
         if dataframe["preteach"] == True:
-            n += "continued weights"
+            return "continued weights"
         else:
-            n += "initial weights"
+            return "initial weights"
+
+    def agreagate_roll_data(self, dataframe):
         if dataframe["roll_data"] == True:
-            n += "+ new data"
+            return "new data"
         else:
-            n += "+ all data"
-        return n
+            return  "all data"
 
     def name_change_rate(self, dataframe):
         if dataframe["change_rate"] == 1.0:
@@ -231,32 +230,37 @@ class Results:
         elif dataframe["change_rate"] == -1.0:
             return "random change"
 
+
 if __name__ == "__main__":
-    results = Results(os.path.join("backups", "compare"))
-    # results.add_missions(os.path.join("backups","new2"))
+    results = Results(os.path.join("backups", "metrics"))
+    results.add_missions(os.path.join("backups","compare"))
 
     # results.plot_std(filter_strategy=Strategy(), sorting_paramteres="change_rate")
     # results.plot_std(filter_strategy=Strategy(iteration=3), sorting_paramteres="change_rate")
     # results.plot_std(filter_strategy=Strategy(), sorting_paramteres="change_rate")
     # results.plot_std(filter_strategy=Strategy(), sorting_paramteres="change_rate")
-    plot_std(results, filter_strategy=Strategy(), sorting_paramteres=["roll_data", "preteach"])
-    plot_std(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["roll_data", "preteach"])
-    plot_std_pandas(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["change_rate", "duty_cycle"])
-    plot_std(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["change_rate", "duty_cycle"])
+    #plot_std(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["change_rate", "duty_cycle"])
+    #plot_std_pandas(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["preteach", "roll_data"])
 
     results.correlate(
-        correlation_var=["change_rate", "iteration", "duty_cycle", "used_teach_count", "preteach", "roll_data"],
+        correlation_var=[ "iteration", "change_rate", "duty_cycle", "uptime", "used_teach_count", "preteach", "roll_data","metrics_type"],
         grading_var=["AC_fm_integral"],
-        filter_strategy=Strategy(iteration=3))
+       filter_strategy=Strategy())
+    results.correlate(
+        correlation_var=[ "iteration", "change_rate", "duty_cycle", "uptime", "used_teach_count", "preteach", "roll_data","metrics_type"],
+        grading_var=["AC_fm_integral"],
+       filter_strategy=Strategy(iteration=6))
     # results.correlate(correlation_var=["change_rate", "iteration", "duty_cycle","used_teach_count"], grading_var=["AC_fm_integral"])
     # results.correlate(correlation_var=["change_rate", "iteration", "duty_cycle","used_teach_count"], grading_var=["AC_fm_integral"],
     #                  filter_strategy=Strategy(iteration=3,change_rate=0.0))#, exclude_strategy=Strategy(change_rate=1.0))
     # scatter(results,Strategy(),sorting_paramteres=["preteach"])
-    scatter_violin(results, Strategy(), sorting_paramteres=["change_rate"])
-    scatter_violin(results, Strategy(), sorting_paramteres=["metrics_type"])
-    scatter_violin(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["roll_data", "preteach"])
-    scatter_violin(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["change_rate", "duty_cycle"])
+    #scatter_violin(results, Strategy(), sorting_paramteres=["change_rate"])
+    #scatter_violin(results, Strategy(), sorting_paramteres=["metrics_type"])
+    scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=["change_rate","preteach", "roll_data"])
+    scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=["iteration","metrics_type"])
+    scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=[ "metrics_type"])
     # results.plot(filter_strategy=Strategy(preteach=True), sorting_paramteres="iteration")
     # results.scatter(filter_strategy=Strategy(), sorting_paramteres="change_rate")
     # results.plot_recognition_corelation()
     plt.show()
+
