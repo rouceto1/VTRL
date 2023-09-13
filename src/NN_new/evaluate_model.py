@@ -94,7 +94,8 @@ def eval_displacement(eval_model=None, model_path=None,
                                    histogram=plot_hist,
                                    name=plot_name + "_" + str(epoch) + "_" + str(idx),
                                    dir=plot_path)
-
+        if idx == 0:
+            idx = 1
         return abs_err / idx, valid * 100 / idx, histograms, results
 
 
