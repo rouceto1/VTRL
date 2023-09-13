@@ -221,7 +221,7 @@ class Strategy:
         self.grading_path = None
         self.usage_path = None
         self.metrics_path = None
-        self.training_time = None
+        self.train_time = None
         self.eval_time = None
         self.grading = [None, None]
         self.is_faulty = False
