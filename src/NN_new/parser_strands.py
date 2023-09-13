@@ -47,7 +47,7 @@ class StrandsImgPairDataset(Dataset):
                 self.nonzeros, self.fcount_threshold, len(qualifieds), np.count_nonzero(qualifieds),
                 np.count_nonzero(qualifieds2), np.count_nonzero(qualifieds3)))
             if self.nonzeros == 0:
-                raise Exception("[-] no valid selection to teach on")
+                raise ValueError("[-] no valid selection to teach on")
 
             self.data = []
             for i, pair in enumerate(self.training_input):
