@@ -208,6 +208,7 @@ class Results:
         df['roll_data'] = df.apply(self.agreagate_roll_data, axis=1)
         df['change_rate'] = df.apply(self.name_change_rate, axis=1)
         df['roll_pretech'] = df['roll_data'] + " " + df['preteach']
+        df['real_uptime'] = df['uptime'] * df['duty_cycle']
         return df
 
     def agreagate_preteach(self, dataframe):
@@ -232,8 +233,9 @@ class Results:
 
 
 if __name__ == "__main__":
-    results = Results(os.path.join("backups", "metrics"))
+    results = Results(os.path.join("backups", "uptime"))
     results.add_missions(os.path.join("backups","compare"))
+    results.add_missions(os.path.join("backups", "metrics"))
 
     # results.plot_std(filter_strategy=Strategy(), sorting_paramteres="change_rate")
     # results.plot_std(filter_strategy=Strategy(iteration=3), sorting_paramteres="change_rate")
@@ -256,9 +258,18 @@ if __name__ == "__main__":
     # scatter(results,Strategy(),sorting_paramteres=["preteach"])
     #scatter_violin(results, Strategy(), sorting_paramteres=["change_rate"])
     #scatter_violin(results, Strategy(), sorting_paramteres=["metrics_type"])
-    scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=["change_rate","preteach", "roll_data"])
-    scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=["iteration","metrics_type"])
-    scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=[ "metrics_type"])
+    #scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=["change_rate","duty_cycle", "roll_data"])
+    #scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=["iteration","metrics_type"])
+    #scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=[ "metrics_type"])
+    #scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=[ "uptime","duty_cycle"])
+    #scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=["iteration","metrics_type"])
+    #scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=[ "metrics_type"])
+    scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=["change_rate","preteach","roll_data"],grouping="roll_pretech")
+    scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=["change_rate","uptime", "duty_cycle"],grouping="real_uptime")
+    scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral", sorting_paramteres=["change_rate","preteach","roll_data"],grouping="roll_pretech")
+    scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral", sorting_paramteres=["change_rate","uptime", "duty_cycle"],grouping="real_uptime")
+    scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral",
+                   sorting_paramteres=["train_time", "uptime", "duty_cycle"], grouping="real_uptime")
     # results.plot(filter_strategy=Strategy(preteach=True), sorting_paramteres="iteration")
     # results.scatter(filter_strategy=Strategy(), sorting_paramteres="change_rate")
     # results.plot_recognition_corelation()

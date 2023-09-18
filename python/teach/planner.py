@@ -102,7 +102,7 @@ class Mission:
                                                  time_limit=self.c_strategy.time_limit,
                                                  place_weights=self.c_strategy.place_weights,
                                                  exploitation_weights=self.c_strategy.process_weights(
-                                                     duty_cycle=self.c_strategy.duty_cucle),
+                                                     duty_cycle=self.c_strategy.duty_cycle),
                                                  iteration=self.c_strategy.iteration,
                                                  rolling=self.c_strategy.roll_data)
 
@@ -113,7 +113,7 @@ class Mission:
                                                 time_limit=self.c_strategy.time_limit,
                                                 place_weights=self.c_strategy.place_weights,
                                                 exploitation_weights=self.c_strategy.process_weights(
-                                                    duty_cycle=self.c_strategy.duty_cucle),
+                                                    duty_cycle=self.c_strategy.duty_cycle),
                                                 iteration=self.c_strategy.iteration,
                                                 rolling=self.c_strategy.roll_data)
         # print(percentage_to_explore,c1,c2,c1+c2)
