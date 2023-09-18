@@ -23,7 +23,7 @@ class NumpyArrayEncoder(JSONEncoder):
 class Mission_generator:
 
     def __init__(self, uptime, block_size, dataset_weights, place_weights, time_limit, time_advance, change_rate,
-                 duty_cycle, preteach, metrics_type,roll_data):
+                 duty_cycle, preteach, metrics_type,roll_data, ee_ratio):
         self.uptime = uptime
         self.block_size = block_size
         self.dataset_weights = dataset_weights  # cestlice, strands
@@ -35,6 +35,7 @@ class Mission_generator:
         self.preteach = preteach
         self.matrics_type = metrics_type
         self.roll_data = roll_data
+        self.ee_ratio = ee_ratio
         self.mission_count = 0
         self.missions = None
 
@@ -46,7 +47,7 @@ class Mission_generator:
 
     def make_multiple_missions(self):
         a = [self.uptime, self.block_size, self.dataset_weights, self.place_weights, self.time_limit,
-             self.time_advance, self.change_rate, self.duty_cycle, self.preteach, self.matrics_type,self.roll_data]
+             self.time_advance, self.change_rate, self.duty_cycle, self.preteach, self.matrics_type,self.roll_data, self.ee_ratio]
         combinations = list(itertools.product(*a))
         missions = []
         strategies = []
@@ -55,7 +56,8 @@ class Mission_generator:
                                 place_weights=combination[3], time_limit=combination[4], time_advance=combination[5],
                                 change_rate=combination[6], iteration=0, duty_cycle=combination[7],
                                 preteach=combination[8],
-                                m_type=combination[9], roll_data=combination[10])  # TODO make time_advance agnostic of time_limit
+                                m_type=combination[9], roll_data=combination[10],
+                                ee_ratio=combinations[11])  # TODO make time_advance agnostic of time_limit
             strategies.append(strategy)
         strategies.sort(key=lambda x: x.uptime * x.duty_cycle, reverse=False)
 
@@ -91,24 +93,24 @@ class Mission_generator:
             handle.write(text)
 
 if __name__ == "__main__":
-    uptime_list = np.array([0.1, 0.2, 0.7])
+    uptime_list = np.array([0.5])
     #uptime_list = np.array([0.25])
     time_limits = np.array([0.14])
     block_size_list = [1]
     dataset_weights = [np.array([0.0, 1.0])]
-    place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
-                              ]
+    place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial weights
     preteach_list = [True]
     roll_data_list = [True, False]
-    duty_cycle_list = np.array([1.0, 4.0, 8.0])
+    duty_cycle_list = np.array([4.0, 5.0])
     #duty_cycle_list = np.array([1.0])
     time_advance_list = np.array([0.14])
     change_rate_list = np.array([1.0, 0.0, -1.0])
     #change_rate_list = np.array([1.0])
     metrics_type_list = np.array([0])
+    ee_ratio_list = np.array([1.0, 0.0, 0.5, 0.25, 0.75])
 
     gen = Mission_generator(uptime_list, block_size_list, dataset_weights, place_weights_contents, time_limits,
-                    time_advance_list, change_rate_list, duty_cycle_list, preteach_list, metrics_type_list, roll_data_list)
+                    time_advance_list, change_rate_list, duty_cycle_list, preteach_list, metrics_type_list, roll_data_list, ee_ratio_list)
 
     random.seed(42)
     np.random.seed(42)

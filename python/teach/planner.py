@@ -101,6 +101,8 @@ class Mission:
                                                  uptime=self.c_strategy.uptime, block_size=self.c_strategy.block_size,
                                                  time_limit=self.c_strategy.time_limit,
                                                  place_weights=self.c_strategy.place_weights,
+                                                 exploitation_weights=self.c_strategy.process_weights(
+                                                     duty_cycle=self.c_strategy.duty_cucle),
                                                  iteration=self.c_strategy.iteration,
                                                  rolling=self.c_strategy.roll_data)
 
@@ -110,6 +112,8 @@ class Mission:
                                                 uptime=self.c_strategy.uptime, block_size=self.c_strategy.block_size,
                                                 time_limit=self.c_strategy.time_limit,
                                                 place_weights=self.c_strategy.place_weights,
+                                                exploitation_weights=self.c_strategy.process_weights(
+                                                    duty_cycle=self.c_strategy.duty_cucle),
                                                 iteration=self.c_strategy.iteration,
                                                 rolling=self.c_strategy.roll_data)
         # print(percentage_to_explore,c1,c2,c1+c2)
@@ -131,7 +135,8 @@ class Mission:
 
     def make_plan(self, old_plan, old_strategy, seasons, places, weight, uptime=1.0,
                   place_weights=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
-                  block_size=1, time_limit=1.0, iteration=0, rolling=False):
+                  exploitation_weights=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+                  block_size=1, time_limit=1.0, iteration=0, rolling=False, ee_ratio=1.0):
         plan = self.make_empty_plan(seasons, places)
         if uptime * weight == 0.0:
             return plan, 0
@@ -157,10 +162,16 @@ class Mission:
         r = np.random.rand(len(plan), len(plan[0]))
         for season in range(start, last_season):
             if season in selected_seasons:
+                random_ee = random.random() > ee_ratio #if exploring only ee_ratio is 1, therefore this is always false
                 for p in range(places):
-                    if r[season][p] < place_weights[p]:
-                        newly_added += 1
-                        plan[season][p] = True
+                    if random_ee:
+                        if r[season][p] < exploitation_weights[p]:
+                            newly_added += 1
+                            plan[season][p] = True
+                    else:
+                        if r[season][p] < place_weights[p]:
+                            newly_added += 1
+                            plan[season][p] = True
 
         return plan, newly_added
 
@@ -191,7 +202,7 @@ class Mission:
 class Strategy:
     def __init__(self, uptime=None, block_size=None, dataset_weights=None, place_weights=None, time_limit=None,
                  time_advance=None, change_rate=None,
-                 iteration=None, duty_cycle=None, preteach=None, m_type=None, roll_data=None):
+                 iteration=None, duty_cycle=None, preteach=None, m_type=None, roll_data=None, ee_ratio=None):
         # internal variables: percentage_to_explore, block_size, dataset_weights, place_weights, iteration
         self.uptime = uptime
         self.block_size = block_size
@@ -204,11 +215,13 @@ class Strategy:
         self.duty_cycle = duty_cycle
         self.preteach = preteach
         self.roll_data = roll_data
+        self.ee_ratio = ee_ratio
         self.metrics_type = m_type
         # 0: entropies[i] < mean + std * 0.1:
         #    well_understood.append(file_list[i])
         # boolean
         # 1:
+
 
         if place_weights is not None:
             self.place_weights = self.process_weights(self.place_weights, np.ones(8), self.duty_cycle)
