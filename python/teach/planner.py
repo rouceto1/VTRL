@@ -192,7 +192,7 @@ class Mission:
             "preteach": strategy.preteach,
             "roll_data": strategy.roll_data,
             "metrics_type": int(strategy.metrics_type),
-            "ee_ratio": strategy.ee_ratio
+            "ee_ratio": str(strategy.ee_ratio)
         }
         json_object = json.dumps(dictionary, cls=NumpyArrayEncoder)
         with open(os.path.join(experiments_path, name) + "/strategy" + iteration + ".json", "w") as outfile:
