@@ -86,6 +86,7 @@ class Mission_generator:
         txt += "matrics_type " + str(self.matrics_type) + "\n"
         txt += "mission_count " + str(self.mission_count) + "\n"
         txt += "roll_data" + str(self.roll_data) + "\n"
+        txt += "ee_ratio" + str(self.ee_ratio) + "\n"
         return txt
 
     def save_gen(self,path,text):
@@ -101,7 +102,7 @@ if __name__ == "__main__":
     place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial weights
     preteach_list = [True]
     roll_data_list = [True, False]
-    duty_cycle_list = np.array([2.0, 3.0, 6.0])
+    duty_cycle_list = np.array([1.0, 2.0, 3.0])
     #duty_cycle_list = np.array([1.0])
     time_advance_list = np.array([0.14])
     change_rate_list = np.array([1.0, 0.0, -1.0])

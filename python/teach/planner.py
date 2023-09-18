@@ -59,7 +59,7 @@ class Mission:
     def load(self, mission_folder):
         with open(os.path.join(mission_folder, "mission.pickle"), 'rb') as f:
             m = renamed_load(f)
-        print("Loaded mission: " + str(os.path.join(mission_folder, "mission.pickle")))
+        #print("Loaded mission: " + str(os.path.join(mission_folder, "mission.pickle")))
         return m
 
     def setup_current_strategy(self, init_weights=None):
@@ -191,7 +191,8 @@ class Mission:
             "duty_cycle": strategy.duty_cycle,
             "preteach": strategy.preteach,
             "roll_data": strategy.roll_data,
-            "metrics_type": int(strategy.metrics_type)
+            "metrics_type": int(strategy.metrics_type),
+            "ee_ratio": strategy.ee_ratio
         }
         json_object = json.dumps(dictionary, cls=NumpyArrayEncoder)
         with open(os.path.join(experiments_path, name) + "/strategy" + iteration + ".json", "w") as outfile:
