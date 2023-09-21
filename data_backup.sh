@@ -1,6 +1,8 @@
 #!/bin/bash
 
 while true; do
+echo "Possible places:"
+ls backups
 
 read -p "Where to back up data (cancel)" yn
 
