@@ -58,7 +58,7 @@ class Mission_generator:
                                 change_rate=combination[6], iteration=0, duty_cycle=combination[7],
                                 preteach=combination[8],
                                 m_type=combination[9], roll_data=combination[10],
-                                ee_ratio=combinations[11])
+                                ee_ratio=combination[11])
             strategies.append(strategy)
         strategies.sort(key=lambda x: x.uptime * x.duty_cycle, reverse=False)
 
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     block_size_list = [1]
     dataset_weights = [np.array([0.0, 1.0])]
     place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial weights
-    preteach_list = [True, False]
+    preteach_list = [True]
     roll_data_list = [True, False]
     duty_cycle_list = np.array([2.0])
     #duty_cycle_list = np.array([1.0])
@@ -109,8 +109,8 @@ if __name__ == "__main__":
     change_rate_list = np.array([1.0, 0.0, -1.0])
     #change_rate_list = np.array([1.0])
     metrics_type_list = np.array([0])
-    ee_ratio_list = np.array([1.0])
-    sigma = np.array(range(5))
+    ee_ratio_list = np.array([1.0, 0.5])
+    sigma = np.array(range(3))
 
     gen = Mission_generator(uptime_list, block_size_list, dataset_weights, place_weights_contents, time_limits,
                     time_advance_list, change_rate_list, duty_cycle_list, preteach_list, metrics_type_list, roll_data_list, ee_ratio_list,sigma)

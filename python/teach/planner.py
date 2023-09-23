@@ -104,7 +104,8 @@ class Mission:
                                                  exploitation_weights=self.c_strategy.process_weights(
                                                      duty_cycle=self.c_strategy.duty_cycle),
                                                  iteration=self.c_strategy.iteration,
-                                                 rolling=self.c_strategy.roll_data)
+                                                 rolling=self.c_strategy.roll_data,
+                                                 ee_ratio=self.c_strategy.ee_ratio)
 
         places_out_strands, c2 = self.make_plan(old_plan[1], old_strategy, seasons=total_seasons[1],
                                                 places=total_places[1],
@@ -115,7 +116,8 @@ class Mission:
                                                 exploitation_weights=self.c_strategy.process_weights(
                                                     duty_cycle=self.c_strategy.duty_cycle),
                                                 iteration=self.c_strategy.iteration,
-                                                rolling=self.c_strategy.roll_data)
+                                                rolling=self.c_strategy.roll_data,
+                                                ee_ratio=self.c_strategy.ee_ratio)
         # print(percentage_to_explore,c1,c2,c1+c2)
         self.save_plan(self.name, self.experiments_path, self.c_strategy)
         self.c_strategy.plan = [places_out_cestlice, places_out_strands]
@@ -249,7 +251,7 @@ class Strategy:
     def print_parameters(self):
         print(
             f"Up: {self.uptime}, Bs: {self.block_size}, pw: {np.array2string(self.place_weights, precision=2, floatmode='fixed')}, lim e: {self.time_limit}, "
-            f"it: {self.iteration}, cr: {self.change_rate}, ta {self.time_advance}, pt {self.preteach}")
+            f"it: {self.iteration}, cr: {self.change_rate}, ta {self.time_advance}, pt {self.preteach}, rol{self.roll_data}, ee {self.ee_ratio}, m_type {self.metrics_type}")
 
     def title_parameters(self):
         if self.place_weights is None:
