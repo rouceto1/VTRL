@@ -101,7 +101,7 @@ if __name__ == "__main__":
     block_size_list = [1]
     dataset_weights = [np.array([0.0, 1.0])]
     place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial weights
-    preteach_list = [True]
+    preteach_list = [True, False]
     roll_data_list = [True, False]
     duty_cycle_list = np.array([2.0])
     #duty_cycle_list = np.array([1.0])
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     #change_rate_list = np.array([1.0])
     metrics_type_list = np.array([0])
     ee_ratio_list = np.array([1.0, 0.5])
-    sigma = np.array(range(3))
+    sigma = np.array(range(1))
 
     gen = Mission_generator(uptime_list, block_size_list, dataset_weights, place_weights_contents, time_limits,
                     time_advance_list, change_rate_list, duty_cycle_list, preteach_list, metrics_type_list, roll_data_list, ee_ratio_list,sigma)
