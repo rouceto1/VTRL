@@ -101,14 +101,14 @@ if __name__ == "__main__":
     block_size_list = [1]
     dataset_weights = [np.array([0.0, 1.0])]
     place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial weights
-    preteach_list = [True]#, False]
+    preteach_list = [True, False]
     roll_data_list = [True, False]
-    duty_cycle_list = np.array([1.0, 3.0, 7.0])
+    duty_cycle_list = np.array([1.0, 3.0])
     #duty_cycle_list = np.array([1.0])
     time_advance_list = np.array([0.14])
-    change_rate_list = np.array([1.0, 0.0, -1.0])
+    change_rate_list = np.array([1.0])
     #change_rate_list = np.array([1.0])
-    metrics_type_list = np.array([0])
+    metrics_type_list = np.array([0, 1, 2])
     ee_ratio_list = np.array([0.25, 0.75, 0.5])
     sigma = np.array(range(1))
 
