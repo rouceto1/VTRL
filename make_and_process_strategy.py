@@ -9,6 +9,7 @@ from python.teach.planner import Strategy, Mission
 from process_strategy import process_new
 from json import JSONEncoder
 import pickle
+
 pwd = os.getcwd()
 experiments_path = os.path.join(pwd, "experiments")
 
@@ -23,7 +24,7 @@ class NumpyArrayEncoder(JSONEncoder):
 class Mission_generator:
 
     def __init__(self, uptime, block_size, dataset_weights, place_weights, time_limit, time_advance, change_rate,
-                 duty_cycle, preteach, metrics_type,roll_data, ee_ratio,sigma):
+                 duty_cycle, preteach, metrics_type, roll_data, ee_ratio, sigma):
         self.uptime = uptime
         self.block_size = block_size
         self.dataset_weights = dataset_weights  # cestlice, strands
@@ -48,7 +49,8 @@ class Mission_generator:
 
     def make_multiple_missions(self):
         a = [self.uptime, self.block_size, self.dataset_weights, self.place_weights, self.time_limit,
-             self.time_advance, self.change_rate, self.duty_cycle, self.preteach, self.matrics_type,self.roll_data, self.ee_ratio,self.sigma]
+             self.time_advance, self.change_rate, self.duty_cycle, self.preteach, self.matrics_type, self.roll_data,
+             self.ee_ratio, self.sigma]
         combinations = list(itertools.product(*a))
         missions = []
         strategies = []
@@ -70,10 +72,8 @@ class Mission_generator:
             self.mission_count += 1
         return missions, a
 
-
-
     def get_txt(self):
-        #return string with all internal variables
+        # return string with all internal variables
         txt = ""
         txt += "uptime " + str(self.uptime) + "\n"
         txt += "block_size " + str(self.block_size) + "\n"
@@ -90,30 +90,32 @@ class Mission_generator:
         txt += "ee_ratio" + str(self.ee_ratio) + "\n"
         return txt
 
-    def save_gen(self,path,text):
+    def save_gen(self, path, text):
         with open(os.path.join(path, "generator.txt"), 'w') as handle:
             handle.write(text)
 
+
 if __name__ == "__main__":
     uptime_list = np.array([0.25])
-    #uptime_list = np.array([0.25])
+    # uptime_list = np.array([0.25])
     time_limits = np.array([0.14])
     block_size_list = [1]
     dataset_weights = [np.array([0.0, 1.0])]
     place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial weights
-    preteach_list = [True, False]
-    roll_data_list = [True, False]
-    duty_cycle_list = np.array([1.0, 3.0])
-    #duty_cycle_list = np.array([1.0])
+    preteach_list = [True]
+    roll_data_list = [False]
+    duty_cycle_list = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])
+    # duty_cycle_list = np.array([1.0])
     time_advance_list = np.array([0.14])
     change_rate_list = np.array([1.0])
-    #change_rate_list = np.array([1.0])
-    metrics_type_list = np.array([0, 1, 2])
-    ee_ratio_list = np.array([0.25, 0.75, 0.5])
-    sigma = np.array(range(1))
+    # change_rate_list = np.array([1.0])
+    metrics_type_list = np.array([0])
+    ee_ratio_list = np.array([0.0, 0.25, 0.5, 0.75, 1.0])
+    sigma = np.array(range(3))
 
     gen = Mission_generator(uptime_list, block_size_list, dataset_weights, place_weights_contents, time_limits,
-                    time_advance_list, change_rate_list, duty_cycle_list, preteach_list, metrics_type_list, roll_data_list, ee_ratio_list,sigma)
+                            time_advance_list, change_rate_list, duty_cycle_list, preteach_list, metrics_type_list,
+                            roll_data_list, ee_ratio_list, sigma)
 
     random.seed(42)
     np.random.seed(42)

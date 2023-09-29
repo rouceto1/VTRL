@@ -95,7 +95,7 @@ class Mission:
     def plan_modifier(self, old_plan=[None, None], old_strategy=None):
         total_seasons = [30, 1007]
         total_places = [271, 8]
-        places_out_cestlice, c1 = self.make_plan(old_plan[0], old_strategy, seasons=total_seasons[0],
+        places_out_cestlice,exploit_cestlice, c1 = self.make_plan(old_plan[0], old_strategy, seasons=total_seasons[0],
                                                  places=total_places[0],
                                                  weight=self.c_strategy.dataset_weights[0],
                                                  uptime=self.c_strategy.uptime, block_size=self.c_strategy.block_size,
@@ -107,7 +107,7 @@ class Mission:
                                                  rolling=self.c_strategy.roll_data,
                                                  ee_ratio=self.c_strategy.ee_ratio)
 
-        places_out_strands, c2 = self.make_plan(old_plan[1], old_strategy, seasons=total_seasons[1],
+        places_out_strands, exploit_strands, c2 = self.make_plan(old_plan[1], old_strategy, seasons=total_seasons[1],
                                                 places=total_places[1],
                                                 weight=self.c_strategy.dataset_weights[1],
                                                 uptime=self.c_strategy.uptime, block_size=self.c_strategy.block_size,
@@ -121,6 +121,7 @@ class Mission:
         # print(percentage_to_explore,c1,c2,c1+c2)
         self.save_plan(self.name, self.experiments_path, self.c_strategy)
         self.c_strategy.plan = [places_out_cestlice, places_out_strands]
+        self.c_strategy.exploit = [exploit_cestlice, exploit_strands]
         if c1 + c2 == 0:
             self.no_more_data = True
         return [places_out_cestlice, places_out_strands], [c1, c2]
@@ -140,8 +141,9 @@ class Mission:
                   exploitation_weights=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
                   block_size=1, time_limit=1.0, iteration=0, rolling=False, ee_ratio=1.0):
         plan = self.make_empty_plan(seasons, places)
+        exploit_plan = self.make_empty_plan(seasons, places)
         if uptime * weight == 0.0:
-            return plan, 0
+            return plan,exploit_plan, 0
         start = 0
         if old_plan is not None:
             start = int(old_strategy.time_limit * seasons)
@@ -152,7 +154,7 @@ class Mission:
         if last_season > seasons:
             print("Not enough time to make new full plan")
             last_season = seasons
-            return plan, 0
+            return plan,exploit_plan, 0
 
         available_seasons = last_season - start
         new_season_count = available_seasons * uptime * weight
@@ -170,12 +172,13 @@ class Mission:
                         if r[season][p] < exploitation_weights[p]:
                             newly_added += 1
                             plan[season][p] = True
+                            exploit_plan[season][p] = True
                     else:
                         if r[season][p] < place_weights[p]:
                             newly_added += 1
                             plan[season][p] = True
 
-        return plan, newly_added
+        return plan, exploit_plan, newly_added
 
     def save_plan(self, name, experiments_path, strategy):
         iteration = "_" + str(strategy.iteration)

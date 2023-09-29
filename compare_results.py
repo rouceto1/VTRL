@@ -13,10 +13,12 @@ pwd = os.getcwd()
 import colorsys
 
 strategy_keys = ["uptime", "block_size", "dataset_weights", "used_teach_count", "place_weights", "time_limit",
-                 "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data"]
+                 "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data","ee_ratio"]
 df_keys = ["uptime", "new_param", "block_size", "dataset_weights", "used_teach_count", "place_weights", "time_limit",
-                 "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "train_time","metrics_type", "train_time"]
+           "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "train_time",
+           "metrics_type", "train_time","ee_ratio"]
 df_grading_keys = ["AC_fm_integral", "AC_nn_integral", "streak_integral", "AC_fm", "AC_nn"]
+
 
 def get_only_keys(keys, dictionary):
     out = {}
@@ -28,24 +30,28 @@ def get_only_keys(keys, dictionary):
 
 class Results:
     def __init__(self, path):
+        print("-------------------------------------------------")
         self.path = path
         self.missions, self.generator = self.load_missions(path)
         self.output_graph_path = os.path.join(path, "compare.png")
+        print(path)
         if self.generator is not None:
             for g in self.generator:
                 print(g.replace("\n", ""))
-        for m in self.missions:
-            m.c_strategy.print_parameters()
+        #for m in self.missions:
+            #m.c_strategy.print_parameters()
         # self.t = self.get_N_HexCol(len(self.data))
 
     def add_missions(self, path):
+        print("-------------------------------------------------")
+        print(path)
         new, gen2 = self.load_missions(path)
         self.missions.extend(new)
         if gen2 is not None:
             for g in gen2:
                 print(g.replace("\n", ""))
-        for m in new:
-            m.c_strategy.print_parameters()
+        #for m in new:
+            #m.c_strategy.print_parameters()
 
     def load_missions(self, path):
         experiments_path = os.path.join(pwd, path)
@@ -134,7 +140,17 @@ class Results:
             for strategy in mission.old_strategies:
                 if not self.is_strategy_same_as_params(strategy, stategy_params, exclude_strategy) or override:
                     continue
-
+                if "ee_ratio" in sorting_params:
+                    if not hasattr(strategy, "ee_ratio"):
+                        if strategy.change_rate == -1:
+                            strategy.ee_ratio = 0.0
+                        elif strategy.change_rate == 1:
+                            strategy.ee_ratio = 1.0
+                        else:
+                            continue
+                    else:
+                        if strategy.change_rate == -1:
+                            strategy.ee_ratio = 0.0
                 if sorting_params == "place_weights":
                     if len(values) == 0:
                         values.append(strategy.place_weights)
@@ -181,9 +197,9 @@ class Results:
 
     def correlate(self, filter_strategy=Strategy(), sorting_parameters=["change_rate"], correlation_var=[],
                   grading_var=["AC_fm_integral"], exclude_strategy=Strategy()):
-        strategies_to_corelate, colors, values, df  = self.filter_strategies(stategy_params=filter_strategy,
-                                                                        sorting_params=sorting_parameters,
-                                                                        exclude_strategy=exclude_strategy)
+        strategies_to_corelate, colors, values, df = self.filter_strategies(stategy_params=filter_strategy,
+                                                                            sorting_params=sorting_parameters,
+                                                                            exclude_strategy=exclude_strategy)
 
         v1, t1 = (self.get_corr_from_strategy(strategies_to_corelate, correlation_var))
         v2, t2 = (self.get_corr_from_strategy(strategies_to_corelate, grading_var, type="grade"))
@@ -200,9 +216,9 @@ class Results:
         out = []
 
         for s in strategies:
-             a = get_only_keys(df_keys, vars(s))
-             b = get_only_keys(df_grading_keys, vars(s.grading[0]))
-             out.append(a|b)
+            a = get_only_keys(df_keys, vars(s))
+            b = get_only_keys(df_grading_keys, vars(s.grading[0]))
+            out.append(a | b)
         df = pd.DataFrame(out)
         df['preteach'] = df.apply(self.agreagate_preteach, axis=1)
         df['roll_data'] = df.apply(self.agreagate_roll_data, axis=1)
@@ -221,57 +237,88 @@ class Results:
         if dataframe["roll_data"] == True:
             return "new data"
         else:
-            return  "all data"
+            return "all data"
 
     def name_change_rate(self, dataframe):
         if dataframe["change_rate"] == 1.0:
-            return "adaptive change"
+            return "adaptive exploration"
         elif dataframe["change_rate"] == 0.0:
-            return "no change"
+            return "static exploration"
         elif dataframe["change_rate"] == -1.0:
-            return "random change"
+            return "random exploration (pure exploitation)"
 
+
+def comparison_to_old_system():
+    results = Results(os.path.join("backups", "ee"))
+    results.add_missions(os.path.join("backups", "compare"))
+    # compares original vtrl (change_rate = 0, roll_data=True, preteach=true
+    scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral",
+                   sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech")
+    scatter_violin(results, filter_strategy=Strategy(iteration=6, roll_data=True), variable="AC_fm_integral",
+                   sorting_paramteres=[ "preteach","change_rate"])
+    scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral",
+                   sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech")
+    scatter_violin(results, filter_strategy=Strategy(iteration=6, roll_data=True, preteach=True), variable="AC_fm_integral",
+                   sorting_paramteres=["change_rate"])
+    plot_std(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["change_rate", "preteach", "roll_data"])
+    plot_std(results, filter_strategy=Strategy(iteration=6, roll_data=True, preteach=True),
+                   sorting_paramteres=["change_rate"])
+    plt.show()
+
+
+def compare_ee():
+    #do NOT use ee only ee2 folders
+    results = Results(os.path.join("backups", "ee2"))
+    results.add_missions(os.path.join("backups", "ee3"))
+    #results.add_missions(os.path.join("backups", "uptime"))
+    scatter_violin(results, filter_strategy=Strategy(iteration=6,change_rate=1),exclude_strategy=Strategy( ), variable="AC_fm_integral", sorting_paramteres=["ee_ratio"])
+    scatter_violin(results, filter_strategy=Strategy(iteration=6,change_rate=1),exclude_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=["roll_data", "ee_ratio"])
+    scatter_violin(results, filter_strategy=Strategy(iteration=6,change_rate=1),exclude_strategy=Strategy( ), variable="AC_fm_integral", sorting_paramteres=["duty_cycle", "ee_ratio"])
+
+
+    results = Results(os.path.join("backups", "uptime"))
+    scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral", sorting_paramteres=["duty_cycle","change_rate"])
+    # scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=["iteration","metrics_type"])
+    # scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=[ "metrics_type"])
 
 if __name__ == "__main__":
-    results = Results(os.path.join("backups", "uptime"))
-    results.add_missions(os.path.join("backups","compare"))
-    results.add_missions(os.path.join("backups", "metrics"))
+    compare_ee()
 
+    #results = Results(os.path.join("backups", "uptime"))
+    #results.add_missions(os.path.join("backups", "compare"))
+    #results.add_missions(os.path.join("backups", "metrics"))
     # results.plot_std(filter_strategy=Strategy(), sorting_paramteres="change_rate")
     # results.plot_std(filter_strategy=Strategy(iteration=3), sorting_paramteres="change_rate")
     # results.plot_std(filter_strategy=Strategy(), sorting_paramteres="change_rate")
     # results.plot_std(filter_strategy=Strategy(), sorting_paramteres="change_rate")
-    #plot_std(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["change_rate", "duty_cycle"])
-    #plot_std_pandas(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["preteach", "roll_data"])
+    # plot_std(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["change_rate", "duty_cycle"])
+    # plot_std_pandas(results, filter_strategy=Strategy(iteration=6), sorting_paramteres=["preteach", "roll_data"])
 
-    results.correlate(
-        correlation_var=[ "iteration", "change_rate", "duty_cycle", "uptime", "used_teach_count", "preteach", "roll_data","metrics_type"],
-        grading_var=["AC_fm_integral"],
-       filter_strategy=Strategy())
-    results.correlate(
-        correlation_var=[ "iteration", "change_rate", "duty_cycle", "uptime", "used_teach_count", "preteach", "roll_data","metrics_type"],
-        grading_var=["AC_fm_integral"],
-       filter_strategy=Strategy(iteration=6))
+    #results.correlate(
+    #    correlation_var=["iteration", "change_rate", "duty_cycle", "uptime", "used_teach_count", "preteach",
+    #                     "roll_data", "metrics_type"],
+    #    grading_var=["AC_fm_integral"],
+    #    filter_strategy=Strategy())
+    #results.correlate(
+    #    correlation_var=["iteration", "change_rate", "duty_cycle", "uptime", "used_teach_count", "preteach",
+    #                     "roll_data", "metrics_type"],
+    #    grading_var=["AC_fm_integral"],
+    #    filter_strategy=Strategy(iteration=6,roll_data=False))
     # results.correlate(correlation_var=["change_rate", "iteration", "duty_cycle","used_teach_count"], grading_var=["AC_fm_integral"])
     # results.correlate(correlation_var=["change_rate", "iteration", "duty_cycle","used_teach_count"], grading_var=["AC_fm_integral"],
     #                  filter_strategy=Strategy(iteration=3,change_rate=0.0))#, exclude_strategy=Strategy(change_rate=1.0))
     # scatter(results,Strategy(),sorting_paramteres=["preteach"])
-    #scatter_violin(results, Strategy(), sorting_paramteres=["change_rate"])
-    #scatter_violin(results, Strategy(), sorting_paramteres=["metrics_type"])
-    #scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=["change_rate","duty_cycle", "roll_data"])
-    #scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=["iteration","metrics_type"])
-    #scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=[ "metrics_type"])
-    #scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=[ "uptime","duty_cycle"])
-    #scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=["iteration","metrics_type"])
-    #scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=[ "metrics_type"])
-    scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=["change_rate","preteach","roll_data"],grouping="roll_pretech")
-    scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=["change_rate","uptime", "duty_cycle"],grouping="real_uptime")
-    scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral", sorting_paramteres=["change_rate","preteach","roll_data"],grouping="roll_pretech")
-    scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral", sorting_paramteres=["change_rate","uptime", "duty_cycle"],grouping="real_uptime")
-    scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral",
-                   sorting_paramteres=["train_time", "uptime", "duty_cycle"], grouping="real_uptime")
+    # scatter_violin(results, Strategy(), sorting_paramteres=["change_rate"])
+    # scatter_violin(results, Strategy(), sorting_paramteres=["metrics_type"])
+    # scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=["change_rate","duty_cycle", "roll_data"])
+    # scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=["iteration","metrics_type"])
+    # scatter_violin(results, filter_strategy=Strategy(), variable="used_teach_count", sorting_paramteres=[ "metrics_type"])
+    #scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=[ "ee_ratio"])
+    # scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=["iteration","metrics_type"])
+    # scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", sorting_paramteres=[ "metrics_type"])
     # results.plot(filter_strategy=Strategy(preteach=True), sorting_paramteres="iteration")
     # results.scatter(filter_strategy=Strategy(), sorting_paramteres="change_rate")
     # results.plot_recognition_corelation()
+
     plt.show()
 
