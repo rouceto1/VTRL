@@ -7,7 +7,7 @@ import argparse
 from python.helper_functions import *
 import time
 from python.teach.planner import Mission, Strategy
-
+from multiprocessing import Pool
 import logging
 import warnings
 
@@ -52,18 +52,36 @@ def setup_missions(missions, exp_folder_name):
 def process_new(generator, exp_folder_name):
     generator.save_gen(exp_folder_name, generator.get_txt())
     setup_missions(generator.missions, exp_folder_name)
-    for mission in generator.missions:
-        learning_loop(mission)
+    #for mission in generator.missions:
+    #    learning_loop(mission)
 
 
-def process_old(names, exp_folder_name):
-    for mission_name in names:
-        mission = Mission(int(mission_name))
-        mission = mission.load(os.path.join(exp_folder_name, mission_name))
-        learning_loop(mission)
+def multi_run_wrapper(args):
+    process_old(*args)
+def process_old(name, exp_folder_name, cuda=None):
+    conf = config.copy()
+    if cuda is not None:
+        d = "cuda:" + cuda
+        device = t.device(d)
+        conf["device"] = device
+    mission = Mission(int(name))
+    mission = mission.load(os.path.join(conf["exp_folder_name"], name))
+    learning_loop(mission, conf)
+
+def mutlithred_process_old(names, exp_folder_name, thread_limit=None):
+    config["exp_folder_name"] = exp_folder_name
+    if thread_limit is not None:
+        data = []
+        for n,name in enumerate(names):
+            data.append((name, n))
+        with Pool(thread_limit) as pool:
+            pool.map(multi_run_wrapper, data)
+    else:
+        for name in names:
+            process_old(name, exp_folder_name)
 
 
-def learning_loop(mission, iterations=1):
+def learning_loop(mission,conf, cuda=None, iterations=1):
     print("-----------------------------------------------------------------------")
     print(mission.name)
 
@@ -72,10 +90,10 @@ def learning_loop(mission, iterations=1):
     while not mission.no_more_data:
         save = True
         mission.c_strategy.print_parameters()
-        trained = process_plan(mission)  # trains and generates new metrics
+        trained = process_plan(mission, conf=conf)  # trains and generates new metrics
         if not trained:
             break
-        grade_plan(mission)
+        grade_plan(mission, conf)
         mission.save()
         print("Metrics: ", mission.c_strategy.next_metrics)
         mission.advance_mission(mission.c_strategy.next_metrics)
@@ -84,21 +102,21 @@ def learning_loop(mission, iterations=1):
     print("Mission processing:", time.time() - s_time)
 
 
-def grade_plan(mission, eval_to_file=False, grade=False):
+def grade_plan(mission, eval_to_file=False, grade=False,conf=None):
     estimates_grade = None
     if mission.c_strategy.progress == 3 or eval_to_file:
         with open(GT_file, 'rb') as _handle:
             gt_in = pickle.load(_handle)
         estimates_grade = evaluate_for_GT(mission, evaluation_prefix,
                                           evaluation_paths,
-                                          _GT=gt_in, conf=config)
+                                          _GT=gt_in, conf=conf)
         mission.c_strategy.progress = 4
     if mission.c_strategy.progress == 4 or grade:
         grade_type(mission, _GT=gt_in, estimates=estimates_grade)
         mission.c_strategy.progress = 5
 
 
-def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=True):
+def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=True, conf = None):
     start_time = time.time()
     hist_nn = None
     mission.c_strategy.file_list, count = make_combos_for_teaching(mission.c_strategy.plan, dataset_path)
@@ -111,18 +129,18 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
             weights = init_weights
         else:
             weights = mission.old_strategies[-1].model_path
-        _ = teach(dataset_path, mission, init_weights=weights, conf=config)
+        _ = teach(dataset_path, mission, init_weights=weights, conf=conf)
         mission.c_strategy.progress = 1
         mission.c_strategy.train_time = time.time() - start_time
 
     if mission.c_strategy.progress == 1 or enable_eval:
         start_time2 = time.time()
         hist_nn, displacements = evaluate_for_learning(mission, dataset_path,
-                                                       conf=config)
+                                                       conf=conf)
         mission.c_strategy.progress = 2
         mission.c_strategy.eval_time = time.time() - start_time2
     if mission.c_strategy.progress == 2:
-        metrics = process_ev_for_training(mission, dataset_path, conf=config, hist_nn=hist_nn)
+        metrics = process_ev_for_training(mission, dataset_path, conf=conf, hist_nn=hist_nn)
         mission.c_strategy.next_metrics = metrics
         mission.c_strategy.progress = 3
     return True
@@ -135,4 +153,4 @@ if __name__ == "__main__":
     experiments_path = os.path.join(pwd, exp_path)
     paths = [item for item in os.listdir(experiments_path) if os.path.isdir(os.path.join(experiments_path, item))]
     paths.sort()
-    process_old(paths, exp_folder_name=exp_path)
+    mutlithred_process_old(paths, exp_folder_name=exp_path, thread_limit=4)
