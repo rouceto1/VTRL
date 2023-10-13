@@ -68,6 +68,7 @@ def process_old(name, cuda=None):
         if cuda == 3:
             cuda = 4
         d = "cuda:" + str(cuda)
+        print("Using cuda: ", d)
         device = t.device(d)
         conf["device"] = device
     mission = Mission(int(name))
