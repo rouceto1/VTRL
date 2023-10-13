@@ -64,9 +64,7 @@ def process_old(name, cuda=None):
     print(name)
 
     if cuda is not None:
-        cuda = current_process()._identity[0]
-        if cuda == 3:
-            cuda = 4
+        cuda = current_process()._identity[0] - 1
         d = "cuda:" + str(cuda)
         print("Using cuda: ", d)
         device = t.device(d)
@@ -99,7 +97,7 @@ def learning_loop(mission, conf, cuda=None, iterations=1):
         trained = process_plan(mission, conf=conf)  # trains and generates new metrics
         if not trained:
             break
-        grade_plan(mission, conf)
+        grade_plan(mission, condf= conf)
         mission.save()
         #print("Metrics: ", mission.c_strategy.next_metrics)
         mission.advance_mission(mission.c_strategy.next_metrics)
@@ -159,4 +157,4 @@ if __name__ == "__main__":
     experiments_path = os.path.join(pwd, exp_path)
     paths = [item for item in os.listdir(experiments_path) if os.path.isdir(os.path.join(experiments_path, item))]
     paths.sort()
-    mutlithred_process_old(paths, exp_folder_name=exp_path, thread_limit=4)
+    mutlithred_process_old(paths, exp_folder_name=exp_path, thread_limit=None)
