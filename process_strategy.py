@@ -7,7 +7,7 @@ import argparse
 from python.helper_functions import *
 import time
 from python.teach.planner import Mission, Strategy
-from multiprocessing import Pool
+from multiprocessing import Pool, current_process
 import logging
 import warnings
 
@@ -60,11 +60,14 @@ def multi_run_wrapper(args):
     process_old(*args)
 def process_old(name, cuda=None):
     conf = config.copy()
+    print("-----------------------------------------------------------------------")
+    print(name)
+
     if cuda is not None:
-        cuda = cuda%4
+        cuda = current_process()._identity[0]
         if cuda == 3:
             cuda = 4
-        d = "cuda:" + cuda
+        d = "cuda:" + str(cuda)
         device = t.device(d)
         conf["device"] = device
     mission = Mission(int(name))
@@ -79,14 +82,13 @@ def mutlithred_process_old(names, exp_folder_name, thread_limit=None):
             data.append((name, n))
         with Pool(thread_limit) as pool:
             pool.map(multi_run_wrapper, data)
+            #tqdm(pool.imap(multi_run_wrapper, data), total=len(names))
     else:
         for name in names:
             process_old(name)
 
 
-def learning_loop(mission,conf, cuda=None, iterations=1):
-    print("-----------------------------------------------------------------------")
-    print(mission.name)
+def learning_loop(mission, conf, cuda=None, iterations=1):
 
     s_time = time.time()
     save = False
@@ -98,11 +100,11 @@ def learning_loop(mission,conf, cuda=None, iterations=1):
             break
         grade_plan(mission, conf)
         mission.save()
-        print("Metrics: ", mission.c_strategy.next_metrics)
+        #print("Metrics: ", mission.c_strategy.next_metrics)
         mission.advance_mission(mission.c_strategy.next_metrics)
     if save:
         mission.save()
-    print("Mission processing:", time.time() - s_time)
+    #print("Mission processing:", time.time() - s_time)
 
 
 def grade_plan(mission, eval_to_file=False, grade=False,conf=None):
