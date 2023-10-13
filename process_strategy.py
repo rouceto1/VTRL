@@ -58,9 +58,12 @@ def process_new(generator, exp_folder_name):
 
 def multi_run_wrapper(args):
     process_old(*args)
-def process_old(name, exp_folder_name, cuda=None):
+def process_old(name, cuda=None):
     conf = config.copy()
     if cuda is not None:
+        cuda = cuda%4
+        if cuda == 3:
+            cuda = 4
         d = "cuda:" + cuda
         device = t.device(d)
         conf["device"] = device
@@ -78,7 +81,7 @@ def mutlithred_process_old(names, exp_folder_name, thread_limit=None):
             pool.map(multi_run_wrapper, data)
     else:
         for name in names:
-            process_old(name, exp_folder_name)
+            process_old(name)
 
 
 def learning_loop(mission,conf, cuda=None, iterations=1):
