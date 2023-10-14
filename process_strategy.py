@@ -97,7 +97,7 @@ def learning_loop(mission, conf, cuda=None, iterations=1):
         trained = process_plan(mission, conf=conf)  # trains and generates new metrics
         if not trained:
             break
-        grade_plan(mission, condf= conf)
+        grade_plan(mission, conf= conf)
         mission.save()
         #print("Metrics: ", mission.c_strategy.next_metrics)
         mission.advance_mission(mission.c_strategy.next_metrics)
