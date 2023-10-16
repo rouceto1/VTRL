@@ -39,7 +39,7 @@ class StrandsImgPairDataset(Dataset):
                         self.image_paths.append(path2)
                         self.images.append(read_image(path2, mode=torchvision.io.image.ImageReadMode.RGB) / 255.0)
                         idx+=1
-                    self.data.append((self.image_paths.index(path1), self.image_paths.index(path2), self.disp[i], i))
+                    self.data.append((self.image_paths.index(path1), self.image_paths.index(path2), i))
 
             else:
                 for i, pair in enumerate(self.training_input):
