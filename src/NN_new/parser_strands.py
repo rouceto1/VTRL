@@ -24,12 +24,31 @@ class StrandsImgPairDataset(Dataset):
         ## training_input = file, file, displacement, feature count
         if not self.train:
             self.data = []
-            for i, pair in enumerate(self.training_input):
-                # if i == 44:
-                # print(self.GT[i])
-                path1 = pair[0]
-                path2 = pair[1]
-                self.data.append((path1, path2, i))
+            if self.large_gpu:
+                self.image_paths =[]
+                self.images = []
+                idx = 0
+                for i, pair in enumerate(self.training_input):
+                    path1 = pair[0]
+                    path2 = pair[1]
+                    if path1 not in self.image_paths:
+                        self.image_paths.append(path1)
+                        self.images.append(read_image(path1, mode=torchvision.io.image.ImageReadMode.RGB) / 255.0)
+                        idx+=1
+                    if path2 not in self.image_paths:
+                        self.image_paths.append(path2)
+                        self.images.append(read_image(path2, mode=torchvision.io.image.ImageReadMode.RGB) / 255.0)
+                        idx+=1
+                    self.data.append((self.image_paths.index(path1), self.image_paths.index(path2), self.disp[i], i))
+
+            else:
+                for i, pair in enumerate(self.training_input):
+                    # if i == 44:
+                    # print(self.GT[i])
+                    path1 = pair[0]
+                    path2 = pair[1]
+                    self.data.append((path1, path2, i))
+
         else:
 
             temp = self.training_input[:, 2].astype(np.float32) * self.width
@@ -87,6 +106,12 @@ class StrandsImgPairDataset(Dataset):
         if self.large_gpu:
             source_img = self.images[self.data[idx][0]]
             target_img = self.images[self.data[idx][1]]
+            if self.train:
+                displ = self.data[idx][2]
+                return source_img, target_img, displ, self.data[idx][3], self.data[idx][0], self.data[idx][1]
+            else:
+                return source_img, target_img, self.data[idx][2], self.data[idx][0], self.data[idx][1]
+
         else:
             source_img = read_image(self.data[idx][0], mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
             target_img = read_image(self.data[idx][1], mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
