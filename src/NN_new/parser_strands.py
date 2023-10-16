@@ -85,8 +85,8 @@ class StrandsImgPairDataset(Dataset):
 
 
         if self.large_gpu:
-            source_img = self.images[self.data(idx)[0]]
-            target_img = self.images[self.data(idx)[1]]
+            source_img = self.images[self.data[idx][0]]
+            target_img = self.images[self.data[idx][1]]
         else:
             source_img = read_image(self.data[idx][0], mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
             target_img = read_image(self.data[idx][1], mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
