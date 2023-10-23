@@ -158,12 +158,11 @@ def process_ev_for_training(mission, _dataset_path, old_plan=None,
         weighted_list, weights = entrhopy_weighted(hist_nn, file_list)
         coordiantes_list = parse_given_file_list(weighted_list, weights)
         bad_strands = get_listed_files_weighted(mission, coordiantes_list)
-        print("work1")
+
     elif mission.c_strategy.metrics_type == 2:
         weighted_list, weights = two_best_ratio(hist_nn, file_list)
         coordiantes_list = parse_given_file_list(weighted_list, weights)
         bad_strands = get_listed_files_weighted(mission, coordiantes_list)
-        print("work2")
     metrics = calculate_metrics(mission, bad_strands, used_strands)
 
     return metrics
