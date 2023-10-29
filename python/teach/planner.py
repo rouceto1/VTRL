@@ -96,28 +96,28 @@ class Mission:
         total_seasons = [30, 1007]
         total_places = [271, 8]
         places_out_cestlice,exploit_cestlice, c1 = self.make_plan(old_plan[0], old_strategy, seasons=total_seasons[0],
-                                                 places=total_places[0],
-                                                 weight=self.c_strategy.dataset_weights[0],
-                                                 uptime=self.c_strategy.uptime, block_size=self.c_strategy.block_size,
-                                                 time_limit=self.c_strategy.time_limit,
-                                                 place_weights=self.c_strategy.place_weights,
-                                                 exploitation_weights=self.c_strategy.process_weights(
+                                                                  places=total_places[0],
+                                                                  weight=self.c_strategy.dataset_weights[0],
+                                                                  uptime=self.c_strategy.uptime, block_size=self.c_strategy.block_size,
+                                                                  time_limit=self.c_strategy.time_limit,
+                                                                  place_weights=self.c_strategy.preferences,
+                                                                  exploitation_weights=self.c_strategy.process_weights(
                                                      duty_cycle=self.c_strategy.duty_cycle),
-                                                 iteration=self.c_strategy.iteration,
-                                                 rolling=self.c_strategy.roll_data,
-                                                 ee_ratio=self.c_strategy.ee_ratio)
+                                                                  iteration=self.c_strategy.iteration,
+                                                                  rolling=self.c_strategy.roll_data,
+                                                                  ee_ratio=self.c_strategy.ee_ratio)
 
         places_out_strands, exploit_strands, c2 = self.make_plan(old_plan[1], old_strategy, seasons=total_seasons[1],
-                                                places=total_places[1],
-                                                weight=self.c_strategy.dataset_weights[1],
-                                                uptime=self.c_strategy.uptime, block_size=self.c_strategy.block_size,
-                                                time_limit=self.c_strategy.time_limit,
-                                                place_weights=self.c_strategy.place_weights,
-                                                exploitation_weights=self.c_strategy.process_weights(
+                                                                 places=total_places[1],
+                                                                 weight=self.c_strategy.dataset_weights[1],
+                                                                 uptime=self.c_strategy.uptime, block_size=self.c_strategy.block_size,
+                                                                 time_limit=self.c_strategy.time_limit,
+                                                                 place_weights=self.c_strategy.preferences,
+                                                                 exploitation_weights=self.c_strategy.process_weights(
                                                     duty_cycle=self.c_strategy.duty_cycle),
-                                                iteration=self.c_strategy.iteration,
-                                                rolling=self.c_strategy.roll_data,
-                                                ee_ratio=self.c_strategy.ee_ratio)
+                                                                 iteration=self.c_strategy.iteration,
+                                                                 rolling=self.c_strategy.roll_data,
+                                                                 ee_ratio=self.c_strategy.ee_ratio)
         # print(percentage_to_explore,c1,c2,c1+c2)
         self.save_plan(self.name, self.experiments_path, self.c_strategy)
         self.c_strategy.plan = [places_out_cestlice, places_out_strands]
@@ -188,7 +188,7 @@ class Mission:
             "uptime": strategy.uptime,
             "block_size": strategy.block_size,
             "dataset_weights": strategy.dataset_weights,
-            "place_weights": strategy.place_weights,
+            "preferences": strategy.preferences,
             "time_limit": strategy.time_limit,
             "iteration": strategy.iteration,
             "time_advance": strategy.time_advance,
@@ -206,14 +206,14 @@ class Mission:
 
 # class strategy containing everything needed to make plan and eventually modify it
 class Strategy:
-    def __init__(self, uptime=None, block_size=None, dataset_weights=None, place_weights=None, time_limit=None,
+    def __init__(self, uptime=None, block_size=None, dataset_weights=None, preferences=None, time_limit=None,
                  time_advance=None, change_rate=None,
                  iteration=None, duty_cycle=None, preteach=None, m_type=None, roll_data=None, ee_ratio=None):
-        # internal variables: percentage_to_explore, block_size, dataset_weights, place_weights, iteration
+        # internal variables: percentage_to_explore, block_size, dataset_weights, preferences, iteration
         self.uptime = uptime
         self.block_size = block_size
         self.dataset_weights = dataset_weights  # cestlice, strands
-        self.place_weights = place_weights  # list of weights for each place TODO: make this strands agnostic
+        self.preferences = preferences  # list of weights for each place TODO: make this strands agnostic
         self.time_limit = time_limit  # latest possible time to teach
         self.iteration = iteration
         self.time_advance = time_advance  # how much is each new data training
@@ -229,8 +229,8 @@ class Strategy:
         # 1:
 
 
-        if place_weights is not None:
-            self.place_weights = self.process_weights(self.place_weights, np.ones(8), self.duty_cycle)
+        if preferences is not None:
+            self.preferences = self.process_weights(self.preferences, np.ones(8), self.duty_cycle)
 
         self.plan = None
         self.used_teach_count = 0
@@ -253,13 +253,13 @@ class Strategy:
 
     def print_parameters(self):
         print(
-            f"Up: {self.uptime}, Bs: {self.block_size}, pw: {np.array2string(self.place_weights, precision=2, floatmode='fixed')}, lim e: {self.time_limit}, "
+            f"Up: {self.uptime}, Bs: {self.block_size}, pw: {np.array2string(self.preferences, precision=2, floatmode='fixed')}, lim e: {self.time_limit}, "
             f"it: {self.iteration}, cr: {self.change_rate}, ta {self.time_advance}, pt {self.preteach}, rol{self.roll_data}, ee {self.ee_ratio}, m_type {self.metrics_type}")
 
     def title_parameters(self):
-        if self.place_weights is None:
+        if self.preferences is None:
             return f"U:{self.uptime},i:{self.iteration},c:{self.change_rate}"
-        return f"U:{self.uptime},{np.array2string(self.place_weights, precision=1, floatmode='fixed')},i:{self.iteration}:c:{int(self.change_rate)}"
+        return f"U:{self.uptime},{np.array2string(self.preferences, precision=1, floatmode='fixed')},i:{self.iteration}:c:{int(self.change_rate)}"
 
     def setup_strategy(self, path, init_weights):
         self.model_path = os.path.join(path, str(self.iteration) + "_weights.pt")
@@ -278,15 +278,15 @@ class Strategy:
             return
         if self.change_rate == -1.0:
             np.random.seed()
-            self.place_weights = self.process_weights(np.random.rand(len(self.place_weights)),
-                                                      np.random.rand(len(self.place_weights)),
-                                                      self.duty_cycle)
+            self.preferences = self.process_weights(np.random.rand(len(self.preferences)),
+                                                    np.random.rand(len(self.preferences)),
+                                                    self.duty_cycle)
             np.random.seed(42)
             return
         if self.iteration == 1:
-            self.place_weights = self.process_weights(np.ones(8), metrics, self.duty_cycle)
+            self.preferences = self.process_weights(np.ones(8), metrics, self.duty_cycle)
         else:
-            self.place_weights = self.process_weights(self.place_weights, metrics, self.duty_cycle)
+            self.preferences = self.process_weights(self.preferences, metrics, self.duty_cycle)
 
     def process_weights(self, weights=np.ones(8), metrics=np.ones(8), duty_cycle=1.0):
         ratio = sum(weights * metrics)

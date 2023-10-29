@@ -142,11 +142,11 @@ class Strands(StrandsImgPairDataset):
             source, target, displ, data_idx, img_a, img_b = super().__getitem__(idx)
             # source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8) # for vlurring out the water mark
             # displ = displ*(512.0/self.width)
-            cropped_target, crop_start, original_image, blacked_img = self.crop_img(target, displac=displ)
+            cropped_target, crop_start, original_image, blacked_img = crop_img(self.width, self.crop_width, target, displac=displ)
             if self.smoothness == 0:
-                heatmap = self.get_heatmap(crop_start)
+                heatmap = self.get_heatmap(self.width, self.fraction, self.crop_width, crop_start)
             else:
-                heatmap = self.get_smooth_heatmap(crop_start)
+                heatmap = get_smooth_heatmap(self.smoothness, self.width, crop_start, self.fraction, self.crop_width)
             # plot_heatmap(source, target, cropped_target, displ, heatmap)
             return source, cropped_target, heatmap, data_idx, original_image, displ, blacked_img, img_a, img_b
         else:
@@ -156,20 +156,6 @@ class Strands(StrandsImgPairDataset):
             right = (self.width - self.crop_width) / 2 + self.crop_width
             return source, target[:, :, int(left):int(right)], data_idx, target, img_a, img_b
 
-    def crop_img(self, img, displac):
-        # crop - avoid asking for unavailable crop
-        if displac >= 0:
-            crops = [random.randint(0, int(self.width - self.crop_width - 1) - displac)]
-        else:
-            crops = [random.randint(0 - displac, int(self.width - self.crop_width - 1))]
-
-        crop_start = random.choice(crops)
-        crop_out = crop_start + displac
-        # crop_start = random.randint(0, self.width - self.crop_width - 1)
-        blacked_image = img.clone()
-        blacked_image[:, :, crop_start + self.crop_width:] = 0
-        blacked_image[:, :, :crop_start] = 0
-        return img[:, :, crop_start:crop_start + self.crop_width], crop_out, img, blacked_image
 
     def crop_img_old(self, img, displac):
         # lower and upper bound simoblise the MIDDLE of the possible crops
@@ -196,28 +182,43 @@ class Strands(StrandsImgPairDataset):
         cv2.imshow('image', image)
         cv2.waitKey(0)
 
-    def get_heatmap(self, crop_start):
-        frac = self.width // self.fraction
-        heatmap = t.zeros(frac).long()
-        idx = int((crop_start + self.crop_width // 2) * (frac / self.width))
-        heatmap[idx] = 1
-        heatmap[idx + 1] = 1
-        return heatmap
+def get_heatmap(width,fraction,crop_width, crop_start):
+    frac = width // fraction
+    heatmap = t.zeros(frac).long()
+    idx = int((crop_start + crop_width // 2) * (frac / width))
+    heatmap[idx] = 1
+    heatmap[idx + 1] = 1
+    return heatmap
 
-    def get_smooth_heatmap(self, crop_start):
-        surround = self.smoothness * 2
-        frac = self.width // self.fraction
-        heatmap = t.zeros(frac + surround)
-        idx = int((crop_start + self.crop_width // 2) * (frac / self.width)) + self.smoothness
-        heatmap[idx] = 1
-        idxs = np.array([-1, +1])
-        for i in range(1, self.smoothness + 1):
-            indexes = list(idx + i * idxs)
-            for j in indexes:
-                if 0 <= j < heatmap.size(0):
-                    heatmap[j] = 1 - i * (1 / (self.smoothness + 1))
-        return heatmap[surround // 2:-surround // 2]
+def get_smooth_heatmap(smoothness,width,crop_start ,fraction,crop_width):
+    surround = smoothness * 2
+    frac = width // fraction
+    heatmap = t.zeros(frac + surround)
+    idx = int((crop_start + crop_width // 2) * (frac / width)) + smoothness
+    heatmap[idx] = 1
+    idxs = np.array([-1, +1])
+    for i in range(1, smoothness + 1):
+        indexes = list(idx + i * idxs)
+        for j in indexes:
+            if 0 <= j < heatmap.size(0):
+                heatmap[j] = 1 - i * (1 / (smoothness + 1))
+    return heatmap[surround // 2:-surround // 2]
 
+
+def crop_img(width,crop_width, img, displac):
+    # crop - avoid asking for unavailable crop
+    if displac >= 0:
+        crops = [random.randint(0, int(width - crop_width - 1) - displac)]
+    else:
+        crops = [random.randint(0 - displac, int(width - crop_width - 1))]
+
+    crop_start = random.choice(crops)
+    crop_out = crop_start + displac
+    # crop_start = random.randint(0, self.width - self.crop_width - 1)
+    blacked_image = img.clone()
+    blacked_image[:, :, crop_start + crop_width:] = 0
+    blacked_image[:, :, :crop_start] = 0
+    return img[:, :, crop_start:crop_start + crop_width], crop_out, img, blacked_image
 
 if __name__ == '__main__':
     data = StrandsImgPairDataset()

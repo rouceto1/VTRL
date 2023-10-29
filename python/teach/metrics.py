@@ -93,18 +93,18 @@ def calculate_metrics(mission, bad_strands, used_strands):
     given_strands = np.array(mission.c_strategy.plan[1])
     sum_given_place = np.sum(given_strands, axis=0)  # given IMAGE count per place
 
-    badness_per_place = np.sum(bad_strands, axis=0)
-    badness_per_place[sum_used_place != 0] /= sum_used_place[sum_used_place != 0]  ##actually used data that is bad
+    ambiguity_per_place = np.sum(bad_strands, axis=0)
+    ambiguity_per_place[sum_used_place != 0] /= sum_used_place[sum_used_place != 0]  ##actually used data that is bad
 
-    plot_and_save(mission, sum_given_place, sum_used_place, badness_per_place, used_strands, bedness_per_image)
+    plot_and_save(mission, sum_given_place, sum_used_place, ambiguity_per_place, used_strands, bedness_per_image)
 
-    return badness_per_place
+    return ambiguity_per_place
     # plt.show()
 
 
-def plot_and_save(mission, sum_given_place, sum_used_place, badness_per_place, used_strands, bedness_per_image):
-    data_frame1 = pd.DataFrame([mission.c_strategy.place_weights, sum_given_place / max(sum_given_place),
-                                sum_used_place / max(sum_used_place), badness_per_place],
+def plot_and_save(mission, sum_given_place, sum_used_place, ambiguity_per_place, used_strands, bedness_per_image):
+    data_frame1 = pd.DataFrame([mission.c_strategy.preferences, sum_given_place / max(sum_given_place),
+                                sum_used_place / max(sum_used_place), ambiguity_per_place],
                                index=["weights", "P(given)", "used", "metrics"],
                                columns=["krajnas", "office street", "office stairs", "kitchen",
                                         "office outside entrance", "sofas outside",
