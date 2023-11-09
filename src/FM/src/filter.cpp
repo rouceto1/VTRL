@@ -26,7 +26,7 @@ void pre_filter( const cv::Mat& descriptors1,const cv::Mat& descriptors2, std::v
                     if ((keypoints1[counter_1].pt.x - keypoints2[counter_2].pt.x ) >= vec_in[i][0] && (keypoints1[counter_1].pt.x - keypoints2[counter_2].pt.x ) <= vec_in[i][1]){
                         descriptors2_chosens.push_back(descriptors2.row(counter_2));
                         counter_2_bank.push_back(counter_2);
-                        break;
+                        break; //Should be no break but rather creation of the mask
                     }
                 }
             }else if (hist_method == hist_enthropy) {
@@ -45,6 +45,7 @@ void pre_filter( const cv::Mat& descriptors1,const cv::Mat& descriptors2, std::v
             else std::cout<<"[-] no prefilter method was selected"<< std::endl;
 		}
 		if (descriptors2_chosens.rows > 0){
+            // the destinctive amtch is called for only one map descriptor at the time. Thereforem matches can only increase by one each iteration. TODO make this masked
 			distinctiveMatch(descriptors1.row(counter_1), descriptors2_chosens, matches, norm2, crossCheck,distance_factor);
 			if (matches.size() > matches_previous_size){
 				matches_previous_size = matches.size();

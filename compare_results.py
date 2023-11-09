@@ -12,9 +12,9 @@ import os
 pwd = os.getcwd()
 import colorsys
 
-strategy_keys = ["uptime", "block_size", "dataset_weights", "used_teach_count", "place_weights", "time_limit",
+strategy_keys = ["uptime", "block_size", "dataset_weights", "used_teach_count", "preferences", "time_limit",
                  "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "ee_ratio"]
-df_keys = ["uptime", "new_param", "block_size", "dataset_weights", "used_teach_count", "place_weights", "time_limit",
+df_keys = ["uptime", "new_param", "block_size", "dataset_weights", "used_teach_count", "preferences", "time_limit",
            "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "train_time",
            "metrics_type", "train_time", "ee_ratio"]
 df_grading_keys = ["AC_fm_integral", "AC_nn_integral", "streak_integral", "AC_fm", "AC_nn"]
@@ -81,7 +81,7 @@ class Results:
                         continue
                     if p[key] < m[key]:
                         return False
-                elif key in ["place_weights"]:
+                elif key in ["preferences"]:
                     if not np.array_equal(p[key], m[key]):
                         return False
                 elif p[key] != m[key]:
@@ -94,7 +94,7 @@ class Results:
                         continue
                     if e[key] >= m[key]:
                         return False
-                elif key in ["place_weights"]:
+                elif key in ["preferences"]:
                     if np.array_equal(p[key], m[key]):
                         return False
                 elif e[key] == m[key]:
@@ -162,12 +162,12 @@ class Results:
                     else:
                         if strategy.change_rate == -1:
                             strategy.ee_ratio = 0.0
-                if sorting_params == "place_weights":
+                if sorting_params == "preferences":
                     if len(values) == 0:
-                        values.append(strategy.place_weights)
-                    is_in_list = np.any(np.all(strategy.place_weights == values, axis=1))
+                        values.append(strategy.preferences)
+                    is_in_list = np.any(np.all(strategy.preferences == values, axis=1))
                     if not is_in_list:
-                        values.append(strategy.place_weights)
+                        values.append(strategy.preferences)
                 elif len(sorting_params) > 1:
                     self.concatenate_params(strategy, sorting_params)
                     if getattr(strategy, "new_param") not in values:
@@ -179,7 +179,7 @@ class Results:
                 strategies.append(strategy)
 
         # TODO make this by sortin_params, prolly use getattribute....
-        if sorting_params != "place_weights" and len(sorting_params) == 1:
+        if sorting_params != "preferences" and len(sorting_params) == 1:
             strategies.sort(key=lambda x: getattr(x, sorting_params[0]), reverse=False)
         colors = get_N_HexCol(len(strategies))
         return strategies, colors, values, self.make_pandas_df(strategies, sorting_paramteres=sorting_params)
@@ -247,9 +247,9 @@ class Results:
 
     def agreagate_roll_data(self, dataframe):
         if dataframe["roll_data"] == True:
-            return "new data"
+            return "New data /\n"
         else:
-            return "all data"
+            return "All data /\n"
 
     def name_change_rate(self, dataframe):
         if dataframe["change_rate"] == 1.0:
@@ -257,7 +257,7 @@ class Results:
         elif dataframe["change_rate"] == 0.0:
             return "Static exploration"
         elif dataframe["change_rate"] == -1.0:
-            return "Random exploration (pure exploitation)"
+            return "Random exploration"
 
     def name_metrics(self,dataframe):
         if dataframe["metrics_type"] == 0:
@@ -310,7 +310,7 @@ def get_preferences(results):
         for strat in mission.old_strategies:
             if strat.change_rate == 1:
                 if strat.duty_cycle == 5.0:
-                    m.append(strat.place_weights)
+                    m.append(strat.preferences)
         if strat.change_rate == 1:
             if strat.duty_cycle == 5.0:
                 preferences.append(m)
@@ -367,7 +367,7 @@ def get_graphs_for_paper():
     results = Results(os.path.join("backups", "uptime"))
     scatter_violin(results, filter_strategy=Strategy(iteration=6), exclude_strategy=Strategy(duty_cycle=3.0),variable="AC_fm_integral",
                    sorting_paramteres=["duty_cycle", "change_rate"],
-                    plot_params = ["Relative improvement for each strategy over different duty cycles", "Duty cycle", "AC Integral",[0.44,0.47],'lower right']
+                    plot_params = ["Relative improvement for each strategy over different duty cycles", "Duty cycle", "AC Integral",[0.435,0.475],'lower right']
     )
 
     #metrics
@@ -377,7 +377,7 @@ def get_graphs_for_paper():
     scatter_violin(results, filter_strategy=Strategy(iteration=6,roll_data=False, change_rate=1), variable="AC_fm_integral",
                    sorting_paramteres=["metrics_type"],
                    plot_params=["Metrics comparison", "Metrics",
-                                "AC Integral",[0.44,0.47]]
+                                "AC Integral",[0.435,0.475]]
                    )
 
     #eeEEEEEEEEEEEE
@@ -392,13 +392,13 @@ def get_graphs_for_paper():
     results.add_missions(os.path.join("backups", "ee10"))
     scatter_violin(results, filter_strategy=Strategy(iteration=6, change_rate=1, uptime = 0.25,roll_data=False), exclude_strategy=Strategy(),
                   variable="AC_fm_integral", sorting_paramteres=["ee_ratio"],
-                   plot_params = ["Exploration/exploitation ratio comparison", "Exploration/exploitation ratio", "AC Integral",[0.44,0.47]]
+                   plot_params = ["Exploration/exploitation ratio comparison", "Exploration/exploitation ratio", "AC Integral",[0.435,0.475]]
     )
     #scatter_violin(results, filter_strategy=Strategy(iteration=6, change_rate=1, uptime = 0.25,roll_data=False), exclude_strategy=Strategy(),
     #              variable="AC_fm_integral", sorting_paramteres=["duty_cycle", "ee_ratio"])
     scatter_violin(results, filter_strategy=Strategy( change_rate=1, uptime = 0.25, roll_data=False, iteration=6), exclude_strategy=Strategy(),
                    variable="AC_fm_integral", sorting_paramteres=[ "duty_cycle","ee_ratio"],
-    plot_params = ["Exploration/exploitation ratio progression over different duty cycles", "Duty cycle", "AC Integral",[0.44,0.47],'lower right']
+    plot_params = ["Exploration/exploitation ratio progression over different duty cycles", "Duty cycle", "AC Integral",[0.435,0.475],'lower right']
     )
 
     # COMAPRE TO vtrl
@@ -407,8 +407,11 @@ def get_graphs_for_paper():
     # compares original vtrl (change_rate = 0, roll_data=True, preteach=true
     scatter_violin(results, filter_strategy=Strategy(iteration=6, roll_data=True), variable="AC_fm_integral",
                    sorting_paramteres=["preteach", "change_rate"],
-                   plot_params=["Comparison to VTRL", "Preteach", "AC Integral", [0.44,0.47], 'lower left']
+                   plot_params=["Comparison to VTRL", "Preteach", "AC Integral", [0.435,0.475], 'lower left']
                    )
+    scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral",
+                   sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
+                   plot_params=["Comparison to VTRL", "Roll data /\nPreteach", "AC Integral", [0.435,0.475], 'lower left'])
 
 if __name__ == "__main__":
     #get_timigs()

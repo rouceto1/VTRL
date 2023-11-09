@@ -23,12 +23,12 @@ class NumpyArrayEncoder(JSONEncoder):
 
 class Mission_generator:
 
-    def __init__(self, uptime, block_size, dataset_weights, place_weights, time_limit, time_advance, change_rate,
+    def __init__(self, uptime, block_size, dataset_weights, preferences, time_limit, time_advance, change_rate,
                  duty_cycle, preteach, metrics_type, roll_data, ee_ratio, sigma):
         self.uptime = uptime
         self.block_size = block_size
         self.dataset_weights = dataset_weights  # cestlice, strands
-        self.place_weights = place_weights  # list of weights for each place TODO: make this strands agnostic
+        self.preferences = preferences  # list of weights for each place TODO: make this strands agnostic
         self.time_limit = time_limit  # latest possible time to teach
         self.time_advance = time_advance  # how much is each new data training
         self.change_rate = change_rate  # how much to modify TODO make soemthing else then boolean
@@ -48,7 +48,7 @@ class Mission_generator:
         return mission
 
     def make_multiple_missions(self):
-        a = [self.uptime, self.block_size, self.dataset_weights, self.place_weights, self.time_limit,
+        a = [self.uptime, self.block_size, self.dataset_weights, self.preferences, self.time_limit,
              self.time_advance, self.change_rate, self.duty_cycle, self.preteach, self.matrics_type, self.roll_data,
              self.ee_ratio, self.sigma]
         combinations = list(itertools.product(*a))
@@ -56,7 +56,7 @@ class Mission_generator:
         strategies = []
         for combination in combinations:
             strategy = Strategy(uptime=combination[0], block_size=combination[1], dataset_weights=combination[2],
-                                place_weights=combination[3], time_limit=combination[4], time_advance=combination[5],
+                                preferences=combination[3], time_limit=combination[4], time_advance=combination[5],
                                 change_rate=combination[6], iteration=0, duty_cycle=combination[7],
                                 preteach=combination[8],
                                 m_type=combination[9], roll_data=combination[10],
@@ -78,7 +78,7 @@ class Mission_generator:
         txt += "uptime " + str(self.uptime) + "\n"
         txt += "block_size " + str(self.block_size) + "\n"
         txt += "dataset_weights " + str(self.dataset_weights) + "\n"
-        txt += "place_weights " + str(self.place_weights) + "\n"
+        txt += "preferences " + str(self.preferences) + "\n"
         txt += "time_limit " + str(self.time_limit) + "\n"
         txt += "time_advance " + str(self.time_advance) + "\n"
         txt += "change_rate " + str(self.change_rate) + "\n"
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     time_limits = np.array([0.14])
     block_size_list = [1]
     dataset_weights = [np.array([0.0, 1.0])]
-    place_weights_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial weights
+    preferences_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial weights
     preteach_list = [True]
     roll_data_list = [False]
     duty_cycle_list = np.array([1.0,3.0,5.0,8.0])
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     ee_ratio_list = np.array([1.0])
     sigma = np.array(range(1))
 
-    gen = Mission_generator(uptime_list, block_size_list, dataset_weights, place_weights_contents, time_limits,
+    gen = Mission_generator(uptime_list, block_size_list, dataset_weights, preferences_contents, time_limits,
                             time_advance_list, change_rate_list, duty_cycle_list, preteach_list, metrics_type_list,
                             roll_data_list, ee_ratio_list, sigma)
 
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     gen.missions, a = gen.make_multiple_missions()
 
     # random_strategy_2 = Strategy(uptime=0.99, block_size=block_size_list[0], dataset_weights=dataset_weights[0],
-    #                             place_weights=np.ones(len(place_weights_contents[0])), time_limit=time_limits[0],
+    #                             preferences=np.ones(len(place_weights_contents[0])), time_limit=time_limits[0],
     #                             time_advance=time_advance_list[0],
     #                             change_rate=0.0, iteration=0, duty_cycle=8.0, preteach=True)
     # mission = gen.make_single_mission(random_strategy_2)

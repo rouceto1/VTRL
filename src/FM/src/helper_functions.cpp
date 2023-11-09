@@ -123,7 +123,8 @@ void distinctiveMatch(const cv::Mat& descriptors1, const cv::Mat& descriptors2, 
      descriptorMatcher = new cv::BFMatcher(cv::NORM_L2,  false);
    else
      descriptorMatcher = new cv::BFMatcher(cv::NORM_HAMMING, false);
-   descriptorMatcher->knnMatch(descriptors1, descriptors2, allMatches1to2, 2);
+   descriptorMatcher->knnMatch(descriptors1, descriptors2, allMatches1to2, 2); //Finds max 2 matches per querry
+    //If only one querry, descriptor1 therfeore allMatches1to2 is of length 1. Therefore the matches push back happens only once
 
    if (!crossCheck){
       for(unsigned int i=0; i < allMatches1to2.size(); i++){

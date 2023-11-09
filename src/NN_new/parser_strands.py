@@ -101,8 +101,6 @@ class StrandsImgPairDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-
-
         if self.large_gpu:
             source_img = self.images[self.data[idx][0]]
             target_img = self.images[self.data[idx][1]]
@@ -123,12 +121,6 @@ class StrandsImgPairDataset(Dataset):
 
 
 class Strands(StrandsImgPairDataset):
-    # crop 64
-    # fraction 8
-    # smoothnes 3
-    # datapath path to the main folder???
-    # dsp path to the file with displacements
-    # seasosns array of names of the folders with iamfes.
     def __init__(self, crop_width, fraction, smoothness, training_input, training=False):
         super().__init__(training_input=training_input, crop_width=crop_width, training=training)
 
@@ -156,31 +148,6 @@ class Strands(StrandsImgPairDataset):
             right = (self.width - self.crop_width) / 2 + self.crop_width
             return source, target[:, :, int(left):int(right)], data_idx, target, img_a, img_b
 
-
-    def crop_img_old(self, img, displac):
-        # lower and upper bound simoblise the MIDDLE of the possible crops
-        if displac == 0:
-            lower_bound = self.crop_width / 2
-            upper_bound = self.width - self.crop_width / 2
-        elif displac > 0:
-            lower_bound = self.crop_width / 2
-            upper_bound = self.width - self.crop_width / 2 - displac
-        elif displac < 0:
-            lower_bound = self.crop_width / 2 + abs(displac)
-            upper_bound = self.width - self.crop_width / 2
-        # print("u  ", upper_bound, lower_bound, dspl, self.crop_width)
-        crop_center = random.randint(lower_bound, upper_bound)
-        crop_start = int(crop_center - self.crop_width / 2)
-        return img[:, :, crop_start:crop_start + self.crop_width], crop_start, img
-
-    def plot_crop_bound(self, im, x1, x2, x3, x4):
-        image = im.numpy().transpose(1, 2, 0)
-        cv2.line(image, (int(x1), 0), (int(x1), 300), (255, 0, 0), 1)
-        cv2.line(image, (int(x2), 0), (int(x2), 300), (255, 255, 0), 1)
-        cv2.line(image, (int(x3), 0), (int(x3), 300), (255, 255, 255), 1)
-        # cv2.line(image, (int(x4), 0), (int(x4), 300), (255, 255, 255), 1)
-        cv2.imshow('image', image)
-        cv2.waitKey(0)
 
 def get_heatmap(width,fraction,crop_width, crop_start):
     frac = width // fraction
