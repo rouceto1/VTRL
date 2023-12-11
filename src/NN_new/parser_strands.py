@@ -1,3 +1,5 @@
+import functools
+
 import torch as t
 from torch.utils.data import Dataset
 from torchvision.io import read_image
@@ -5,10 +7,19 @@ import random
 import kornia as K
 import numpy as np
 import torchvision
-import cv2
-from .utils import plot_heatmap
-import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
+table = {}
+helps = 0
+def cache(f):
+    def helper(*args):
+        global table
+        if args in table:
+            return table[args]
+        print("cache miss")
+        res = f(*args)
+        table[args] = res
+        return res
+    return helper
+
 
 
 class StrandsImgPairDataset(Dataset):
@@ -25,7 +36,7 @@ class StrandsImgPairDataset(Dataset):
         if not self.train:
             self.data = []
             if self.large_gpu:
-                self.image_paths =[]
+                self.image_paths = []
                 self.images = []
                 idx = 0
                 for i, pair in enumerate(self.training_input):
@@ -34,12 +45,12 @@ class StrandsImgPairDataset(Dataset):
                     if path1 not in self.image_paths:
                         self.image_paths.append(path1)
                         self.images.append(read_image(path1, mode=torchvision.io.image.ImageReadMode.RGB) / 255.0)
-                        idx+=1
+                        idx += 1
                     if path2 not in self.image_paths:
                         self.image_paths.append(path2)
                         self.images.append(read_image(path2, mode=torchvision.io.image.ImageReadMode.RGB) / 255.0)
-                        idx+=1
-                    self.data.append((self.image_paths.index(path1), self.image_paths.index(path2), i))
+                        idx += 1
+                    self.data.append((self.image_paths.index(path1), self.image_paths.index(path2), 0, i))
 
             else:
                 for i, pair in enumerate(self.training_input):
@@ -53,18 +64,17 @@ class StrandsImgPairDataset(Dataset):
 
             temp = self.training_input[:, 2].astype(np.float32) * self.width
             self.disp = temp.astype(int)
-            self.fcount1 = self.training_input[:, 3].astype(np.float32).astype(np.int32)
-            self.fcount2 = self.training_input[:, 4].astype(np.float32).astype(np.int32)
-            self.max_fcount = max(max(self.fcount1), max(self.fcount2))
-            self.fcount_threshold = np.percentile([self.fcount1, self.fcount2], 50)
-            self.fcount_threshold = max(self.fcount_threshold, 250)
+            fcount1 = self.training_input[:, 3].astype(np.float32).astype(np.int32)
+            fcount2 = self.training_input[:, 4].astype(np.float32).astype(np.int32)
+            fcount_threshold = np.percentile([fcount1, fcount2], 50)
+            fcount_threshold = max(fcount_threshold, 250)
             ##print (GT[0])
-            qualifieds = np.array(self.fcount1) >= self.fcount_threshold
-            qualifieds2 = np.array(self.fcount2) >= self.fcount_threshold
+            qualifieds = np.array(fcount1) >= fcount_threshold
+            qualifieds2 = np.array(fcount2) >= fcount_threshold
             qualifieds3 = abs(self.disp) < int(self.width - self.crop_width)
             self.nonzeros = np.count_nonzero(np.logical_and(qualifieds, qualifieds2, qualifieds3))
             print("[+] {} images qualified with t:{}  out of {}, f1: {}, f2: {}, shift > 0.5: {} ".format(
-                self.nonzeros, self.fcount_threshold, len(qualifieds), np.count_nonzero(qualifieds),
+                self.nonzeros, fcount_threshold, len(qualifieds), np.count_nonzero(qualifieds),
                 np.count_nonzero(qualifieds2), np.count_nonzero(qualifieds3)))
             if self.nonzeros == 0:
                 raise ValueError("[-] no valid selection to teach on")
@@ -72,7 +82,7 @@ class StrandsImgPairDataset(Dataset):
             self.data = []
 
             if self.large_gpu:
-                self.image_paths =[]
+                self.image_paths = []
                 self.images = []
                 idx = 0
                 for i, pair in enumerate(self.training_input):
@@ -82,12 +92,13 @@ class StrandsImgPairDataset(Dataset):
                         if path1 not in self.image_paths:
                             self.image_paths.append(path1)
                             self.images.append(read_image(path1, mode=torchvision.io.image.ImageReadMode.RGB) / 255.0)
-                            idx+=1
+                            idx += 1
                         if path2 not in self.image_paths:
                             self.image_paths.append(path2)
                             self.images.append(read_image(path2, mode=torchvision.io.image.ImageReadMode.RGB) / 255.0)
-                            idx+=1
-                        self.data.append((self.image_paths.index(path1), self.image_paths.index(path2), self.disp[i], i))
+                            idx += 1
+                        self.data.append(
+                            (self.image_paths.index(path1), self.image_paths.index(path2), self.disp[i], i))
             else:
                 for i, pair in enumerate(self.training_input):
                     # if i == 44:
@@ -104,52 +115,49 @@ class StrandsImgPairDataset(Dataset):
         if self.large_gpu:
             source_img = self.images[self.data[idx][0]]
             target_img = self.images[self.data[idx][1]]
-            if self.train:
-                displ = self.data[idx][2]
-                return source_img, target_img, displ, self.data[idx][3], self.data[idx][0], self.data[idx][1]
-            else:
-                return source_img, target_img, self.data[idx][2], self.data[idx][0], self.data[idx][1]
-
         else:
             source_img = read_image(self.data[idx][0], mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
             target_img = read_image(self.data[idx][1], mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
-        if self.train:
-            displ = self.data[idx][2]
-            return source_img, target_img, displ, self.data[idx][3], self.data[idx][0], self.data[idx][1]
-        else:
-            return source_img, target_img, self.data[idx][2], self.data[idx][0], self.data[idx][1]
+        displ = self.data[idx][2]
+        return source_img, target_img, displ
 
 
 class Strands(StrandsImgPairDataset):
-    def __init__(self, crop_width, fraction, smoothness, training_input, training=False):
+    def __init__(self, crop_width, fraction, smoothness, training_input, training=False, device=t.device("cpu")):
         super().__init__(training_input=training_input, crop_width=crop_width, training=training)
-
+        self.device = device
         self.fraction = fraction
         self.smoothness = smoothness
         # self.flip = K.Hflip()
         self.flip = K.geometry.transform.Hflip()
+        print("[+] Strands dataset created")
 
+    #def __getitem__(self, idx):
+    #    return self.get_item(idx)
+
+    @functools.cache
     def __getitem__(self, idx):
         if self.train:
-            source, target, displ, data_idx, img_a, img_b = super().__getitem__(idx)
+            source, target, displ = super().__getitem__(idx)
             # source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8) # for vlurring out the water mark
             # displ = displ*(512.0/self.width)
-            cropped_target, crop_start, original_image, blacked_img = crop_img(self.width, self.crop_width, target, displac=displ)
+            cropped_target, crop_start, original_image, blacked_img = crop_img(self.width, self.crop_width, target,
+                                                                               displac=displ)
             if self.smoothness == 0:
-                heatmap = self.get_heatmap(self.width, self.fraction, self.crop_width, crop_start)
+                heatmap = get_heatmap(self.width, self.fraction, self.crop_width, crop_start)
             else:
                 heatmap = get_smooth_heatmap(self.smoothness, self.width, crop_start, self.fraction, self.crop_width)
             # plot_heatmap(source, target, cropped_target, displ, heatmap)
-            return source, cropped_target, heatmap, data_idx, original_image, displ, blacked_img, img_a, img_b
+            return source.to(self.device), cropped_target.to(self.device), displ, heatmap.to(self.device)
         else:
             # croping target when evalution is up to 504 pixels
-            source, target, data_idx, img_a, img_b = super().__getitem__(idx)
-            left = (self.width - self.crop_width) / 2
-            right = (self.width - self.crop_width) / 2 + self.crop_width
-            return source, target[:, :, int(left):int(right)], data_idx, target, img_a, img_b
+            source, target, displ = super().__getitem__(idx)
+            #left = (self.width - self.crop_width) / 2
+            #right = (self.width - self.crop_width) / 2 + self.crop_width
+            return source.to(self.device), target.to(self.device), displ
 
 
-def get_heatmap(width,fraction,crop_width, crop_start):
+def get_heatmap(width, fraction, crop_width, crop_start):
     frac = width // fraction
     heatmap = t.zeros(frac).long()
     idx = int((crop_start + crop_width // 2) * (frac / width))
@@ -157,7 +165,8 @@ def get_heatmap(width,fraction,crop_width, crop_start):
     heatmap[idx + 1] = 1
     return heatmap
 
-def get_smooth_heatmap(smoothness,width,crop_start ,fraction,crop_width):
+
+def get_smooth_heatmap(smoothness, width, crop_start, fraction, crop_width):
     surround = smoothness * 2
     frac = width // fraction
     heatmap = t.zeros(frac + surround)
@@ -172,7 +181,7 @@ def get_smooth_heatmap(smoothness,width,crop_start ,fraction,crop_width):
     return heatmap[surround // 2:-surround // 2]
 
 
-def crop_img(width,crop_width, img, displac):
+def crop_img(width, crop_width, img, displac):
     # crop - avoid asking for unavailable crop
     if displac >= 0:
         crops = [random.randint(0, int(width - crop_width - 1) - displac)]
@@ -186,6 +195,7 @@ def crop_img(width,crop_width, img, displac):
     blacked_image[:, :, crop_start + crop_width:] = 0
     blacked_image[:, :, :crop_start] = 0
     return img[:, :, crop_start:crop_start + crop_width], crop_out, img, blacked_image
+
 
 if __name__ == '__main__':
     data = StrandsImgPairDataset()

@@ -8,6 +8,7 @@ model = None
 import torch as t
 from .utils import plot_histogram
 
+from time import perf_counter_ns
 
 def get_histogram(src, tgt, padding, model):
     histogram = model(src, tgt, padding)  # , fourier=True)
@@ -47,11 +48,10 @@ def eval_displacement(eval_model=None, model_path=None,
             # batch: source, cropped_target, heatmap, data_idx, original_image, displ
             if is_teaching:
                 output_size = conf["output_size"]
-                source, target, gt,name_a,name_b = (batch[0].to(device)), (batch[1].to(device)), batch[5],batch[6],batch[7]
             else:
                 output_size = conf["output_size"] - 1
-                source, target, name_a, name_b = (batch[0].to(device)), (batch[3].to(device)), batch[4], batch[5]
-                gt = [0] * batch_size
+            source, target, gt = batch[0], batch[1], batch[2]
+
 
             histogram = get_histogram(source, target, padding, model)
             shift_hist = histogram.cpu()
@@ -104,14 +104,19 @@ def NNeval_from_python(files, data_path, out_path, weights_file, config=None):
     global device
     conf = config
     device = conf["device"]
+    t1_start = perf_counter_ns()
     dataset, histograms = get_dataset(data_path, files, conf)
-    loader = DataLoader(dataset, conf["batch_size_eval"], shuffle=False, pin_memory=True, num_workers=10)
+    loader = DataLoader(dataset, conf["batch_size_eval"], shuffle=False, pin_memory=True, num_workers=0)
     mae, acc, hist, disp = eval_displacement(model_path=weights_file, loader=loader,
                                              histograms=histograms, conf=conf, batch_size=conf["batch_size_eval"],
                                              padding=conf["pad_eval"],
                                              plot_path=out_path,
                                              plot_name="eval_hist", epoch="max"
                                              )
+    print(dataset.__getitem__.cache_info())
+    t1_stop = perf_counter_ns()
+    print("Elapsed time teach " + str((t1_stop - t1_start) / 1000000) + "ms")
+    
     return mae, acc, hist, disp
 
 
