@@ -101,8 +101,11 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path_ini
         model, loss = train_loop(epoch, model, train_loader, optimizer, out)
 
         losses.append(loss)
-    print(dataset.get_item_cached.cache_info())
-    dataset.get_item_cached.cache_clear()
+    try:
+        print(dataset.get_item_cached.cache_info())
+        dataset.get_item_cached.cache_clear()
+    except:
+        print("Not caching GPU")
     t1_stop = perf_counter_ns()
     print("Elapsed time teach " + str((t1_stop - t1_start) / 1000000) + "ms")
     #print("Training ended with losses: " + str(losses))

@@ -20,7 +20,9 @@ def cache(f):
         return res
     return helper
 
-
+@functools.cache
+def get_img(img_path):
+    return read_image(img_path, mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
 
 class StrandsImgPairDataset(Dataset):
 
@@ -116,8 +118,8 @@ class StrandsImgPairDataset(Dataset):
             source_img = self.images[self.data[idx][0]]
             target_img = self.images[self.data[idx][1]]
         else:
-            source_img = read_image(self.data[idx][0], mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
-            target_img = read_image(self.data[idx][1], mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
+            source_img = get_img(self.data[idx][0])
+            target_img = get_img(self.data[idx][1])
         displ = self.data[idx][2]
         return source_img, target_img, displ
 
