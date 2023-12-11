@@ -11,8 +11,8 @@ table = {}
 helps = 0
 
 @functools.cache
-def get_img(img_path):
-    return read_image(img_path, mode=torchvision.io.image.ImageReadMode.RGB) / 255.0
+def get_img(img_path,device):
+    return (read_image(img_path, mode=torchvision.io.image.ImageReadMode.RGB) / 255.0).to(device)
 
 class StrandsImgPairDataset(Dataset):
 
@@ -36,11 +36,11 @@ class StrandsImgPairDataset(Dataset):
                     path2 = pair[1]
                     if path1 not in self.image_paths:
                         self.image_paths.append(path1)
-                        self.images.append(get_img(path1))
+                        self.images.append(get_img(path1.device))
                         idx += 1
                     if path2 not in self.image_paths:
                         self.image_paths.append(path2)
-                        self.images.append(get_img(path2))
+                        self.images.append(get_img(path2,device))
                         idx += 1
                     self.data.append((self.image_paths.index(path1), self.image_paths.index(path2), 0, i))
 
@@ -83,11 +83,11 @@ class StrandsImgPairDataset(Dataset):
                         path2 = pair[1]
                         if path1 not in self.image_paths:
                             self.image_paths.append(path1)
-                            self.images.append(get_img(path1))
+                            self.images.append(get_img(path1,device))
                             idx += 1
                         if path2 not in self.image_paths:
                             self.image_paths.append(path2)
-                            self.images.append(get_img(path2))
+                            self.images.append(get_img(path2,device))
                             idx += 1
                         self.data.append(
                             (self.image_paths.index(path1), self.image_paths.index(path2), self.disp[i], i))
@@ -138,7 +138,7 @@ class Strands(StrandsImgPairDataset):
         else:
             heatmap = get_smooth_heatmap(self.smoothness, self.width, crop_start, self.fraction, self.crop_width)
         # plot_heatmap(source, target, cropped_target, displ, heatmap)
-        return source, cropped_target, displ, heatmap.to(self.device)
+        return source, cropped_target.to(self.device), displ, heatmap.to(self.device)
 
     def __getitem__(self, idx):
         if self.train:

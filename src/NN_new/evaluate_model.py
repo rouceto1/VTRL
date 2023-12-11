@@ -50,7 +50,7 @@ def eval_displacement(eval_model=None, model_path=None,
                 output_size = conf["output_size"]
             else:
                 output_size = conf["output_size"] - 1
-            source, target, gt = batch[0].to(device), batch[1].to(device), batch[2]
+            source, target, gt = batch[0], batch[1], batch[2]
 
 
             histogram = get_histogram(source, target, padding, model)

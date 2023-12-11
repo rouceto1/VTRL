@@ -37,7 +37,7 @@ def train_loop(epoch, model, train_loader, optimizer, out_folder):
     loss_sum = 0
     count = 0
     for batch in train_loader:
-        source, target, heatmap = batch[0].to(device), batch[1].to(device), batch[3]
+        source, target, heatmap = batch[0], batch[1], batch[3]
 
         source = batch_aug(source)
         count = count + 1
