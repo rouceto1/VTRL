@@ -116,11 +116,11 @@ def grade_plan(mission, eval_to_file=False, grade=False,conf=None):
                                           evaluation_paths,
                                           _GT=gt_in, conf=conf)
         mission.c_strategy.progress = 4
-        print(get_img.cache_info())
+        print("Image cache 3: ",get_img.cache_info())
     if mission.c_strategy.progress == 4 or grade:
         grade_type(mission, _GT=gt_in, estimates=estimates_grade)
         mission.c_strategy.progress = 5
-        print(get_img.cache_info())
+        print("Image cache 4: ",get_img.cache_info())
 
 
 def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=True, conf = None):
@@ -139,7 +139,7 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         _ = teach(dataset_path, mission, init_weights=weights, conf=conf)
         mission.c_strategy.progress = 1
         mission.c_strategy.train_time = time.time() - start_time
-        print(get_img.cache_info())
+        print("Image cache 0: ", get_img.cache_info())
 
     if mission.c_strategy.progress == 1 or enable_eval:
         start_time2 = time.time()
@@ -147,12 +147,12 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
                                                        conf=conf)
         mission.c_strategy.progress = 2
         mission.c_strategy.eval_time = time.time() - start_time2
-        print(get_img.cache_info())
+        print("Image cache 1: ",get_img.cache_info())
     if mission.c_strategy.progress == 2:
         metrics = process_ev_for_training(mission, dataset_path, conf=conf, hist_nn=hist_nn)
         mission.c_strategy.next_metrics = metrics
         mission.c_strategy.progress = 3
-        print(get_img.cache_info())
+        print("Image cache 2: ",get_img.cache_info())
     return True
 
 

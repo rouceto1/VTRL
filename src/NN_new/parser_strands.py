@@ -83,7 +83,7 @@ class StrandsImgPairDataset(Dataset):
                         path2 = pair[1]
                         if path1 not in self.image_paths:
                             self.image_paths.append(path1)
-                            self.images.append(get_img(path1))
+                            self.images.append(get_img(path1).to(device))
                             idx += 1
                         if path2 not in self.image_paths:
                             self.image_paths.append(path2)
@@ -138,17 +138,13 @@ class Strands(StrandsImgPairDataset):
         else:
             heatmap = get_smooth_heatmap(self.smoothness, self.width, crop_start, self.fraction, self.crop_width)
         # plot_heatmap(source, target, cropped_target, displ, heatmap)
-        return source.to(self.device), cropped_target.to(self.device), displ, heatmap.to(self.device)
+        return source, cropped_target.to(self.device), displ, heatmap.to(self.device)
 
     def __getitem__(self, idx):
         if self.train:
             return self.get_item_cached(idx)
         else:
-            # croping target when evalution is up to 504 pixels
-            source, target, displ = super().__getitem__(idx)
-            #left = (self.width - self.crop_width) / 2
-            #right = (self.width - self.crop_width) / 2 + self.crop_width
-            return source, target, displ
+            return super().__getitem__(idx)
 
 
 def get_heatmap(width, fraction, crop_width, crop_start):

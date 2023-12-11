@@ -102,7 +102,7 @@ def teach_stuff(train_data, data_path, eval_model=None, out=None, model_path_ini
 
         losses.append(loss)
     try:
-        print(dataset.get_item_cached.cache_info())
+        print("Training cache: ", dataset.get_item_cached.cache_info())
         dataset.get_item_cached.cache_clear()
     except:
         print("Not caching GPU")
