@@ -1,28 +1,24 @@
 import os
-from typing import Dict, Optional
 import matplotlib.pyplot as plt
 import torch
 import torch as t
-from torch.nn import functional as F
 import numpy as np
-from pathlib import Path
 import kornia as K
-import random
-import cv2 as cv
 from torchvision.utils import save_image
 from scipy import interpolate
+from torchvision.transforms import v2
 
 AUG_P = 0.1
 
 batch_augmentations = t.nn.Sequential(
     K.augmentation.RandomAffine(t.tensor(10.0),
                                 t.tensor([0.0, 0.15]),
-                                align_corners=False, p=AUG_P),
+                                align_corners=False, p=AUG_P), #
     K.augmentation.RandomBoxBlur(p=AUG_P),
     K.augmentation.RandomChannelShuffle(p=AUG_P),
-    K.augmentation.RandomPerspective(distortion_scale=0.05, p=AUG_P),
+    K.augmentation.RandomPerspective(distortion_scale=0.05, p=AUG_P), #
     # K.augmentation.RandomPosterize(p=0.2),    CPU only
-    K.augmentation.RandomSharpness(p=AUG_P),
+    K.augmentation.RandomSharpness(p=AUG_P), #
     K.augmentation.RandomSolarize(p=AUG_P),
     K.augmentation.ColorJitter(0.1, 0.1, 0.1, 0.1, p=AUG_P),
     K.augmentation.RandomGaussianNoise(std=0.1, p=AUG_P),
@@ -31,6 +27,21 @@ batch_augmentations = t.nn.Sequential(
     K.augmentation.RandomGrayscale(p=AUG_P),
     # K.augmentation.RandomErasing(p=AUG_P, scale=(0.1, 0.5))
 )
+augment = t.nn.Sequential(
+    v2.RandomAffine(degrees=10, translate=(0.0, 0.15)),
+    v2.RandomPerspective(distortion_scale=0.05, p=AUG_P),
+    v2.RandomChannelPermutation(),
+    v2.RandomAdjustSharpness(sharpness_factor=0.1, p=AUG_P),
+    v2.RandomAutocontrast(p=AUG_P*2.0),
+    v2.RandomEqualize(p=AUG_P),
+    v2.RandomSolarize(threshold=0.2, p=AUG_P),
+    v2.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+    #v2.GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 2.0), p=AUG_P),
+    #v2.ElasticTransform(alpha=10.0, sigma=5.0),
+    v2.RandomGrayscale(p=AUG_P),
+)
+
+
 
 
 def plot_heatmap(source, target, cropped_target=None, prediction=None,blacked_image = None, heatmap=None,dir=None,name=None):

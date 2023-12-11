@@ -5,7 +5,7 @@ from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from .evaluate_model import *
-from .utils import batch_augmentations, plot_samples, plot_similarity, plot_displacement, plot_heatmap
+from .utils import batch_augmentations, plot_samples, plot_similarity, plot_displacement, plot_heatmap, augment
 from .model import save_model_to_file
 from .train_eval_common import *
 import torch as t
@@ -123,7 +123,7 @@ def NNteach_from_python(training_data, data_path, init_weights, mission, config)
     conf = config
     device = conf["device"]
     global batch_aug
-    batch_aug = batch_augmentations.to(device)
+    batch_aug = augment.to(device)
     print("trianing:" + str(mission.name))
     image_count = teach_stuff(train_data=training_data, model_path_init=init_weights,
                               model_path_out=mission.c_strategy.model_path, out=mission.plot_folder,
