@@ -126,12 +126,12 @@ class Strands(StrandsImgPairDataset):
 
     #def __getitem__(self, idx):
     #    return self.get_item(idx)
-    @functools.cache
+    #@functools.cache
     def get_item_cached(self, idx):
         source, target, displ = super().__getitem__(idx)
         # source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8) # for vlurring out the water mark
         # displ = displ*(512.0/self.width)
-        cropped_target, crop_start, original_image, blacked_img = crop_img(self.width, self.crop_width, target,
+        cropped_target, crop_start = crop_img(self.width, self.crop_width, target,
                                                                            displac=displ)
         if self.smoothness == 0:
             heatmap = get_heatmap(self.width, self.fraction, self.crop_width, crop_start)
@@ -180,11 +180,8 @@ def crop_img(width, crop_width, img, displac):
 
     crop_start = random.choice(crops)
     crop_out = crop_start + displac
-    # crop_start = random.randint(0, self.width - self.crop_width - 1)
-    blacked_image = img.clone()
-    blacked_image[:, :, crop_start + crop_width:] = 0
-    blacked_image[:, :, :crop_start] = 0
-    return img[:, :, crop_start:crop_start + crop_width], crop_out, img, blacked_image
+
+    return img[:, :, crop_start:crop_start + crop_width], crop_out
 
 
 if __name__ == '__main__':
