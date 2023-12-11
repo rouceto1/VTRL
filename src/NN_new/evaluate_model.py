@@ -113,7 +113,7 @@ def NNeval_from_python(files, data_path, out_path, weights_file, config=None):
                                              plot_path=out_path,
                                              plot_name="eval_hist", epoch="max"
                                              )
-    print(dataset.__getitem__.cache_info())
+    #print(dataset.__getitem__.cache_info())
     t1_stop = perf_counter_ns()
     print("Elapsed time teach " + str((t1_stop - t1_start) / 1000000) + "ms")
     
