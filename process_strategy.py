@@ -10,6 +10,7 @@ from python.teach.planner import Mission, Strategy
 from multiprocessing import Pool, current_process
 import logging
 import warnings
+from src.NN_new.parser_strands import get_img
 
 logger = logging.getLogger()
 old_level = logger.level
@@ -115,9 +116,11 @@ def grade_plan(mission, eval_to_file=False, grade=False,conf=None):
                                           evaluation_paths,
                                           _GT=gt_in, conf=conf)
         mission.c_strategy.progress = 4
+        print(get_img.cache_info())
     if mission.c_strategy.progress == 4 or grade:
         grade_type(mission, _GT=gt_in, estimates=estimates_grade)
         mission.c_strategy.progress = 5
+        print(get_img.cache_info())
 
 
 def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=True, conf = None):
@@ -136,6 +139,7 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         _ = teach(dataset_path, mission, init_weights=weights, conf=conf)
         mission.c_strategy.progress = 1
         mission.c_strategy.train_time = time.time() - start_time
+        print(get_img.cache_info())
 
     if mission.c_strategy.progress == 1 or enable_eval:
         start_time2 = time.time()
@@ -143,10 +147,12 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
                                                        conf=conf)
         mission.c_strategy.progress = 2
         mission.c_strategy.eval_time = time.time() - start_time2
+        print(get_img.cache_info())
     if mission.c_strategy.progress == 2:
         metrics = process_ev_for_training(mission, dataset_path, conf=conf, hist_nn=hist_nn)
         mission.c_strategy.next_metrics = metrics
         mission.c_strategy.progress = 3
+        print(get_img.cache_info())
     return True
 
 
