@@ -9,16 +9,6 @@ import numpy as np
 import torchvision
 table = {}
 helps = 0
-def cache(f):
-    def helper(*args):
-        global table
-        if args in table:
-            return table[args]
-        print("cache miss")
-        res = f(*args)
-        table[args] = res
-        return res
-    return helper
 
 @functools.cache
 def get_img(img_path):
@@ -26,7 +16,7 @@ def get_img(img_path):
 
 class StrandsImgPairDataset(Dataset):
 
-    def __init__(self, training_input=None, crop_width=56, training=False):
+    def __init__(self, training_input=None, crop_width=56, training=False, device=t.device("cpu")):
         super(StrandsImgPairDataset, self).__init__()
         self.width = 512
         self.height = 404
@@ -46,11 +36,11 @@ class StrandsImgPairDataset(Dataset):
                     path2 = pair[1]
                     if path1 not in self.image_paths:
                         self.image_paths.append(path1)
-                        self.images.append(get_img(path1))
+                        self.images.append(get_img(path1).to(device))
                         idx += 1
                     if path2 not in self.image_paths:
                         self.image_paths.append(path2)
-                        self.images.append(get_img(path2))
+                        self.images.append(get_img(path2).to(device))
                         idx += 1
                     self.data.append((self.image_paths.index(path1), self.image_paths.index(path2), 0, i))
 
@@ -126,7 +116,7 @@ class StrandsImgPairDataset(Dataset):
 
 class Strands(StrandsImgPairDataset):
     def __init__(self, crop_width, fraction, smoothness, training_input, training=False, device=t.device("cpu")):
-        super().__init__(training_input=training_input, crop_width=crop_width, training=training)
+        super().__init__(training_input=training_input, crop_width=crop_width, training=training,device=device)
         self.device = device
         self.fraction = fraction
         self.smoothness = smoothness
@@ -137,7 +127,7 @@ class Strands(StrandsImgPairDataset):
     #def __getitem__(self, idx):
     #    return self.get_item(idx)
     @functools.cache
-    def get_item_cached(self,idx):
+    def get_item_cached(self, idx):
         source, target, displ = super().__getitem__(idx)
         # source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8) # for vlurring out the water mark
         # displ = displ*(512.0/self.width)
@@ -158,7 +148,7 @@ class Strands(StrandsImgPairDataset):
             source, target, displ = super().__getitem__(idx)
             #left = (self.width - self.crop_width) / 2
             #right = (self.width - self.crop_width) / 2 + self.crop_width
-            return source.to(self.device), target.to(self.device), displ
+            return source, target, displ
 
 
 def get_heatmap(width, fraction, crop_width, crop_start):
