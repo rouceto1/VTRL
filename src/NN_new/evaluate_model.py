@@ -106,7 +106,7 @@ def NNeval_from_python(files, data_path, out_path, weights_file, config=None):
     device = conf["device"]
     t1_start = perf_counter_ns()
     dataset, histograms = get_dataset(data_path, files, conf)
-    loader = DataLoader(dataset, conf["batch_size_eval"], shuffle=False, pin_memory=True, num_workers=0)
+    loader = DataLoader(dataset, conf["batch_size_eval"], shuffle=False, num_workers=0)
     mae, acc, hist, disp = eval_displacement(model_path=weights_file, loader=loader,
                                              histograms=histograms, conf=conf, batch_size=conf["batch_size_eval"],
                                              padding=conf["pad_eval"],

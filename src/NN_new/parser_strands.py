@@ -134,21 +134,23 @@ class Strands(StrandsImgPairDataset):
 
     #def __getitem__(self, idx):
     #    return self.get_item(idx)
-
     @functools.cache
+    def get_item_cached(self,idx):
+        source, target, displ = super().__getitem__(idx)
+        # source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8) # for vlurring out the water mark
+        # displ = displ*(512.0/self.width)
+        cropped_target, crop_start, original_image, blacked_img = crop_img(self.width, self.crop_width, target,
+                                                                           displac=displ)
+        if self.smoothness == 0:
+            heatmap = get_heatmap(self.width, self.fraction, self.crop_width, crop_start)
+        else:
+            heatmap = get_smooth_heatmap(self.smoothness, self.width, crop_start, self.fraction, self.crop_width)
+        # plot_heatmap(source, target, cropped_target, displ, heatmap)
+        return source.to(self.device), cropped_target.to(self.device), displ, heatmap.to(self.device)
+
     def __getitem__(self, idx):
         if self.train:
-            source, target, displ = super().__getitem__(idx)
-            # source[:, :32, -64:] = (t.randn((3, 32, 64)) / 4 + 0.5).clip(0.2, 0.8) # for vlurring out the water mark
-            # displ = displ*(512.0/self.width)
-            cropped_target, crop_start, original_image, blacked_img = crop_img(self.width, self.crop_width, target,
-                                                                               displac=displ)
-            if self.smoothness == 0:
-                heatmap = get_heatmap(self.width, self.fraction, self.crop_width, crop_start)
-            else:
-                heatmap = get_smooth_heatmap(self.smoothness, self.width, crop_start, self.fraction, self.crop_width)
-            # plot_heatmap(source, target, cropped_target, displ, heatmap)
-            return source.to(self.device), cropped_target.to(self.device), displ, heatmap.to(self.device)
+            return self.get_item_cached(idx)
         else:
             # croping target when evalution is up to 504 pixels
             source, target, displ = super().__getitem__(idx)
