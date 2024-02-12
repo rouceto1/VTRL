@@ -24,7 +24,7 @@ class NumpyArrayEncoder(JSONEncoder):
 class Mission_generator:
 
     def __init__(self, uptime, block_size, dataset_weights, preferences, time_limit, time_advance, change_rate,
-                 duty_cycle, preteach, metrics_type, roll_data, ee_ratio, sigma):
+                 duty_cycle, preteach, metrics_type, roll_data, ee_ratio, sigma, simulation):
         self.uptime = uptime
         self.block_size = block_size
         self.dataset_weights = dataset_weights  # cestlice, strands
@@ -40,6 +40,7 @@ class Mission_generator:
         self.mission_count = 0
         self.missions = None
         self.sigma = sigma
+        self.simulation = simulation
 
     def make_single_mission(self, strategy):
         self.mission_count += 1
@@ -104,18 +105,19 @@ if __name__ == "__main__":
     preferences_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial weights
     preteach_list = [True]
     roll_data_list = [False]
-    duty_cycle_list = np.array([1.0,3.0,5.0,8.0])
+    duty_cycle_list = np.array([1.0, 3.0, 5.0, 8.0])
     # duty_cycle_list = np.array([1.0])
     time_advance_list = np.array([0.14])
-    change_rate_list = np.array([1.0,0.0,-1.0])
+    change_rate_list = np.array([1.0, 0.0, -1.0])
     # change_rate_list = np.array([1.0])
     metrics_type_list = np.array([0])
     ee_ratio_list = np.array([1.0])
     sigma = np.array(range(1))
+    simulation = np.array([False])
 
     gen = Mission_generator(uptime_list, block_size_list, dataset_weights, preferences_contents, time_limits,
                             time_advance_list, change_rate_list, duty_cycle_list, preteach_list, metrics_type_list,
-                            roll_data_list, ee_ratio_list, sigma)
+                            roll_data_list, ee_ratio_list, sigma, simulation)
 
     random.seed(42)
     np.random.seed(42)
