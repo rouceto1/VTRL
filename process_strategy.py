@@ -6,7 +6,7 @@ from python.grading.grade_results import *
 import argparse
 from python.helper_functions import *
 import time
-from python.teach.planner import Mission, Strategy
+from python.teach.mission import Mission, Strategy
 from multiprocessing import Pool, current_process
 import logging
 import warnings
@@ -43,11 +43,7 @@ config = load_config("NN_config.yaml", 512)
 
 def setup_missions(missions, exp_folder_name):
     for mission in missions:
-        exists = mission.setup_mission(exp_folder_name)  # setups folderrs for specific missio
-        mission.plan_modifier()  # generates first plan for current strategy of the mission
-        mission.setup_current_strategy()  # sets up current mission
-        mission.c_strategy.print_parameters()
-        mission.save()
+        mission.setup_mission(exp_folder_name)  # setups folderrs for specific missio
 
 
 def process_new(generator, exp_folder_name):
@@ -88,26 +84,26 @@ def mutlithred_process_old(names, exp_folder_name, thread_limit=None):
             process_old(name)
 
 
-def learning_loop(mission, conf, cuda=None, iterations=1):
-
+def learning_loop(mission, conf, cuda=None, iterations=1, simulation=False):
     s_time = time.time()
     save = False
     while not mission.no_more_data:
         save = True
         mission.c_strategy.print_parameters()
-        trained = process_plan(mission, conf=conf)  # trains and generates new metrics
+        trained = process_plan(mission, conf=conf, simulation=mission.simulation)  # trains and generates new metrics
         if not trained:
             break
-        grade_plan(mission, conf= conf)
+        grade_plan_vtrl(mission, conf= conf)
         mission.save()
         #print("Metrics: ", mission.c_strategy.next_metrics)
-        mission.advance_mission(mission.c_strategy.next_metrics)
+        mission.advance_mission(mission.c_strategy.ambiguity)
     if save:
         mission.save()
     #print("Mission processing:", time.time() - s_time)
 
 
-def grade_plan(mission, eval_to_file=False, grade=False,conf=None):
+#TODO - redo this for sim data
+def grade_plan_vtrl(mission, eval_to_file=False, grade=False, conf=None):
     estimates_grade = None
     if mission.c_strategy.progress == 3 or eval_to_file:
         with open(GT_file, 'rb') as _handle:
@@ -124,14 +120,14 @@ def grade_plan(mission, eval_to_file=False, grade=False,conf=None):
         grade_type(mission, _GT=gt_in, estimates=estimates_grade)
         mission.c_strategy.progress = 5
         try:
-            print("Image cache 4: ",get_img.cache_info())
+            print("Image cache 4: ", get_img.cache_info())
         except:
             pass
 
-def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=True, conf = None):
+def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=True, conf = None, simulation=False):
     start_time = time.time()
     hist_nn = None
-    mission.c_strategy.file_list, count = make_combos_for_teaching(mission.c_strategy.plan, dataset_path)
+    mission.c_strategy.file_list, count = make_combos_for_teaching(mission.c_strategy.timetable, dataset_path, simulation)
     if count <= 1:
         mission.c_strategy.is_faulty = True
         print("No new combos")
@@ -159,11 +155,11 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         except:
             pass
     if mission.c_strategy.progress == 2:
-        metrics = process_ev_for_training(mission, dataset_path, conf=conf, hist_nn=hist_nn)
-        mission.c_strategy.next_metrics = metrics
+        ambiguity = process_ev_for_training(mission, dataset_path, conf=conf, hist_nn=hist_nn)
+        mission.c_strategy.ambiguity = ambiguity
         mission.c_strategy.progress = 3
         try:
-            print("Image cache 2: ",get_img.cache_info())
+            print("Image cache 2: ", get_img.cache_info())
         except:
             pass
     return True

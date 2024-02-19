@@ -67,7 +67,7 @@ def parse_given_file_list(file_list, weights=None):
 
 
 def get_listed_files(mission, file_pair_list):
-    used_strands = np.zeros_like(mission.c_strategy.plan[1], dtype=float)
+    used_strands = np.zeros_like(mission.c_strategy.timetable[1], dtype=float)
     for i in range(len(file_pair_list)):
         if file_pair_list[i][0][0] == "strands":
             used_strands[file_pair_list[i][0][2]][file_pair_list[i][0][1]] += 1.0
@@ -76,7 +76,7 @@ def get_listed_files(mission, file_pair_list):
 
 
 def get_listed_files_weighted(mission, file_pair_list):
-    used_strands = np.zeros_like(mission.c_strategy.plan[1], dtype=float)
+    used_strands = np.zeros_like(mission.c_strategy.timetable[1], dtype=float)
     for i in range(len(file_pair_list)):
         if file_pair_list[i][0][0] == "strands":
             used_strands[file_pair_list[i][0][2]][file_pair_list[i][0][1]] += file_pair_list[i][0][3]
@@ -84,13 +84,13 @@ def get_listed_files_weighted(mission, file_pair_list):
     return used_strands
 
 
-def calculate_metrics(mission, bad_strands, used_strands):
+def calculate_ambiguity(mission, bad_strands, used_strands):
     sum_used_place = np.sum(used_strands, axis=0)  # actually used image combinations coutn per place
 
     bedness_per_image = bad_strands.copy()
     bedness_per_image[used_strands != 0] /= used_strands[used_strands != 0]
 
-    given_strands = np.array(mission.c_strategy.plan[1])
+    given_strands = np.array(mission.c_strategy.timetable[1])
     sum_given_place = np.sum(given_strands, axis=0)  # given IMAGE count per place
 
     ambiguity_per_place = np.sum(bad_strands, axis=0)
@@ -112,9 +112,9 @@ def plot_and_save(mission, sum_given_place, sum_used_place, ambiguity_per_place,
     plt.figure()
     sns.heatmap(np.transpose(data_frame1), xticklabels=1, yticklabels=1, annot=True)
     plt.tight_layout()
-    plt.savefig(os.path.join(mission.c_strategy.metrics_path), dpi=800)
+    plt.savefig(os.path.join(mission.c_strategy.ambiguity_path), dpi=800)
     #### plot used positions and weighted bad positions, each bad position is sum how many times/ how many times used
-    temp = np.array(mission.c_strategy.plan[1]) - 1.0
+    temp = np.array(mission.c_strategy.timetable[1]) - 1.0
     times_used = temp + used_strands
 
     fig, axs = plt.subplots(3)
@@ -132,7 +132,7 @@ def plot_and_save(mission, sum_given_place, sum_used_place, ambiguity_per_place,
     fig.savefig(os.path.join(mission.c_strategy.usage_path), dpi=800)
 
     # save data to pickle
-    with open(os.path.join(mission.c_strategy.metrics_path) + ".pkl", 'wb') as handle:
+    with open(os.path.join(mission.c_strategy.ambiguity_path) + ".pkl", 'wb') as handle:
         pickle.dump(data_frame1, handle)
     with open(os.path.join(mission.c_strategy.usage_path) + ".pkl", 'wb') as handle:
         pickle.dump(data_frame, handle)
@@ -149,20 +149,20 @@ def process_ev_for_training(mission, _dataset_path, old_plan=None,
 
     file_pair_list = parse_given_file_list(file_list)  # array of [tuples(place, season)]
     used_strands = get_listed_files(mission, file_pair_list)
-    if mission.c_strategy.metrics_type == 0:
+    if mission.c_strategy.method_type == 0:
         well_understood_nn, bad_nn = enthropy_std(hist_nn, file_list)
         bad_list = parse_given_file_list(bad_nn)  # array of [tuples(place, season)]
         bad_strands = get_listed_files(mission, bad_list)
 
-    elif mission.c_strategy.metrics_type == 1:
+    elif mission.c_strategy.method_type == 1:
         weighted_list, weights = entrhopy_weighted(hist_nn, file_list)
         coordiantes_list = parse_given_file_list(weighted_list, weights)
         bad_strands = get_listed_files_weighted(mission, coordiantes_list)
 
-    elif mission.c_strategy.metrics_type == 2:
+    elif mission.c_strategy.method_type == 2:
         weighted_list, weights = two_best_ratio(hist_nn, file_list)
         coordiantes_list = parse_given_file_list(weighted_list, weights)
         bad_strands = get_listed_files_weighted(mission, coordiantes_list)
-    metrics = calculate_metrics(mission, bad_strands, used_strands)
+    ambiguity = calculate_ambiguity(mission, bad_strands, used_strands)
 
-    return metrics
+    return ambiguity

@@ -5,7 +5,7 @@ import random
 
 import numpy as np
 
-from python.teach.planner import Strategy, Mission
+from python.teach.mission import Mission, Strategy
 from process_strategy import process_new
 from json import JSONEncoder
 import pickle
@@ -24,7 +24,7 @@ class NumpyArrayEncoder(JSONEncoder):
 class Mission_generator:
 
     def __init__(self, uptime, block_size, dataset_weights, preferences, time_limit, time_advance, change_rate,
-                 duty_cycle, preteach, metrics_type, roll_data, ee_ratio, sigma, simulation):
+                 duty_cycle, preteach, method_type, roll_data, ee_ratio, sigma, simulation):
         self.uptime = uptime
         self.block_size = block_size
         self.dataset_weights = dataset_weights  # cestlice, strands
@@ -34,7 +34,7 @@ class Mission_generator:
         self.change_rate = change_rate  # how much to modify TODO make soemthing else then boolean
         self.duty_cycle = duty_cycle
         self.preteach = preteach
-        self.matrics_type = metrics_type
+        self.method_type = method_type
         self.roll_data = roll_data
         self.ee_ratio = ee_ratio
         self.mission_count = 0
@@ -50,8 +50,8 @@ class Mission_generator:
 
     def make_multiple_missions(self):
         a = [self.uptime, self.block_size, self.dataset_weights, self.preferences, self.time_limit,
-             self.time_advance, self.change_rate, self.duty_cycle, self.preteach, self.matrics_type, self.roll_data,
-             self.ee_ratio, self.sigma]
+             self.time_advance, self.change_rate, self.duty_cycle, self.preteach, self.method_type, self.roll_data,
+             self.ee_ratio, self.sigma,self.simulation]
         combinations = list(itertools.product(*a))
         missions = []
         strategies = []
@@ -61,7 +61,7 @@ class Mission_generator:
                                 change_rate=combination[6], iteration=0, duty_cycle=combination[7],
                                 preteach=combination[8],
                                 m_type=combination[9], roll_data=combination[10],
-                                ee_ratio=combination[11])
+                                ee_ratio=combination[11], simulation=combination[13])
             strategies.append(strategy)
         strategies.sort(key=lambda x: x.uptime * x.duty_cycle, reverse=False)
 
@@ -85,7 +85,7 @@ class Mission_generator:
         txt += "change_rate " + str(self.change_rate) + "\n"
         txt += "duty_cycle " + str(self.duty_cycle) + "\n"
         txt += "preteach " + str(self.preteach) + "\n"
-        txt += "matrics_type " + str(self.matrics_type) + "\n"
+        txt += "method_type " + str(self.method_type) + "\n"
         txt += "mission_count " + str(self.mission_count) + "\n"
         txt += "roll_data" + str(self.roll_data) + "\n"
         txt += "ee_ratio" + str(self.ee_ratio) + "\n"
@@ -97,7 +97,7 @@ class Mission_generator:
 
 
 if __name__ == "__main__":
-    uptime_list = np.array([0.25])
+    uptime_list = np.array([0.20])
     # uptime_list = np.array([0.25])
     time_limits = np.array([0.14])
     block_size_list = [1]
@@ -105,18 +105,18 @@ if __name__ == "__main__":
     preferences_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial weights
     preteach_list = [True]
     roll_data_list = [False]
-    duty_cycle_list = np.array([1.0, 3.0, 5.0, 8.0])
+    duty_cycle_list = np.array([1.0])
     # duty_cycle_list = np.array([1.0])
     time_advance_list = np.array([0.14])
     change_rate_list = np.array([1.0, 0.0, -1.0])
     # change_rate_list = np.array([1.0])
-    metrics_type_list = np.array([0])
+    method_type_list = np.array([0])
     ee_ratio_list = np.array([1.0])
     sigma = np.array(range(1))
     simulation = np.array([False])
 
     gen = Mission_generator(uptime_list, block_size_list, dataset_weights, preferences_contents, time_limits,
-                            time_advance_list, change_rate_list, duty_cycle_list, preteach_list, metrics_type_list,
+                            time_advance_list, change_rate_list, duty_cycle_list, preteach_list, method_type_list,
                             roll_data_list, ee_ratio_list, sigma, simulation)
 
     random.seed(42)

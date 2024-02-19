@@ -113,6 +113,27 @@ def concatenate_combos_for_teaching(list1, list2):
     return out
 
 
+def make_combos_for_teaching(timetable, dataset_path, simulation=False):
+    # format of timetable is: [cestlice[season0[place1 place2 place3 ... place271 ] season1[place1 place2 place3 ... place271 ] ... season30[place1 place2 place3 ... place271 ]]
+    #                                       strands[season0[place1 place2 place3 ... place7 ] season1[place1 place2 place3 ... place7 ] ... season1007[place1 place2 place3 ... place7 ]]]
+    # takes chosen postioins list and creates all possible teaching combinattaions for it
+    # each combination is a list of 2 files comprised of same place between 2 seasons
+    # available places are indicated by 1 not avialbale are 0
+    if not simulation:
+        cestlice = timetable[0]
+        strands = timetable[1]
+        image_file_template = "season_%04d/%09d"
+        output, count = make_combos_for_dataset(cestlice, os.path.join(dataset_path, "cestlice"), image_file_template)
+        output2, count2 = make_combos_for_dataset(strands, os.path.join(dataset_path, "strands"), image_file_template)
+    else:
+        acquire_new_data_from_timetable(timetable, dataset_path)
+        map_path = "/home/rouceto1/.ros"
+        output, count = make_combos_from_existing_data(map_path, dataset_path, "mall_vtr")
+        output2, count2 = make_combos_from_existing_data(map_path, dataset_path, "forest_vtr")
+    output.extend(output2)
+    return output, count + count2
+
+
 def make_combos_for_dataset(input, path_dataset, image_file_template):
     # makes list of all possible combination between same places per season
     # input is list of seasons which are folders
@@ -122,7 +143,7 @@ def make_combos_for_dataset(input, path_dataset, image_file_template):
     #                                       strands[season0[place1 place2 place3 ... place7 ] season1[place1 place2 place3 ... place7 ] ... season1007[place1 place2 place3 ... place7 ]]]
 
     output = []
-
+    suffix = ".png"
     seasons = len(input)
     places = len(input[0])
     # places are amount of folders in path_dataset
@@ -135,75 +156,60 @@ def make_combos_for_dataset(input, path_dataset, image_file_template):
                 if input[season2][place] == 0:
                     continue
                 count += 1
-                file1 = os.path.join(path_dataset, image_file_template % (season, place)) + ".png"
-                file2 = os.path.join(path_dataset, image_file_template % (season2, place)) + ".png"
+                file1 = os.path.join(path_dataset, image_file_template % (season, place)) + suffix
+                file2 = os.path.join(path_dataset, image_file_template % (season2, place)) + suffix
                 if os.path.exists(file1) and os.path.exists(file2):
                     output.append([file1, file2])
     return output, count
 
 
-def make_combos_for_teaching(chosen_positions, dataset_path):
-    # format of chosen_positions is: [cestlice[season0[place1 place2 place3 ... place271 ] season1[place1 place2 place3 ... place271 ] ... season30[place1 place2 place3 ... place271 ]]
-    #                                       strands[season0[place1 place2 place3 ... place7 ] season1[place1 place2 place3 ... place7 ] ... season1007[place1 place2 place3 ... place7 ]]]
-    # takes chosen postioins list and creates all possible teaching combinattaions for it
-    # each combination is a list of 2 files comprised of same place between 2 seasons
-    # available places are indicated by 1 notavialbale are 0
+def acquire_new_data_from_timetable(timetable, dataset_path):
+    # TODO run robot over the required path and save the data properly using the simulator
     pass
-    cestlice = chosen_positions[0]
-    strands = chosen_positions[1]
-    output, count = make_combos_for_dataset(cestlice, os.path.join(dataset_path, "cestlice"), image_file_template)
-    output2, count2 = make_combos_for_dataset(strands, os.path.join(dataset_path, "strands"), image_file_template)
-    output.extend(output2)
-    return output, count + count2
 
 
-def make_combos_for_teaching_old(chosen_positions, dataset_path, filetype_fm, conf=None):
-    # print("First file loaded")
-    # takes list of sorted chosen positions indicated by the number bigger than or equal zero and makes a combination of all indexies for a given postitions,
-    # if -1 is in chosen position it skips this index
-    # if -2 is chosen position it uses all possible positions for this index
-    indexes = dict([(0, []), (1, []), (2, []), (3, []), (4, []), (5, []), (6, []), (7, [])])
-    for i, value in enumerate(chosen_positions):
-        if value == -1:
+def make_combos_from_existing_data(map_path, dataset_path, map_name):
+    # get all folders in dataset_path corespondong to specific map_name
+    all_folders = [f.path for f in os.scandir(dataset_path) if f.is_dir() and map_name in f.path]
+    all_folders.extend(map_path)
+    print(all_folders)
+    # walk each folder and matach all available images to other images using distance
+    pairs = []
+    for idx, folder1 in enumerate(all_folders):
+        for folder2 in all_folders[idx, :]:
+            if folder1 == folder2:
+                continue
+            pairs.extend(match_distances_in_two_folders(folder1, folder2))
+    return pairs, len(pairs)
+
+def match_distances_in_two_folders(folder1, folder2):
+    # find files that are closest to each other in two folders
+    # list all files in folder1:
+    suffix = ".jpg"
+    files1 = [f.path for f in os.scandir(folder1) if f.is_file() and suffix in f.path]
+    files2 = [f.path for f in os.scandir(folder2) if f.is_file() and suffix in f.path]
+    if len(files1) < len(files2):
+        files1, files2 = files2, files1
+    # extract numbers from file names removing suffix
+    numbers1 = [int(f.split("/")[-1].split(".")[0]) for f in files1]
+    numbers2 = [int(f.split("/")[-1].split(".")[0]) for f in files2]
+    # find closest numbers
+
+    pairs = find_closest(numbers1, numbers2)
+    #return file pairs corresponding to the numbers
+    return [[files1[i[0]], files2[i[1]]] for i in pairs]
+
+
+
+def find_closest(array1, array2, limit=2):
+    pairs = []
+    for i, num1 in enumerate(array1):
+        closest = min(array2, key=lambda x: abs(x - num1))
+        index = array2.index(closest)
+        if num1 - closest < limit:
             continue
-
-        if value == -2:
-            for every in range(8):
-                if os.path.exists(os.path.join(dataset_path, image_file_template % (every, i)) + filetype_fm):
-                    indexes[every].extend([i])
-                else:
-                    continue
-        else:
-            if os.path.exists(os.path.join(dataset_path, image_file_template % (value, i)) + filetype_fm):
-                indexes[value].extend([i])
-
-    # print("indexes Made")
-    # make a combination list from all the chosen places
-    combination_list = []
-    cout = 0
-    file_list = []
-    if conf["all_combos"] is True:
-        for key in indexes:
-            position = list(itertools.combinations(indexes[key], 2))
-            combination_list.append(position)
-            for pose in position:
-                cout += 1
-                file1 = os.path.join(dataset_path, image_file_template % (key, pose[0]))
-                file2 = os.path.join(dataset_path, image_file_template % (key, pose[1]))
-                file_list.append([file1, file2])
-    else:
-        for key in indexes:
-            for val in indexes[key]:
-                if not val == indexes[key][0]:
-                    combination_list.append([key, indexes[key][0], val])
-        for combo in combination_list:
-            file1 = os.path.join(dataset_path, image_file_template % (combo[0], combo[1]))
-            file2 = os.path.join(dataset_path, image_file_template % (combo[0], combo[2]))
-            file_list.append([file1, file2])
-
-    file_list = np.array(file_list)
-    print("In total to teach on: " + str(cout))
-    return file_list
+        pairs.append([i, index])
+    return pairs
 
 
 def get_pad(crop):

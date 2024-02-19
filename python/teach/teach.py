@@ -41,4 +41,4 @@ def teach(_dataset_path, _mission, init_weights=None, _cache=None, conf=None):
 
 if __name__ == "__main__":
     config = load_config("./NN_config_tests.yaml", 512)
-    # teach(dataset_path, chosen_positions, weights_file+".solo", cache, config)
+    # teach(dataset_path, timetable, weights_file+".solo", cache, config)

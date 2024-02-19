@@ -199,9 +199,9 @@ def grade_type(mission, _GT=None, estimates=None):
         GT_reduced = _GT[slices[index][0]:slices[index][1]]
         gt = read_gt_file(file_list, GT_reduced)
         mission.c_strategy.grading[index] = Grading()
-        mission.c_strategy.grading[index].compute(displacements, gt, mission.mission_folder, mission.c_strategy.plan,
-                                           fig_place=mission.plot_folder, hist_nn=hist_nn, hist_fm=histograms,
-                                           matches=matches, name=G)
+        mission.c_strategy.grading[index].compute(displacements, gt, mission.mission_folder, mission.c_strategy.timetable,
+                                                  fig_place=mission.plot_folder, hist_nn=hist_nn, hist_fm=histograms,
+                                                  matches=matches, name=G)
     #print("Grading done")
 
 

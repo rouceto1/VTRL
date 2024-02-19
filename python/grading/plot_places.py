@@ -9,7 +9,7 @@ dataset_path = "/home/rouceto1/datasets/strands_crop/training_Nov"
 def plot_places(dist):
     chosen_positions_file = "input.txt"
     chosen_positions = np.loadtxt(os.path.join(dist, chosen_positions_file), int)
-    # print (chosen_positions)
+    # print (timetable)
     interpolated = []
     for pose in chosen_positions:
         for i in range(60):
