@@ -60,7 +60,6 @@ def process_old(name, cuda=None):
     conf = config.copy()
     print("-----------------------------------------------------------------------")
     print(name)
-    print ("Simulation: ", simulation)
     if cuda is not None:
         cuda = current_process()._identity[0] - 1
         d = "cuda:" + str(cuda)
@@ -69,8 +68,8 @@ def process_old(name, cuda=None):
         conf["device"] = device
     mission = Mission(int(name))
     mission = mission.load(os.path.join(conf["exp_folder_name"], name))
-    print("tf ",simulation)
-    learning_loop(mission, conf, mission=simulation)
+    print("Simulation :  ",mission.simulation)
+    learning_loop(mission, conf, simulation=mission.simulation)
 
 def mutlithred_process_old(names, exp_folder_name, thread_limit=None):
     config["exp_folder_name"] = exp_folder_name
