@@ -7,7 +7,7 @@ import random
 from json import JSONEncoder
 import copy
 import numpy as np
-from python.teach.planner import VTRL
+from python.teach.planner import VTRL, VTRE
 
 pwd = os.getcwd()
 experiments_path = os.path.join(pwd, "experiments")
@@ -140,6 +140,7 @@ class Strategy:
         self.dataset_weights = dataset_weights  # cestlice, strands
         self.preferences = preferences  # list of weights for each place TODO: make this strands agnostic
         self.time_limit = time_limit  # latest possible time to teach
+        self.time_start = 0
         self.iteration = iteration
         self.time_advance = time_advance  # how much is each new data training
         self.change_rate = change_rate  # how much to modify TODO make soemthing else then boolean
@@ -153,6 +154,8 @@ class Strategy:
             self.planner = VTRL()
             if preferences is not None:
                 self.preferences = self.planner.advance_preferences(self.preferences, np.ones(8), self.duty_cycle)
+        else:
+            self.planner = VTRE()
 
         self.timetable = None
         self.used_teach_count = 0
@@ -169,6 +172,8 @@ class Strategy:
         self.progress = 0
 
         self.next_ambiguity = None
+
+        self.map_count = 2
 
     def get_given_teach_count(self):
         return len(self.file_list)
@@ -193,6 +198,7 @@ class Strategy:
     def advance(self, ambiguity, old_timetable, old_strategy):
 
         if ambiguity is not None:
+            self.time_start = self.time_limit
             self.time_limit += self.time_advance
             self.preferences = self.planner.get_preferences_for_next_round(ambiguity, self)
 

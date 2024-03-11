@@ -136,6 +136,7 @@ def plot_and_save(mission, sum_given_place, sum_used_place, ambiguity_per_place,
         pickle.dump(data_frame1, handle)
     with open(os.path.join(mission.c_strategy.usage_path) + ".pkl", 'wb') as handle:
         pickle.dump(data_frame, handle)
+        
 
 
 def process_ev_for_training(mission, _dataset_path, old_plan=None,

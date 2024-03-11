@@ -29,8 +29,11 @@ class Mission_generator:
         self.block_size = block_size
         self.dataset_weights = dataset_weights  # cestlice, strands
         self.preferences = preferences  # list of weights for each place TODO: make this strands agnostic
-        self.time_limit = time_limit  # latest possible time to teach
+        self.time_limit = time_limit   # latest possible time to teach
         self.time_advance = time_advance  # how much is each new data training
+        if simulation:
+            self.time_limit = int(144 * self.time_limit) #hardcoded is the number of 10 minutes par day
+            self.time_advance = int(144 * self.time_advance)
         self.change_rate = change_rate  # how much to modify TODO make soemthing else then boolean
         self.duty_cycle = duty_cycle
         self.preteach = preteach
@@ -102,7 +105,7 @@ if __name__ == "__main__":
     time_limits = np.array([0.14])
     block_size_list = [1]
     dataset_weights = [np.array([0.0, 1.0])]
-    preferences_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial weights
+    preferences_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial ambiguity
     preteach_list = [True]
     roll_data_list = [False]
     duty_cycle_list = np.array([1.0])

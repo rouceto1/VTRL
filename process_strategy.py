@@ -11,6 +11,7 @@ from multiprocessing import Pool, current_process
 import logging
 import warnings
 from src.NN_new.parser_strands import get_img
+from python.teach.acquisition import In_Dataset, In_Simulation
 
 logger = logging.getLogger()
 old_level = logger.level
@@ -40,7 +41,6 @@ GT_file = os.path.join(evaluation_prefix, gt_name + ".pickle")
 init_weights = os.path.join(pwd, "init_weights.pt")
 config = load_config("NN_config.yaml", 512)
 
-
 def setup_missions(missions, exp_folder_name):
     for mission in missions:
         mission.setup_mission(exp_folder_name)  # setups folderrs for specific missio
@@ -55,11 +55,12 @@ def process_new(generator, exp_folder_name):
 
 def multi_run_wrapper(args):
     process_old(*args)
-def process_old(name, cuda=None):
+
+def process_old(name, cuda=None, simulation=False):
     conf = config.copy()
     print("-----------------------------------------------------------------------")
     print(name)
-
+    print ("Simulation: ", simulation)
     if cuda is not None:
         cuda = current_process()._identity[0] - 1
         d = "cuda:" + str(cuda)
@@ -68,9 +69,10 @@ def process_old(name, cuda=None):
         conf["device"] = device
     mission = Mission(int(name))
     mission = mission.load(os.path.join(conf["exp_folder_name"], name))
-    learning_loop(mission, conf)
+    print("tf ",simulation)
+    learning_loop(mission, conf, simulation=simulation)
 
-def mutlithred_process_old(names, exp_folder_name, thread_limit=None):
+def mutlithred_process_old(names, exp_folder_name, thread_limit=None, simulation=False):
     config["exp_folder_name"] = exp_folder_name
     if thread_limit is not None:
         data = []
@@ -81,19 +83,20 @@ def mutlithred_process_old(names, exp_folder_name, thread_limit=None):
             #tqdm(pool.imap(multi_run_wrapper, data), total=len(names))
     else:
         for name in names:
-            process_old(name)
+            process_old(name,simulation=simulation)
 
 
 def learning_loop(mission, conf, cuda=None, iterations=1, simulation=False):
     s_time = time.time()
     save = False
+    print(simulation)
     while not mission.no_more_data:
         save = True
         mission.c_strategy.print_parameters()
-        trained = process_plan(mission, conf=conf, simulation=mission.simulation)  # trains and generates new metrics
+        trained = process_plan(mission, conf=conf, simulation=simulation)  # trains and generates new metrics
         if not trained:
             break
-        grade_plan_vtrl(mission, conf= conf)
+        grade_plan_vtrl(mission, conf= conf, simulation=simulation)
         mission.save()
         #print("Metrics: ", mission.c_strategy.next_metrics)
         mission.advance_mission(mission.c_strategy.ambiguity)
@@ -103,7 +106,7 @@ def learning_loop(mission, conf, cuda=None, iterations=1, simulation=False):
 
 
 #TODO - redo this for sim data
-def grade_plan_vtrl(mission, eval_to_file=False, grade=False, conf=None):
+def grade_plan_vtrl(mission, eval_to_file=False, grade=False, conf=None, simulation=False):
     estimates_grade = None
     if mission.c_strategy.progress == 3 or eval_to_file:
         with open(GT_file, 'rb') as _handle:
@@ -127,11 +130,21 @@ def grade_plan_vtrl(mission, eval_to_file=False, grade=False, conf=None):
 def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=True, conf = None, simulation=False):
     start_time = time.time()
     hist_nn = None
-    mission.c_strategy.file_list, count = make_combos_for_teaching(mission.c_strategy.timetable, dataset_path, simulation)
+    if simulation:
+        print("Simulatiog")
+        acquisition = In_Simulation("/home/rouceto1/.ros/runs")
+    else :
+        print("fetching")
+        acquisition = In_Dataset(dataset_path)
+    mission.c_strategy.file_list, count = acquisition.make_combos_for_dataset(mission.c_strategy.timetable,
+                                                                              mission.c_strategy.time_start,
+                                                                              mission.c_strategy.time_limit)
+    print( mission.c_strategy.file_list)
     if count <= 1:
         mission.c_strategy.is_faulty = True
         print("No new combos")
         return False
+    print("Data Ready")
     if mission.c_strategy.progress == 0 or enable_teach:
         if not mission.c_strategy.preteach or mission.c_strategy.iteration == 0:
             weights = init_weights
@@ -151,7 +164,7 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         mission.c_strategy.progress = 2
         mission.c_strategy.eval_time = time.time() - start_time2
         try:
-            print("Image cache 1: ",get_img.cache_info())
+            print("Image cache 1: ", get_img.cache_info())
         except:
             pass
     if mission.c_strategy.progress == 2:
@@ -172,4 +185,4 @@ if __name__ == "__main__":
     experiments_path = os.path.join(pwd, exp_path)
     paths = [item for item in os.listdir(experiments_path) if os.path.isdir(os.path.join(experiments_path, item))]
     paths.sort()
-    mutlithred_process_old(paths, exp_folder_name=exp_path, thread_limit=None)
+    mutlithred_process_old(paths, exp_folder_name=exp_path, thread_limit=None,simulation=True)

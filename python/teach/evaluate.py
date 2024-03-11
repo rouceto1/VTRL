@@ -5,7 +5,7 @@ from python.helper_functions import *
 import src.FM.python.python_module as grief
 import cv2 as cv
 import matplotlib.pyplot as plt
-
+from python.teach.planner import VTRE
 def evaluate_for_learning(mission, _dataset_path,
                           _cache2=None, conf=None):
     hist_nn, displacement_nn = NN_eval(mission.c_strategy.file_list,
@@ -20,10 +20,19 @@ def evaluate_for_learning(mission, _dataset_path,
 
 def evaluate_for_GT(mission, _evaluation_prefix, _evaluation_paths, _GT=None,
 
-                    _cache2="/tmp/cache.pkl", conf=None):
-    file_list = make_file_list_from_gt(_evaluation_prefix, _GT)
-    out = [fm_nn_eval(file_list, filetype_NN, filetype_FM, mission.plot_folder, mission.c_strategy.model_path, _cache2,
-                      conf=conf)]
+                    _cache2="/tmp/cache.pkl", conf=None, simulation=False):
+    if simulation:
+        simulator = VTRE()
+        file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn= (
+            simulator.simulate(mission.c_strategy.timetable, mission.c_strategy.time_start,
+                               mission.c_strategy.time_end, mission.c_strategy.file_list,
+                               mission.c_strategy.model_path, conf))
+    else:
+
+        file_list = (
+            make_file_list_from_gt(_evaluation_prefix, _GT))
+        out = [fm_nn_eval(file_list, filetype_NN, filetype_FM, mission.plot_folder, mission.c_strategy.model_path, _cache2,
+                          conf=conf)]
     with open(mission.c_strategy.grading_path, 'wb') as handle:
         pickle.dump(out, handle)
     #print("GT estiamtes output at:" + str(mission.c_strategy.grading_path))

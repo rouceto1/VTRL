@@ -8,7 +8,7 @@ import random
 from json import JSONEncoder
 import copy
 import numpy as np
-
+from copy import deepcopy
 
 class Planner(ABC):
     @abstractmethod
@@ -29,13 +29,59 @@ class Planner(ABC):
 
 class VTRE(Planner):
     def timetable_modifier_vtrl(self, strategy, old_timetable=None, old_strategy=None):
-        
-        raise NotImplementedError
+        if old_timetable is None:
+            # This is initial search for timetable
+            return self.random_search(strategy.time_start, strategy.time_limit, strategy.duty_cycle)
+        else:
+            #if strategy should be random
+            if strategy.change_rate == -1.0:
+                return self.random_search(strategy.time_start, strategy.time_limit, strategy.duty_cycle, old_timetable)
+            #This should generate timetable for next round
+            #TODO: implement this
+            return self.random_search(strategy.time_start, strategy.time_limit, strategy.duty_cycle, old_timetable)
+
+
 
     def get_preferences_for_next_round(self, ambiguity, strategy):
-        # gives back new place weight multiplier besed on ambiguity
+        # gives back new place preferences multiplier besed on ambiguity
         # keeping the same exploration ratio
-        raise NotImplementedError
+        if strategy.change_rate == 0.0:
+            return strategy.preferences
+
+        #TODO implement
+        if strategy.iteration == 1:
+            return strategy.preferences
+        else:
+            return strategy.preferences
+            #return self.advance_preferences(strategy.preferences, ambiguity, strategy.duty_cycle)
+
+    def random_search(self, start, stop, duty_cycle, old_timetable=None):
+        #make first timetable randomly
+        if old_timetable is not None:
+            timetable = deepcopy(old_timetable)
+        else:
+            timetable = []
+        counts = [0, 0]
+        exploits = []
+        total = 0
+        false = [False, False]
+        maps = [[True, False], [False, True]]
+        last = 0
+        for i in range(30):
+            if last == random.random():
+                print("BROKEN RANDOM NUMBERS IF THIS OCCURS MULTIPLE TIMES")
+            last = random.random()
+        for i in range(start, stop):
+            if random.random() < duty_cycle:
+                current = random.randint(0, 1)
+                timetable.append(maps[current])
+                total += 1
+                counts[current] += 1
+                exploits.append(maps[current])
+            else:
+                timetable.append(false)
+                exploits.append(false)
+        return timetable, counts, exploits, total
 
 
 class VTRL(Planner):
@@ -147,10 +193,10 @@ class VTRL(Planner):
         else:
             return self.advance_preferences(strategy.preferences, ambiguity, strategy.duty_cycle)
 
-    def advance_preferences(self, weights=np.ones(8), metrics=np.ones(8), duty_cycle=1.0):
-        ratio = sum(weights * metrics)
-        new_weights = weights * metrics * (duty_cycle / ratio)
-        return clip_preferences_vtrl(new_weights)
+    def advance_preferences(self, preferences=np.ones(8), metrics=np.ones(8), duty_cycle=1.0):
+        ratio = sum(preferences * metrics)
+        new_preferences = preferences * metrics * (duty_cycle / ratio)
+        return clip_preferences_vtrl(new_preferences)
 
 
 def clip_preferences_vtrl(preferences):

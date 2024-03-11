@@ -37,7 +37,7 @@ class Grading:
             # gt_histogram_NN.append(place[7])
         return gt_disp, gt_place_a, gt_place_b
 
-    def compute(self, displacement, gt, positions=None, plot=True, fig_place=None, hist_nn=None, hist_fm=None,matches = None, name=""):
+    def compute(self, displacement, gt, positions=None, plot=True, fig_place=None, hist_nn=None, hist_fm=None, matches = None, name=""):
         # displacement_filtered, gt_filtered, count = filter_from_two_arrays_using_thrashold_to_first(displacement,
         #            np.array(gt), 0.5)
         self.name = name
