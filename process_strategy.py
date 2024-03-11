@@ -56,7 +56,7 @@ def process_new(generator, exp_folder_name):
 def multi_run_wrapper(args):
     process_old(*args)
 
-def process_old(name, cuda=None, simulation=False):
+def process_old(name, cuda=None):
     conf = config.copy()
     print("-----------------------------------------------------------------------")
     print(name)
@@ -70,9 +70,9 @@ def process_old(name, cuda=None, simulation=False):
     mission = Mission(int(name))
     mission = mission.load(os.path.join(conf["exp_folder_name"], name))
     print("tf ",simulation)
-    learning_loop(mission, conf, simulation=simulation)
+    learning_loop(mission, conf, mission=simulation)
 
-def mutlithred_process_old(names, exp_folder_name, thread_limit=None, simulation=False):
+def mutlithred_process_old(names, exp_folder_name, thread_limit=None):
     config["exp_folder_name"] = exp_folder_name
     if thread_limit is not None:
         data = []
@@ -83,7 +83,7 @@ def mutlithred_process_old(names, exp_folder_name, thread_limit=None, simulation
             #tqdm(pool.imap(multi_run_wrapper, data), total=len(names))
     else:
         for name in names:
-            process_old(name,simulation=simulation)
+            process_old(name)
 
 
 def learning_loop(mission, conf, cuda=None, iterations=1, simulation=False):
@@ -185,4 +185,4 @@ if __name__ == "__main__":
     experiments_path = os.path.join(pwd, exp_path)
     paths = [item for item in os.listdir(experiments_path) if os.path.isdir(os.path.join(experiments_path, item))]
     paths.sort()
-    mutlithred_process_old(paths, exp_folder_name=exp_path, thread_limit=None,simulation=True)
+    mutlithred_process_old(paths, exp_folder_name=exp_path, thread_limit=None)
