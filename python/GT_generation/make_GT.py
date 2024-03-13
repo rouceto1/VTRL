@@ -29,9 +29,9 @@ def get_annotation_dict(path):
             diff += (kp1["x"] / 100) * 1024 - (kp2["x"] / 100) * 1024
         mean = diff // len(kp_dict1)
         if dataset_name == "cestlice_reduced":
-            # continue
-            pass
+            entries[dataset_name][target_season][img_idx] = round(mean)
         else:
+            continue
             entries[dataset_name][target_season][img_idx] = round(mean)
         shift = mean / 1024
         f_name_1 = entry_dict["dataset"] + "/" + "season_00"
@@ -130,10 +130,10 @@ if __name__ == "__main__":
     original_grief_annotations = os.path.join(dataset_path, "annotation.csv")
     final_GT_path = os.path.join(dataset_path, "GT_merge.pickle")
 
-    annotation_grief = manual_image_alignment.Annotate(original_strands_annotations, combined_strands_annotations,
-                                                       dataset_path)
+    #annotation_grief = manual_image_alignment.Annotate(original_strands_annotations,
+    # combined_strands_annotations, dataset_path)
     # annotation.annotate()
-    annotation_grief.combine_annotations()
+    #annotation_grief.combine_annotations()
     # annotation.show_GT()
     with open(combined_strands_annotations, 'rb') as handle:
         strands_gt_combined = pickle.load(handle)
@@ -142,6 +142,6 @@ if __name__ == "__main__":
     grief_gt_combined = combine_annotations(grief_gt_basic)
 
     gt_out = combine_GT(strands_gt_combined, grief_gt_combined)
-    gt_out = combine_GT(strands_gt_combined, [])
+    #gt_out = combine_GT(strands_gt_combined, [])
     gt_chacked = sanity_check(gt_out)
     save_GT(final_GT_path, gt_chacked)

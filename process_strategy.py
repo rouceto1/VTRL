@@ -36,9 +36,10 @@ args = parser.parse_args()
 dataset_path = os.path.join(pwd, args.dataset_path)
 evaluation_paths = args.evaluation_paths
 evaluation_prefix = os.path.join(pwd, args.evaluation_prefix)
-gt_name = "GT_new"
+gt_name = "GT_merge"
 GT_file = os.path.join(evaluation_prefix, gt_name + ".pickle")
 init_weights = os.path.join(pwd, "init_weights.pt")
+print("GT file: ", GT_file)
 config = load_config("NN_config.yaml", 512)
 
 def setup_missions(missions, exp_folder_name):

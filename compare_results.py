@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from python.teach.planner import Mission, Strategy
+from python.teach.mission import Mission, Strategy
 from python.grading.std_plots import *
 import matplotlib.pyplot as plt
 import matplotlib.cm as cum
@@ -10,7 +10,6 @@ import pickle
 import os
 
 pwd = os.getcwd()
-import colorsys
 
 strategy_keys = ["uptime", "block_size", "dataset_weights", "used_teach_count", "preferences", "time_limit",
                  "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "ee_ratio"]
@@ -122,13 +121,6 @@ class Results:
             out.append(v)
         strategy.new_param = out
 
-
-
-
-
-
-
-
     def filter_strategies(self, mission_params=None, stategy_params=None, exclude_strategy=None, sorting_params=None):
 
         # dam inclusion param pro mise // napr mise se specifickym polem na startu
@@ -228,7 +220,8 @@ class Results:
 
         for s in strategies:
             a = get_only_keys(df_keys, vars(s))
-            b = get_only_keys(df_grading_keys, vars(s.grading[0]))
+            b = get_only_keys(df_grading_keys, vars(s.grading[0])) ## TODO Change this based on cestlice or other, This now only loads gradoing 0 = cestlice only (for campatilityty with old data 0is default)
+            #Probably make it so it has "AC_fm_integral, AC_fm_integral_cestlice, AC_fm_integral_strands" and so on
             out.append(a | b)
         df = pd.DataFrame(out)
         df['preteach'] = df.apply(self.agreagate_preteach, axis=1)
@@ -299,7 +292,7 @@ def compute_ee_diff(results,filter_strategy=Strategy(), exclude_strategy=Strateg
     #ax = plt.gca()
     #split df by duty_cycle, for each split compute average AC_fm_integral for each ee_ratio
     #plot this as a function of ee_ratio
-    a =df.groupby(["ee_ratio", "duty_cycle"])["AC_fm_integral"].mean().unstack("duty_cycle")
+    a = df.groupby(["ee_ratio", "duty_cycle"])["AC_fm_integral"].mean().unstack("duty_cycle")
     a.sub(a.T[0]).T.plot(kind="bar")
     #(df.groupby(["ee_ratio", "duty_cycle"])["AC_fm_integral"].median().unstack("duty_cycle").sub().T.plot(kind="bar"))
     plt.axhline(y=0.0, color='r', linestyle=':')

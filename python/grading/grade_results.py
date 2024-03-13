@@ -185,10 +185,8 @@ def grade_type(mission, _GT=None, estimates=None):
         print("from " + str(mission.c_strategy.grading_path))
         with open(mission.c_strategy.grading_path, 'rb') as handle:
             estimates = pickle.load(handle)
-    GT_versions = ["strands", "grief"]
-    GT_versions = ["strands"]
-    slices = [[3054, None], [None, 3053], [None, None]]
-    slices = [[0, None], [None, 0], [None, None]]
+    GT_versions = ["cestlice", "strands", "combined"]
+    slices = [[None, 810], [810, None], [None, None]]
     for index, G in enumerate(GT_versions):
         file_list, displacements, feature_count_l, feature_count_r, matches, histograms, hist_nn = estimates[0]
         file_list = file_list[slices[index][0]:slices[index][1]]

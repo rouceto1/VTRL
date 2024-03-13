@@ -110,14 +110,14 @@ if __name__ == "__main__":
     preferences_contents = [[p_1, p_2]]  # initial ambiguity
     preteach_list = [True]
     roll_data_list = [False]
-    duty_cycle_list = np.array([0.14])
+    duty_cycle_list = np.array([0.50])
     # duty_cycle_list = np.array([1.0])
     time_advance_list = np.array([0.14])
     change_rate_list = np.array([1.0, 0.0, -1.0])
     # change_rate_list = np.array([1.0])
     method_type_list = np.array([0])
     ee_ratio_list = np.array([1.0])
-    sigma = np.array(range(1))
+    sigma = np.array(range(5))
     simulation = np.array([False])
 
     gen = Mission_generator(uptime_list, block_size_list, dataset_weights, preferences_contents, time_limits,
