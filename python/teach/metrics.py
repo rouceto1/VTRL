@@ -145,9 +145,9 @@ def plot_and_save(mission, sum_given_place, sum_used_place, ambiguity_per_place,
         except ValueError:
             print("No data for heatmap " + os.path.join(mission.c_strategy.usage_path[i]))
         # save data to pickle
-        with open(os.path.join(mission.c_strategy.ambiguity_path) + str(i)+ ".pkl", 'wb') as handle:
+        with open(os.path.join(mission.c_strategy.ambiguity_path[i]) + str(i)+ ".pkl", 'wb') as handle:
             pickle.dump(data_frame1, handle)
-        with open(os.path.join(mission.c_strategy.usage_path) + str(i)+ ".pkl", 'wb') as handle:
+        with open(os.path.join(mission.c_strategy.usage_path[i]) + str(i)+ ".pkl", 'wb') as handle:
             pickle.dump(data_frame, handle)
         
 
