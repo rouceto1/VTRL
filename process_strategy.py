@@ -138,7 +138,7 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
     mission.c_strategy.file_list, count = acquisition.make_combos_for_dataset(mission.c_strategy.timetable,
                                                                               mission.c_strategy.time_start,
                                                                               mission.c_strategy.time_limit)
-    print("Used " + count)
+    print("Used " + str(count))
     if count <= 1:
         mission.c_strategy.is_faulty = True
         print("No new combos")
