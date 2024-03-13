@@ -153,7 +153,7 @@ class Strategy:
         if not simulation:
             self.planner = VTRL()
             if preferences is not None:
-                self.preferences = self.planner.advance_preferences(self.preferences, np.ones(8), self.duty_cycle)
+                self.preferences = self.planner.advance_preferences(self.preferences, [np.ones(271),np.ones(8)], self.duty_cycle)
         else:
             self.planner = VTRE()
 
@@ -180,20 +180,21 @@ class Strategy:
 
     def print_parameters(self):
         print(
-            f"Up: {self.uptime}, Bs: {self.block_size}, pw: {np.array2string(self.preferences, precision=2, floatmode='fixed')}, lim e: {self.time_limit}, "
+            f"Up: {self.uptime}, Bs: {self.block_size}, lim e: {self.time_limit}, "
             f"it: {self.iteration}, cr: {self.change_rate}, ta {self.time_advance}, pt {self.preteach}, rol{self.roll_data}, ee {self.ee_ratio}, m_type {self.method_type}")
 
     def title_parameters(self):
         if self.preferences is None:
             return f"U:{self.uptime},i:{self.iteration},c:{self.change_rate}"
-        return f"U:{self.uptime},{np.array2string(self.preferences, precision=1, floatmode='fixed')},i:{self.iteration}:c:{int(self.change_rate)}"
+        return f"U:{self.uptime},i:{self.iteration}:c:{int(self.change_rate)}"
 
     def setup_strategy(self, path):
         self.model_path = os.path.join(path, str(self.iteration) + "_weights.pt")
         self.estimates_path = os.path.join(path, str(self.iteration) + "_estimates.pkl")
         self.grading_path = os.path.join(path, str(self.iteration) + "_grading.pkl")
-        self.usage_path = os.path.join(path, str(self.iteration) + "_usage.png")
-        self.ambiguity_path = os.path.join(path, str(self.iteration) + "_ambiguity.png")
+        self.usage_path = [os.path.join(path, str(self.iteration) + "0_usage.png"),os.path.join(path, str(self.iteration) + "1_usage.png")]
+
+        self.ambiguity_path = [os.path.join(path, str(self.iteration) + "_0_ambiguity.png"),os.path.join(path, str(self.iteration) + "_1_ambiguity.png")]
 
     def advance(self, ambiguity, old_timetable, old_strategy):
 

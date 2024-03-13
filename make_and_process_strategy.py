@@ -29,10 +29,10 @@ class Mission_generator:
         self.block_size = block_size
         self.dataset_weights = dataset_weights  # cestlice, strands
         self.preferences = preferences  # list of weights for each place TODO: make this strands agnostic
-        self.time_limit = time_limit   # latest possible time to teach
+        self.time_limit = time_limit  # latest possible time to teach
         self.time_advance = time_advance  # how much is each new data training
         if simulation:
-            self.time_limit = int(144 * self.time_limit) #hardcoded is the number of 10 minutes par day
+            self.time_limit = int(144 * self.time_limit)  # hardcoded is the number of 10 minutes par day
             self.time_advance = int(144 * self.time_advance)
         self.change_rate = change_rate  # how much to modify TODO make soemthing else then boolean
         self.duty_cycle = duty_cycle
@@ -54,7 +54,7 @@ class Mission_generator:
     def make_multiple_missions(self):
         a = [self.uptime, self.block_size, self.dataset_weights, self.preferences, self.time_limit,
              self.time_advance, self.change_rate, self.duty_cycle, self.preteach, self.method_type, self.roll_data,
-             self.ee_ratio, self.sigma,self.simulation]
+             self.ee_ratio, self.sigma, self.simulation]
         combinations = list(itertools.product(*a))
         missions = []
         strategies = []
@@ -100,15 +100,17 @@ class Mission_generator:
 
 
 if __name__ == "__main__":
-    uptime_list = np.array([0.20])
+    uptime_list = np.array([0.50])
     # uptime_list = np.array([0.25])
     time_limits = np.array([0.14])
     block_size_list = [1]
-    dataset_weights = [np.array([0.0, 1.0])]
-    preferences_contents = [np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])]  # initial ambiguity
+    dataset_weights = [np.array([1.0, 0.0])]
+    p_1 = [1.0] * 271
+    p_2 = [1.0] * 8
+    preferences_contents = [[p_1, p_2]]  # initial ambiguity
     preteach_list = [True]
     roll_data_list = [False]
-    duty_cycle_list = np.array([1.0])
+    duty_cycle_list = np.array([0.14])
     # duty_cycle_list = np.array([1.0])
     time_advance_list = np.array([0.14])
     change_rate_list = np.array([1.0, 0.0, -1.0])
