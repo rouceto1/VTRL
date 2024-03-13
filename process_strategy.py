@@ -133,12 +133,12 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         print("Simulatiog")
         acquisition = In_Simulation("/home/rouceto1/.ros/runs")
     else :
-        print("fetching")
+        print("Fetching")
         acquisition = In_Dataset(dataset_path)
     mission.c_strategy.file_list, count = acquisition.make_combos_for_dataset(mission.c_strategy.timetable,
                                                                               mission.c_strategy.time_start,
                                                                               mission.c_strategy.time_limit)
-    print( mission.c_strategy.file_list)
+    print("Used " + count)
     if count <= 1:
         mission.c_strategy.is_faulty = True
         print("No new combos")

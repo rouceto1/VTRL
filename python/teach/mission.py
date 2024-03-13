@@ -122,7 +122,7 @@ class Mission:
         self.c_strategy.iteration += 1
         self.setup_current_strategy()
         self.c_strategy.progress = 0
-        self.c_strategy.advance(ambiguity, self.old_strategies[-1].timetable, self.old_strategies[-1])
+        self.no_more_data = self.c_strategy.advance(ambiguity, self.old_strategies[-1].timetable, self.old_strategies[-1])
         save_plan(self.name, self.experiments_path, self.c_strategy)
 
 

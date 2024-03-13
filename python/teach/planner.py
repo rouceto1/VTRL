@@ -10,6 +10,7 @@ import copy
 import numpy as np
 from copy import deepcopy
 
+
 class Planner(ABC):
     @abstractmethod
     def timetable_modifier_vtrl(self, strategy, old_timetable=None, old_strategy=None):
@@ -33,14 +34,12 @@ class VTRE(Planner):
             # This is initial search for timetable
             return self.random_search(strategy.time_start, strategy.time_limit, strategy.duty_cycle)
         else:
-            #if strategy should be random
+            # if strategy should be random
             if strategy.change_rate == -1.0:
                 return self.random_search(strategy.time_start, strategy.time_limit, strategy.duty_cycle, old_timetable)
-            #This should generate timetable for next round
-            #TODO: implement this
+            # This should generate timetable for next round
+            # TODO: implement this
             return self.random_search(strategy.time_start, strategy.time_limit, strategy.duty_cycle, old_timetable)
-
-
 
     def get_preferences_for_next_round(self, ambiguity, strategy):
         # gives back new place preferences multiplier besed on ambiguity
@@ -48,15 +47,15 @@ class VTRE(Planner):
         if strategy.change_rate == 0.0:
             return strategy.preferences
 
-        #TODO implement
+        # TODO implement
         if strategy.iteration == 1:
             return strategy.preferences
         else:
             return strategy.preferences
-            #return self.advance_preferences(strategy.preferences, ambiguity, strategy.duty_cycle)
+            # return self.advance_preferences(strategy.preferences, ambiguity, strategy.duty_cycle)
 
     def random_search(self, start, stop, duty_cycle, old_timetable=None):
-        #make first timetable randomly
+        # make first timetable randomly
         if old_timetable is not None:
             timetable = deepcopy(old_timetable)
         else:
@@ -91,8 +90,8 @@ class VTRL(Planner):
             old_timetable = [None, None]
         total_seasons = [30, 1007]
         total_places = [271, 8]
-        exploit_weights = self.advance_preferences([np.ones(271), np.ones(8)],[np.ones(271), np.ones(8)],
-                                                                                 duty_cycle=strategy.duty_cycle)
+        exploit_weights = self.advance_preferences([np.ones(271), np.ones(8)], [np.ones(271), np.ones(8)],
+                                                   duty_cycle=strategy.duty_cycle)
         places_out_cestlice, exploit_cestlice, c1 = self.make_timetable_vtrl(old_timetable[0], old_strategy,
                                                                              seasons=total_seasons[0],
                                                                              places=total_places[0],
@@ -118,7 +117,7 @@ class VTRL(Planner):
                                                                            iteration=strategy.iteration,
                                                                            rolling=strategy.roll_data,
                                                                            ee_ratio=strategy.ee_ratio)
-        # print(percentage_to_explore,c1,c2,c1+c2)
+        print(c1, c2, c1 + c2)
         return [places_out_cestlice, places_out_strands], [c1, c2], [exploit_cestlice, exploit_strands], c1 + c2 == 0
 
     def make_timetable_vtrl(self, old_timetable, old_strategy, seasons, places, weight, uptime=1.0,
@@ -183,14 +182,15 @@ class VTRL(Planner):
             return strategy.preferences
         if strategy.change_rate == -1.0:
             np.random.seed()
-            pref = self.advance_preferences([np.random.rand(len(strategy.preferences[0])),np.random.rand(len(strategy.preferences[1]))],
-                                                            [np.random.rand(len(strategy.preferences[0])),np.random.rand(len(strategy.preferences[1]))],
-                                                            strategy.duty_cycle)
+            pref = self.advance_preferences(
+                [np.random.rand(len(strategy.preferences[0])), np.random.rand(len(strategy.preferences[1]))],
+                [np.random.rand(len(strategy.preferences[0])), np.random.rand(len(strategy.preferences[1]))],
+                strategy.duty_cycle)
             np.random.seed(42)
             return pref
-        #if strategy.iteration == 1:
-            #return self.advance_preferences([np.ones(271), np.ones(8)], ambiguity, strategy.duty_cycle)
-        #else:
+        # if strategy.iteration == 1:
+        # return self.advance_preferences([np.ones(271), np.ones(8)], ambiguity, strategy.duty_cycle)
+        # else:
         return self.advance_preferences(strategy.preferences, ambiguity, strategy.duty_cycle)
 
     def advance_preferences(self, preferences=None, metrics=None, duty_cycle=1.0):
@@ -198,7 +198,7 @@ class VTRL(Planner):
         for idx, p in enumerate(preferences):
             obtained_preferences = p * metrics[idx]
             ratio = sum(obtained_preferences)
-            new_preferences = obtained_preferences * (duty_cycle*len(metrics[idx]) / ratio)
+            new_preferences = obtained_preferences * (duty_cycle * len(metrics[idx]) / ratio)
             pref.append(clip_preferences_vtrl(new_preferences))
         return pref
 
