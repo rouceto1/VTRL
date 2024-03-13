@@ -90,6 +90,7 @@ def learning_loop(mission, conf, cuda=None, iterations=1, simulation=False):
     s_time = time.time()
     save = False
     print(simulation)
+
     while not mission.no_more_data:
         save = True
         mission.c_strategy.print_parameters()
@@ -102,7 +103,7 @@ def learning_loop(mission, conf, cuda=None, iterations=1, simulation=False):
         mission.advance_mission(mission.c_strategy.ambiguity)
     if save:
         mission.save()
-    #print("Mission processing:", time.time() - s_time)
+    print(" ---------------------- Mission processing:", time.time() - s_time, " --------------------------")
 
 
 #TODO - redo this for sim data
@@ -116,14 +117,16 @@ def grade_plan_vtrl(mission, eval_to_file=False, grade=False, conf=None, simulat
                                           _GT=gt_in, conf=conf)
         mission.c_strategy.progress = 4
         try:
-            print("Image cache 3: ", get_img.cache_info())
+            pass
+            #print("Image cache 3: ", get_img.cache_info())
         except:
             pass
     if mission.c_strategy.progress == 4 or grade:
         grade_type(mission, _GT=gt_in, estimates=estimates_grade)
         mission.c_strategy.progress = 5
         try:
-            print("Image cache 4: ", get_img.cache_info())
+            pass
+            #print("Image cache 4: ", get_img.cache_info())
         except:
             pass
 
@@ -154,7 +157,8 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         mission.c_strategy.progress = 1
         mission.c_strategy.train_time = time.time() - start_time
         try:
-            print("Image cache 0: ", get_img.cache_info())
+            pass
+            #print("Image cache 0: ", get_img.cache_info())
         except:
             pass
     if mission.c_strategy.progress == 1 or enable_eval:
@@ -164,7 +168,8 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         mission.c_strategy.progress = 2
         mission.c_strategy.eval_time = time.time() - start_time2
         try:
-            print("Image cache 1: ", get_img.cache_info())
+            pass
+            #print("Image cache 1: ", get_img.cache_info())
         except:
             pass
     if mission.c_strategy.progress == 2:
@@ -172,7 +177,8 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
         mission.c_strategy.ambiguity = ambiguity
         mission.c_strategy.progress = 3
         try:
-            print("Image cache 2: ", get_img.cache_info())
+            pass
+            #print("Image cache 2: ", get_img.cache_info())
         except:
             pass
     return True
