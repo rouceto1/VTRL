@@ -104,7 +104,7 @@ if __name__ == "__main__":
     # uptime_list = np.array([0.25])
     time_limits = np.array([0.14])
     block_size_list = [1]
-    dataset_weights = [np.array([1.0, 0.0])]
+    dataset_weights = [np.array([1.0, 0.0]),np.array([0.0, 1.0])]
     p_1 = [1.0] * 271
     p_2 = [1.0] * 8
     preferences_contents = [[p_1, p_2]]  # initial ambiguity
