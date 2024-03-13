@@ -188,10 +188,10 @@ class VTRL(Planner):
                                                             strategy.duty_cycle)
             np.random.seed(42)
             return pref
-        if strategy.iteration == 1:
-            return self.advance_preferences([np.ones(8), np.ones(31)], ambiguity, strategy.duty_cycle)
-        else:
-            return self.advance_preferences(strategy.preferences, ambiguity, strategy.duty_cycle)
+        #if strategy.iteration == 1:
+            #return self.advance_preferences([np.ones(271), np.ones(8)], ambiguity, strategy.duty_cycle)
+        #else:
+        return self.advance_preferences(strategy.preferences, ambiguity, strategy.duty_cycle)
 
     def advance_preferences(self, preferences=None, metrics=None, duty_cycle=1.0):
         pref = []

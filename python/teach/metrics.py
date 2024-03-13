@@ -123,7 +123,7 @@ def plot_and_save(mission, sum_given_place, sum_used_place, ambiguity_per_place,
                                    index=["weights", "P(given)", "used", "metrics"],
                                    columns=collums)
         plt.figure()
-        sns.heatmap(np.transpose(data_frame1), xticklabels=1, yticklabels=1, annot=True)
+        sns.heatmap(np.transpose(data_frame1), xticklabels=1, yticklabels=1, annot=True,annot_kws={"fontsize":2})
         plt.tight_layout()
         plt.savefig(os.path.join(mission.c_strategy.ambiguity_path[i]), dpi=800)
         #### plot used positions and weighted bad positions, each bad position is sum how many times/ how many times used
@@ -140,14 +140,14 @@ def plot_and_save(mission, sum_given_place, sum_used_place, ambiguity_per_place,
         data_frame = pd.DataFrame(filtered_w_bad_s, index=used_seasons,
                                   columns=collums)
         try:
-            sns.heatmap(np.transpose(data_frame), ax=axs[2], xticklabels=1, yticklabels=1,annot=True, annot_kws={"fontsize":6})
+            sns.heatmap(np.transpose(data_frame), ax=axs[2], xticklabels=1, yticklabels=1, annot=True, annot_kws={"fontsize":2})
             fig.savefig(os.path.join(mission.c_strategy.usage_path[i]), dpi=800)
         except ValueError:
             print("No data for heatmap " + os.path.join(mission.c_strategy.usage_path[i]))
         # save data to pickle
-        with open(os.path.join(mission.c_strategy.ambiguity_path[i]) + str(i)+ ".pkl", 'wb') as handle:
+        with open(os.path.join(mission.c_strategy.ambiguity_path[i]) + ".pkl", 'wb') as handle:
             pickle.dump(data_frame1, handle)
-        with open(os.path.join(mission.c_strategy.usage_path[i]) + str(i)+ ".pkl", 'wb') as handle:
+        with open(os.path.join(mission.c_strategy.usage_path[i]) + ".pkl", 'wb') as handle:
             pickle.dump(data_frame, handle)
         
 
