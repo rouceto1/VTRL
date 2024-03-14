@@ -100,7 +100,7 @@ class Mission_generator:
 
 
 if __name__ == "__main__":
-    uptime_list = np.array([0.25,0,75])
+    uptime_list = np.array([0.25,0.75])
     # uptime_list = np.array([0.25])
     time_limits = np.array([0.14])
     block_size_list = [1]
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     preferences_contents = [[p_1, p_2]]  # initial ambiguity
     preteach_list = [True]
     roll_data_list = [False]
-    duty_cycle_list = np.array([0.25,0,75])
+    duty_cycle_list = np.array([0.25, 0.75])
     # duty_cycle_list = np.array([1.0])
     time_advance_list = np.array([0.14])
     change_rate_list = np.array([1.0, 0.0, -1.0])
