@@ -18,6 +18,8 @@ class RenameUnpickler(pickle.Unpickler):
         renamed_module = module
         if module == "mission":
             renamed_module = "python.teach.mission"
+        if name == "Mission" or name == "Strategy":
+                renamed_module = "python.teach.mission"
         if module == "python.grade_results":
             renamed_module = "python.grading.grade_results"
 
