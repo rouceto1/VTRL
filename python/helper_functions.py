@@ -135,7 +135,7 @@ def get_pad(crop):
 
 def load_config(conf_path, image_width=512, image_height=384):
     conf = yaml.safe_load(Path(conf_path).read_text())
-    device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
+    device = t.device(conf["dev"]) if t.cuda.is_available() else t.device("cpu")
     conf["device"] = device
     output_size = conf["width"] // conf["fraction"]
     PAD = get_pad(conf["crop_sizes"][0])
