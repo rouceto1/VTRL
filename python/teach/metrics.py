@@ -100,6 +100,9 @@ def calculate_ambiguity(mission, bad, used):
         ambiguity_per_place[sum_used_place != 0] /= sum_used_place[sum_used_place != 0]  ##actually used data that is bad
         given.append(sum_given_place)
         usage.append(sum_used_place)
+        #cehck if all elements of ambiguity are 0
+        if np.all(ambiguity_per_place == 0):
+            ambiguity_per_place = np.ones_like(ambiguity_per_place)
         ambiguity.append(ambiguity_per_place)
         badness.append(bedness_per_image)
 

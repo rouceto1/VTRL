@@ -198,6 +198,9 @@ class VTRL(Planner):
         for idx, p in enumerate(preferences):
             obtained_preferences = p * metrics[idx]
             ratio = sum(obtained_preferences)
+            if ratio == 0.0:
+                print("RATIO ZERO")
+                return preferences
             new_preferences = obtained_preferences * (duty_cycle * len(metrics[idx]) / ratio)
             pref.append(clip_preferences_vtrl(new_preferences))
         return pref

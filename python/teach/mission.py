@@ -209,6 +209,6 @@ class Strategy:
             self.timetable, _, self.exploit, self.no_more_data = self.planner.timetable_modifier_vtrl(self)
         else:
             self.timetable, _, self.exploit, self.no_more_data = self.planner.timetable_modifier_vtrl(self,
-                                                                                                      old_timetable,
-                                                                                                      old_strategy)
+                                                                                                      old_timetable=old_timetable,
+                                                                                                      old_strategy=old_strategy)
         return self.no_more_data
