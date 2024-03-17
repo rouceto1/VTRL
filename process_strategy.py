@@ -95,8 +95,6 @@ def learning_loop(mission, conf, cuda=None, iterations=1, simulation=False):
         save = True
         mission.c_strategy.print_parameters()
         trained = process_plan(mission, conf=conf, simulation=simulation)  # trains and generates new metrics
-        if not trained:
-            break
         grade_plan_vtrl(mission, conf= conf, simulation=simulation)
         mission.save()
         #print("Metrics: ", mission.c_strategy.next_metrics)
@@ -145,8 +143,8 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
     print("Used " + str(count))
     if count <= 1:
         mission.c_strategy.is_faulty = True
+        mission.c_strategy.progress = 1
         print("No new combos")
-        return False
     print("Data Ready")
     if mission.c_strategy.progress == 0 or enable_teach:
         if not mission.c_strategy.preteach or mission.c_strategy.iteration == 0:
@@ -181,6 +179,9 @@ def process_plan(mission, enable_teach=False, enable_eval=False, enable_metrics=
             #print("Image cache 2: ", get_img.cache_info())
         except:
             pass
+
+    if mission.c_strategy.is_faulty:
+        return False
     return True
 
 
