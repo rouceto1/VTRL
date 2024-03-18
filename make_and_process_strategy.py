@@ -66,7 +66,8 @@ class Mission_generator:
                                 m_type=combination[9], roll_data=combination[10],
                                 ee_ratio=combination[11], simulation=combination[13])
             strategies.append(strategy)
-        strategies.sort(key=lambda x: x.uptime * x.duty_cycle, reverse=False)
+        # strategies.sort(key=lambda x: x.uptime * x.duty_cycle, reverse=False)  ## sort that the faster strategies are first
+        strategies.sort(key=lambda x: x.sigma, reverse=False)  ## sort that the strategies length is as even as possible
 
         # this is split to compute supposedly fast strategies first
         for index, strategy in enumerate(strategies):
