@@ -133,7 +133,7 @@ class Strategy:
     def __init__(self, uptime=None, block_size=None, dataset_weights=None, preferences=None, time_limit=None,
                  time_advance=None, change_rate=None,
                  iteration=None, duty_cycle=None, preteach=None, m_type=None, roll_data=None, ee_ratio=None,
-                 simulation=False):
+                 simulation=False,sigma=0):
         # internal variables: percentage_to_explore, block_size, dataset_weights, preferences, iteration
         self.no_more_data = None
         self.exploit = None
@@ -143,6 +143,7 @@ class Strategy:
         self.preferences = preferences  # list of weights for each place TODO: make this strands agnostic
         self.time_limit = time_limit  # latest possible time to teach
         self.time_start = 0
+        self.sigma = sigma
         self.iteration = iteration
         self.time_advance = time_advance  # how much is each new data training
         self.change_rate = change_rate  # how much to modify TODO make soemthing else then boolean
