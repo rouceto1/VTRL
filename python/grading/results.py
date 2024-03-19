@@ -244,7 +244,7 @@ class Results:
     def name_dataset(self, dataframe):
         if dataframe["dataset_weights"][0] == 1 and dataframe["dataset_weights"][1] == 0:
             return "cestlice"
-        elif dataframe["dataset_weights"][1] == 0 and dataframe["dataset_weights"][0] == 1:
+        elif dataframe["dataset_weights"][0] == 0 and dataframe["dataset_weights"][1] == 1:
             return "strands"
 
     def agreagate_roll_data(self, dataframe):
