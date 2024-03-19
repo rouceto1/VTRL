@@ -216,6 +216,7 @@ def get_compare():
     #               )
     #results = Results(os.path.join("backups", "c_basic"))
     results = Results(os.path.join("backups", "c_compare"))
+    results.add_missions(os.path.join("backups", "c_compare_sigma"))
     dfs = scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral",
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
                    plot_params=["Comparison to VTRL", "Roll data /\nPreteach", "AC Integral", [],
