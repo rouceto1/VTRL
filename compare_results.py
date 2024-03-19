@@ -135,6 +135,7 @@ def print_df_to_csv(dfs, path, sorting_parameter):
 def get_basic():
     results = Results(os.path.join("backups", "c_basic"))
     results.add_missions(os.path.join("backups", "c_up_dc_075_025"))
+    results.add_missions(os.path.join("backups", "c_basic_sigma"))
     ## those two: [uptime 025 05 075], [chnge_rate 1 0 -1], [duy_cycle 025 05 075]
 
     # DC vs changer rate
