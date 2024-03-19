@@ -110,7 +110,7 @@ def print_df_to_csv(dfs, path, sorting_parameter):
     out = []
     separe_datasets = False
     #makes array of "AC_fm_integral" for combination in dataframes
-    possible = ["uptime", "block_size", "dataset", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "method_type", "ee_ratio"]
+    possible = ["uptime", "block_size", "dataset", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "method_type", "ee_ratio","real_uptime"]
 
     if 'sigma' in dfs[0].head():
         possible.append("sigma")
@@ -150,11 +150,11 @@ def get_basic():
     dfs = scatter_violin(results, filter_strategy=Strategy(iteration=6), exclude_strategy=Strategy(duty_cycle=3.0),
                          variable="AC_fm_integral",
                          sorting_paramteres=["change_rate", "duty_cycle", "uptime"], grouping="real_uptime",
-                         plot_params=["Relative improvement for each strategy over different duty cycles", "Duty cycle",
+                         plot_params=["Relative improvement for each strategy over different duty cycles", "real_uptime",
                                       "AC Integral", [0.435, 0.475], 'lower right']
                          )
     name = "7_"
-    print_df_to_csv(dfs, pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["change_rate", "duty_cycle", "uptime"])
+    print_df_to_csv(dfs, pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["change_rate","real_uptime"])
 def get_metrics(name = "6_"):
 
     #metrics

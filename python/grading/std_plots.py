@@ -37,7 +37,7 @@ def pure_plot(ax, df, sorting_paramteres, variable, grouping, plot_params):
 
 def scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", exclude_strategy=Strategy(),
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
-                   plot_params=[],all_four=True):
+                   plot_params=[], all_four=False):
     stategy_c = filter_strategy
     stategy_c.dataset_weights = [1.0, 0.0]
     strategies_to_plot, colors, values, dfc0 = results.filter_strategies(stategy_params=stategy_c,
