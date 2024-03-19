@@ -233,7 +233,7 @@ class Results:
         df["sigma"] = df.apply(self.get_sigma, axis=1)
         df["method_type"] = df["metrics_type"]
         df['roll_pretech'] = df['roll_data'] + " " + df['preteach']
-        df['real_uptime'] = df['uptime'] + df['duty_cycle']
+        df['real_uptime'] = df['uptime'] * df['duty_cycle']
         return df
 
     def agreagate_preteach(self, dataframe):
