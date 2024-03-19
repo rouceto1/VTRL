@@ -229,7 +229,8 @@ class Results:
         df['roll_data'] = df.apply(self.agreagate_roll_data, axis=1)
         df['change_rate'] = df.apply(self.name_change_rate, axis=1)
         df["metrics_type"] = df.apply(self.name_metrics, axis=1)
-        df["dataset"] = df.apply(self.name_dataset,axis=1)
+        df["dataset"] = df.apply(self.name_dataset, axis=1)
+        df["sigma"] = df.apply(self.get_sigma, axis=1)
         df["method_type"] = df["metrics_type"]
         df['roll_pretech'] = df['roll_data'] + " " + df['preteach']
         df['real_uptime'] = df['uptime'] + df['duty_cycle']
@@ -240,6 +241,12 @@ class Results:
             return "Continued weights"
         else:
             return "Initial weights"
+
+    def get_sigma(self, dataframe):
+        try:
+            return dataframe["sigma"]
+        except:
+            return -1
 
     def name_dataset(self, dataframe):
         if dataframe["dataset_weights"][0] == 1 and dataframe["dataset_weights"][1] == 0:

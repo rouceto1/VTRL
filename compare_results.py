@@ -161,12 +161,13 @@ def get_metrics(name = "6_"):
     #results.add_missions(os.path.join("backups", "metrics"))
     #TODO results.add_missions(os.path.join("backups", "metrics_3"))
     results = Results(os.path.join("backups", "c_methods"))
+    results.add_missions(os.path.join("backups", "c_methods_sigma"))
     ## this one [uptime 025 033], [chnge_rate 1], [duy_cycle 025 033], [method_type 0 1 2]
     dfs = scatter_violin(results, filter_strategy=Strategy(iteration=6,roll_data=False, change_rate=1), variable="AC_fm_integral",\
                    ## TODO OLD sorting_paramteres=["metrics_type"],
                    sorting_paramteres=["method_type"],
                    plot_params=["Metrics comparison", "Metrics",
-                                "AC Integral",[0.435, 0.475]]
+                                "AC Integral", [0.435, 0.475]]
                    )
 
 
