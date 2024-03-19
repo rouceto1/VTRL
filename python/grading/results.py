@@ -244,6 +244,8 @@ class Results:
 
     def get_sigma(self, dataframe):
         try:
+            if np.isnan(dataframe["sigma"]):
+                return -1
             return dataframe["sigma"]
         except:
             return -1
