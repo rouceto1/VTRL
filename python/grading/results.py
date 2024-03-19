@@ -16,7 +16,7 @@ df_keys_old = ["uptime", "new_param", "block_size", "dataset_weights", "used_tea
            "metrics_type", "train_time", "ee_ratio"]
 df_keys = ["uptime", "new_param", "block_size", "dataset_weights", "used_teach_count", "preferences", "time_limit",
            "time_advance", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "train_time"
-    , "method_type", "train_time", "ee_ratio"]
+    , "method_type", "train_time", "ee_ratio", "sigma"]
 df_grading_keys = ["AC_fm_integral", "AC_nn_integral", "streak_integral", "AC_fm", "AC_nn"]
 
 
@@ -229,6 +229,7 @@ class Results:
         df['roll_data'] = df.apply(self.agreagate_roll_data, axis=1)
         df['change_rate'] = df.apply(self.name_change_rate, axis=1)
         df["metrics_type"] = df.apply(self.name_metrics, axis=1)
+        df["dataset"] = df.apply(self.name_dataset,axis=1)
         df["method_type"] = df["metrics_type"]
         df['roll_pretech'] = df['roll_data'] + " " + df['preteach']
         df['real_uptime'] = df['uptime'] + df['duty_cycle']
@@ -240,11 +241,17 @@ class Results:
         else:
             return "Initial weights"
 
+    def name_dataset(self, dataframe):
+        if dataframe["dataset_weights"][0] == 1 and dataframe["dataset_weights"][1] == 0:
+            return "cestlice"
+        elif dataframe["dataset_weights"][1] == 0 and dataframe["dataset_weights"][0] == 1:
+            return "strands"
+
     def agreagate_roll_data(self, dataframe):
         if dataframe["roll_data"] == True:
-            return "New data /\n"
+            return "New data"# /\n"
         else:
-            return "All data /\n"
+            return "All data"# /\n"
 
     def name_change_rate(self, dataframe):
         if dataframe["change_rate"] == 1.0:

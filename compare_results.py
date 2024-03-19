@@ -109,36 +109,45 @@ def print_df_to_csv(dfs, path, sorting_parameter, grouping = None):
     #First obtain pairs (touples, things to compare)
     out = []
     separe_datasets = False
-    if separe_datasets:
-        for d in dfs:
-            pass
-            #get lines that have same variables
-    else:
-        pass
-    #than seve the csv
+    #makes array of "AC_fm_integral" for combination in dataframes
 
-    with open():
-        pass
+    possible = ["uptime", "block_size", "dataset", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "method_type", "ee_ratio", "sigma"]
+    sort = []
+    for p in possible:
+        if p not in sorting_parameter:
+            sort.append(p)
+    for p in possible:
+        if p not in sort:
+            sort.append(p)
+    sort.reverse()
+    out = []
+    for d in dfs:
+        out.append(d.groupby(sort)["AC_fm_integral"].mean())
 
+    for idx, o in enumerate(out):
+        o.to_csv(path + str(idx)+'.csv')
 
-def get_graphs_for_paper():
+def get_basic():
     results = Results(os.path.join("backups", "c_basic"))
     results.add_missions(os.path.join("backups", "c_up_dc_075_025"))
     ## those two: [uptime 025 05 075], [chnge_rate 1 0 -1], [duy_cycle 025 05 075]
 
+    # DC vs changer rate
+    # results = Results(os.path.join("backups", "uptime"))
+    dfs = scatter_violin(results, filter_strategy=Strategy(iteration=6), exclude_strategy=Strategy(duty_cycle=3.0),
+                         variable="AC_fm_integral",
+                         sorting_paramteres=["duty_cycle", "change_rate"],
+                         plot_params=["Relative improvement for each strategy over different duty cycles", "Duty cycle",
+                                      "AC Integral", [0.435, 0.475], 'lower right']
+                         )
 
-    #DC vs changer rate
-    #results = Results(os.path.join("backups", "uptime"))
-    dfs = scatter_violin(results, filter_strategy=Strategy(iteration=6), exclude_strategy=Strategy(duty_cycle=3.0),variable="AC_fm_integral",
-                   sorting_paramteres=["duty_cycle", "change_rate"],
-                    plot_params = ["Relative improvement for each strategy over different duty cycles", "Duty cycle", "AC Integral",[0.435,0.475],'lower right']
-    )
-
-
-    scatter_violin(results, filter_strategy=Strategy(iteration=6), exclude_strategy=Strategy(duty_cycle=3.0),variable="AC_fm_integral",
-                   sorting_paramteres=["change_rate", "duty_cycle","uptime"], grouping="real_uptime",
-                    plot_params = ["Relative improvement for each strategy over different duty cycles", "Duty cycle", "AC Integral",[0.435,0.475],'lower right']
-    )
+    dfs = scatter_violin(results, filter_strategy=Strategy(iteration=6), exclude_strategy=Strategy(duty_cycle=3.0),
+                         variable="AC_fm_integral",
+                         sorting_paramteres=["change_rate", "duty_cycle", "uptime"], grouping="real_uptime",
+                         plot_params=["Relative improvement for each strategy over different duty cycles", "Duty cycle",
+                                      "AC Integral", [0.435, 0.475], 'lower right']
+                         )
+def get_metrics():
 
     #metrics
     #results = Results(os.path.join("backups", "metrics_2"))
@@ -146,13 +155,13 @@ def get_graphs_for_paper():
     #TODO results.add_missions(os.path.join("backups", "metrics_3"))
     results = Results(os.path.join("backups", "c_methods"))
     ## this one [uptime 025 033], [chnge_rate 1], [duy_cycle 025 033], [method_type 0 1 2]
-    scatter_violin(results, filter_strategy=Strategy(iteration=6,roll_data=False, change_rate=1), variable="AC_fm_integral",\
+    dfs = scatter_violin(results, filter_strategy=Strategy(iteration=6,roll_data=False, change_rate=1), variable="AC_fm_integral",\
                    ## TODO OLD sorting_paramteres=["metrics_type"],
                    sorting_paramteres=["method_type"],
                    plot_params=["Metrics comparison", "Metrics",
                                 "AC Integral",[0.435,0.475]]
                    )
-
+def get_ee(name = "6_"):
     #eeEEEEEEEEEEEE
     # do NOT use ee only ee2 folders
     #EE vs duty cycle and EE itself
@@ -163,12 +172,15 @@ def get_graphs_for_paper():
     #results.add_missions(os.path.join("backups", "ee8"))
     #results.add_missions(os.path.join("backups", "ee9"))
     #results.add_missions(os.path.join("backups", "ee10"))
-    scatter_violin(results, filter_strategy=Strategy(iteration=6, change_rate=1,
+    results = Results(os.path.join("backups", "c_ee"))
+    dfs = scatter_violin(results, filter_strategy=Strategy(iteration=6, change_rate=1,
                                                      #uptime = 0.25,
                                                      roll_data=False), exclude_strategy=Strategy(),
                   variable="AC_fm_integral", sorting_paramteres=["ee_ratio"],
                    plot_params = ["Exploration/exploitation ratio comparison", "Exploration/exploitation ratio", "AC Integral",[]]
     )
+
+    print_df_to_csv(dfs,pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["ee_ratio"])
     #scatter_violin(results, filter_strategy=Strategy(iteration=6, change_rate=1, uptime = 0.25,roll_data=False), exclude_strategy=Strategy(),
     #              variable="AC_fm_integral", sorting_paramteres=["duty_cycle", "ee_ratio"])
 
@@ -178,6 +190,9 @@ def get_graphs_for_paper():
                    variable="AC_fm_integral", sorting_paramteres=[ "duty_cycle","ee_ratio"],
     plot_params = ["Exploration/exploitation ratio progression over different duty cycles", "Duty cycle", "AC Integral",[],'lower right']
     )
+
+def get_compare():
+
     # COMAPRE TO vtrl
     #results = Results(os.path.join("backups", "compare"))
 
@@ -188,10 +203,17 @@ def get_graphs_for_paper():
     #               plot_params=["Comparison to VTRL", "Preteach", "AC Integral", [0.435, 0.475], 'lower left']
     #               )
     #results = Results(os.path.join("backups", "c_basic"))
+    results = Results(os.path.join("backups", "c_compare"))
     scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral",
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
                    plot_params=["Comparison to VTRL", "Roll data /\nPreteach", "AC Integral", [],
                                 'lower left'])
+
+
+def get_graphs_for_paper():
+   get_ee()
+
+
 
 
 if __name__ == "__main__":
