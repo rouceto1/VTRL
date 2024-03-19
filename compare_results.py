@@ -104,14 +104,19 @@ def get_progress():
 
     get_preferences(results)
 
-def print_df_to_csv(dfs, path, sorting_parameter, grouping = None):
+def print_df_to_csv(dfs, path, sorting_parameter):
     #saves infromatio for eahc graphs DF to csv
     #First obtain pairs (touples, things to compare)
     out = []
     separe_datasets = False
     #makes array of "AC_fm_integral" for combination in dataframes
+    possible = ["uptime", "block_size", "dataset", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "method_type", "ee_ratio"]
 
-    possible = ["uptime", "block_size", "dataset", "change_rate", "iteration", "duty_cycle", "preteach", "roll_data", "method_type", "ee_ratio", "sigma"]
+    if 'sigma' in dfs[0].head():
+        possible.append("sigma")
+    else:
+        print("THIS DOES NOT HAVE SIGMA")
+
     sort = []
     for p in possible:
         if p not in sorting_parameter:
@@ -147,7 +152,9 @@ def get_basic():
                          plot_params=["Relative improvement for each strategy over different duty cycles", "Duty cycle",
                                       "AC Integral", [0.435, 0.475], 'lower right']
                          )
-def get_metrics():
+    name = "7_"
+    print_df_to_csv(dfs, pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["change_rate", "duty_cycle", "uptime"])
+def get_metrics(name = "6_"):
 
     #metrics
     #results = Results(os.path.join("backups", "metrics_2"))
@@ -159,9 +166,12 @@ def get_metrics():
                    ## TODO OLD sorting_paramteres=["metrics_type"],
                    sorting_paramteres=["method_type"],
                    plot_params=["Metrics comparison", "Metrics",
-                                "AC Integral",[0.435,0.475]]
+                                "AC Integral",[0.435, 0.475]]
                    )
-def get_ee(name = "6_"):
+
+
+    print_df_to_csv(dfs,pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["method_type"])
+def get_ee(name = "8_"):
     #eeEEEEEEEEEEEE
     # do NOT use ee only ee2 folders
     #EE vs duty cycle and EE itself
@@ -204,15 +214,18 @@ def get_compare():
     #               )
     #results = Results(os.path.join("backups", "c_basic"))
     results = Results(os.path.join("backups", "c_compare"))
-    scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral",
+    dfs = scatter_violin(results, filter_strategy=Strategy(iteration=6), variable="AC_fm_integral",
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
                    plot_params=["Comparison to VTRL", "Roll data /\nPreteach", "AC Integral", [],
                                 'lower left'])
-
+    name = "5_"
+    print_df_to_csv(dfs,pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["change_rate", "preteach", "roll_data"])
 
 def get_graphs_for_paper():
-   get_ee()
-
+    get_basic()
+    get_metrics()
+    get_ee()
+    get_compare()
 
 
 
