@@ -110,7 +110,7 @@ def print_df_to_csv(dfs, path, sorting_parameter):
     out = []
     separe_datasets = False
     #makes array of "AC_fm_integral" for combination in dataframes
-    possible = ["block_size", "dataset", "iteration", "duty_cycle", "preteach", "roll_data", "method_type", "ee_ratio", "iteration", "real_uptime"]
+    possible = ["block_size", "dataset", "iteration", "duty_cycle", "change_rate", "preteach", "roll_data", "method_type", "ee_ratio", "iteration", "real_uptime"]
 
     if 'sigma' in dfs[0].head():
         possible.append("sigma")
