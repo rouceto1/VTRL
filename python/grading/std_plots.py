@@ -170,7 +170,7 @@ def plot_contour(df, ax, variables,plot_name,limits):
     method = 'cubic'
     #method = 'nearest'
     #method = 'linear'
-    dataframe = df.groupby(["uptime", "duty_cycle"]).mean()
+    dataframe = df.groupby(["uptime", "duty_cycle"]).mean(numeric_only=True)
     points = dataframe.index.tolist()
     x = [i[0] for i in points]
     y = [i[1] for i in points]
