@@ -2,7 +2,7 @@
 
 while true; do
 echo "Possible places:"
-ls backups
+ls -l backups/ | awk '{print  $6, $7, $9}'
 
 read -p "Where to back up data (cancel)" yn
 
