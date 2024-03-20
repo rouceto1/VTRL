@@ -133,9 +133,10 @@ def print_df_to_csv(dfs, path, sorting_parameter):
         o.to_csv(path + str(idx)+'.csv')
 
 def get_basic():
-    results = Results(os.path.join("backups", "c_basic"))
-    results.add_missions(os.path.join("backups", "c_up_dc_075_025"))
+    #results = Results(os.path.join("backups", "c_basic"))
+    results = Results(os.path.join("backups", "c_up_dc_075_025"))
     results.add_missions(os.path.join("backups", "c_basic_sigma"))
+    results.add_missions(os.path.join("backups", "c_up_dc_sweep"))
     ## those two: [uptime 025 05 075], [chnge_rate 1 0 -1], [duy_cycle 025 05 075]
 
     # DC vs changer rate
@@ -147,29 +148,38 @@ def get_basic():
     #                                  "AC Integral", [0.435, 0.475], 'lower right']
     #                     )
 
-    dfs = scatter_violin(results, filter_strategy=Strategy(),
+    dfs = scatter_violin(results, filter_strategy=Strategy(iteration=6),
                          variable="AC_fm_integral",
                          sorting_paramteres=["change_rate", "duty_cycle", "uptime"], grouping="real_uptime",
                          plot_params=["Relative improvement for each strategy over different duty cycles", "real_uptime",
                                       "AC Integral", [0.435, 0.475], 'lower right']
                          )
-    name = "7_"
-    print_df_to_csv(dfs, pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["change_rate", "real_uptime"])
+    #name = "7_"
+    #print_df_to_csv(dfs, pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["change_rate", "real_uptime"])
+
+    contour(results, filter_strategy=Strategy(iteration=6),
+                         variables="AC_fm_integral",
+                         sorting_paramteres=["change_rate", "duty_cycle", "uptime"],
+                         plot_params=["Relative improvement for each strategy over different duty cycles", "real_uptime",
+                                      "AC Integral", [0.435, 0.475], 'lower right'])
 def get_metrics(name = "6_"):
 
     #metrics
     #results = Results(os.path.join("backups", "metrics_2"))
     #results.add_missions(os.path.join("backups", "metrics"))
-    #TODO results.add_missions(os.path.join("backups", "metrics_3"))
+    #results.add_missions(os.path.join("backups", "metrics_3"))
     results = Results(os.path.join("backups", "c_methods"))
-    results.add_missions(os.path.join("backups", "c_methods_sigma"))
+    results.add_missions(os.path.join("backups", "c_methods_sigma"))# TODO NOT YET DONE
+    #TODO use iteration 6,
     ## this one [uptime 025 033], [chnge_rate 1], [duy_cycle 025 033], [method_type 0 1 2]
-    dfs = scatter_violin(results, filter_strategy=Strategy(roll_data=False, change_rate=1), variable="AC_fm_integral",\
+    dfs = scatter_violin(results, filter_strategy=Strategy(roll_data=False, change_rate=1, iteration=6), variable="AC_fm_integral",\
                    ## TODO OLD sorting_paramteres=["metrics_type"],
                    sorting_paramteres=["method_type"],
                    plot_params=["Metrics comparison", "Metrics",
                                 "AC Integral", [0.435, 0.475]]
                    )
+
+
 
 
     print_df_to_csv(dfs,pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["method_type"])
@@ -185,21 +195,22 @@ def get_ee(name = "8_"):
     #results.add_missions(os.path.join("backups", "ee9"))
     #results.add_missions(os.path.join("backups", "ee10"))
     results = Results(os.path.join("backups", "c_ee"))
-    dfs = scatter_violin(results, filter_strategy=Strategy(change_rate=1,
+    ## TODO NEEDS MORE DATA
+    dfs = scatter_violin(results, filter_strategy=Strategy(change_rate=1, iteration=6,
                                                      #uptime = 0.25,
                                                      roll_data=False), exclude_strategy=Strategy(),
                   variable="AC_fm_integral", sorting_paramteres=["ee_ratio"],
                    plot_params = ["Exploration/exploitation ratio comparison", "Exploration/exploitation ratio", "AC Integral",[]]
     )
 
-    print_df_to_csv(dfs,pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["ee_ratio"])
+    print_df_to_csv(dfs, pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["ee_ratio"])
     #scatter_violin(results, filter_strategy=Strategy(iteration=6, change_rate=1, uptime = 0.25,roll_data=False), exclude_strategy=Strategy(),
     #              variable="AC_fm_integral", sorting_paramteres=["duty_cycle", "ee_ratio"])
 
-    scatter_violin(results, filter_strategy=Strategy( change_rate=1,
+    scatter_violin(results, filter_strategy=Strategy(iteration=6, change_rate=1,
                                                       #uptime = 0.25,
-                                                      roll_data=False, iteration=6), exclude_strategy=Strategy(),
-                   variable="AC_fm_integral", sorting_paramteres=[ "duty_cycle","ee_ratio"],
+                                                      roll_data=False), exclude_strategy=Strategy(),
+                   variable="AC_fm_integral", sorting_paramteres=["duty_cycle","ee_ratio"],
     plot_params = ["Exploration/exploitation ratio progression over different duty cycles", "Duty cycle", "AC Integral",[],'lower right']
     )
 
@@ -226,15 +237,14 @@ def get_compare():
 
 def get_graphs_for_paper():
     get_basic()
-    get_metrics()
-    get_ee()
-    get_compare()
+    #get_metrics()
+    #get_ee()
+    #get_compare()
 
 
 
 if __name__ == "__main__":
     #get_timigs()
-
     get_graphs_for_paper()
     #get_progress()
 

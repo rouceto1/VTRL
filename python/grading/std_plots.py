@@ -4,7 +4,7 @@ import os
 import seaborn as sn
 import matplotlib.pyplot as plt
 import numpy as np
-
+from scipy.interpolate import griddata
 def get_N_HexCol(N=5):
     HSV_tuples = [(x * 1.0 / (N * 1.5), 1, 1) for x in range(N)]
     hex_out = []
@@ -37,7 +37,7 @@ def pure_plot(ax, df, sorting_paramteres, variable, grouping, plot_params):
 
 def scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", exclude_strategy=Strategy(),
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
-                   plot_params=[], all_four=False):
+                   plot_params=[], all_four=True):
     stategy_c = filter_strategy
     stategy_c.dataset_weights = [1.0, 0.0]
     strategies_to_plot, colors, values, dfc0 = results.filter_strategies(stategy_params=stategy_c,
@@ -117,3 +117,66 @@ def stack_violin_iterations(results, filter_strategy=Strategy(iteration=6, roll_
 
 def scatter(results, filter_strategy=Strategy(roll_data=False, uptime=0.5), sorting_paramteres=["name"]):
     pass
+
+def contour(results, filter_strategy=Strategy(roll_data=False, uptime=0.5),variables="AC_fm_integra", sorting_paramteres=["name"],exclude_strategy=Strategy(),plot_params=[]):
+    stategy_c = filter_strategy
+    stategy_c.dataset_weights = [1.0, 0.0]
+    stategy_c.change_rate = 1.0
+    strategies_to_plot, colors, values, dfc0_a = results.filter_strategies(stategy_params=stategy_c,
+                                                                         sorting_params=sorting_paramteres,
+                                                                         exclude_strategy=exclude_strategy,
+                                                                         ground_truth_index=0)
+    stategy_c.change_rate = -1.0
+    strategies_to_plot, colors, values, dfc0_r = results.filter_strategies(stategy_params=stategy_c,
+                                                                         sorting_params=sorting_paramteres,
+                                                                         exclude_strategy=exclude_strategy,
+                                                                          ground_truth_index=0)
+    stategy_c.change_rate = 0.0
+    strategies_to_plot, colors, values, dfc0_s = results.filter_strategies(stategy_params=stategy_c,
+                                                                         sorting_params=sorting_paramteres,
+                                                                         exclude_strategy=exclude_strategy,
+                                                                         ground_truth_index=0)
+    cestlice = [dfc0_a, dfc0_r,dfc0_s]
+
+    stategy_s = filter_strategy
+    stategy_s.dataset_weights = [0.0, 1.0]
+    stategy_s.change_rate = 1.0
+    strategies_to_plot, colors, values, dfs1_a = results.filter_strategies(stategy_params=stategy_s,
+                                                                         sorting_params=sorting_paramteres,
+                                                                         exclude_strategy=exclude_strategy,
+                                                                         ground_truth_index=1)
+    stategy_s.change_rate = -1.0
+    strategies_to_plot, colors, values, dfs1_r = results.filter_strategies(stategy_params=stategy_s,
+                                                                         sorting_params=sorting_paramteres,
+                                                                         exclude_strategy=exclude_strategy,
+                                                                         ground_truth_index=1)
+    stategy_s.change_rate = 0.0
+    strategies_to_plot, colors, values, dfs1_s = results.filter_strategies(stategy_params=stategy_s,
+                                                                         sorting_params=sorting_paramteres,
+                                                                         exclude_strategy=exclude_strategy,
+                                                                         ground_truth_index=1)
+    strands = [dfs1_a, dfs1_r, dfs1_s]
+
+    fig, ax = plt.subplots(3, 2, sharex=True)
+    names = ["Cestlice active", "Cestlice random","Cestlice static","Strands active", "Strands random", "Strands Static"]
+    limits = [[30, 271],[1007, 8]]
+    for index1, dfs in enumerate([cestlice, strands]):
+        for index2, df in enumerate(dfs):
+            plot_contour(df, ax[index2][index1], variables, names[index1*3+index2],limits=limits[index1])
+
+def plot_contour(df, ax, variables,plot_name,limits):
+    #get uptime and duty cycle from dfc0 and plot them in a contour plo
+    grid_x, grid_y = np.mgrid[0:1:200j, 0:1:200j]
+    method = 'cubic'
+    #method = 'nearest'
+    #method = 'linear'
+    dataframe = df.groupby(["uptime", "duty_cycle"]).mean()
+    points = dataframe.index.tolist()
+    x = [i[0] for i in points]
+    y = [i[1] for i in points]
+    print("contour for " + str(len(points)) + " points for " + plot_name)
+    print(points)
+    grid_data = griddata(list(zip(x, y)), dataframe[variables], (grid_x, grid_y), method=method)
+    ax.imshow(grid_data.T, extent=(0,1, 0,1), origin='lower')
+    ax.plot(x,y, 'k.', ms=2)
+    ax.set(title=plot_name)
