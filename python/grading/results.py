@@ -258,9 +258,9 @@ class Results:
 
     def agreagate_roll_data(self, dataframe):
         if dataframe["roll_data"] == True:
-            return "New data"# /\n"
+            return "New data/\n"
         else:
-            return "All data"# /\n"
+            return "All data/\n"
 
     def name_change_rate(self, dataframe):
         if dataframe["change_rate"] == 1.0:
