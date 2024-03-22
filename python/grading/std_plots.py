@@ -168,7 +168,7 @@ def plot_contour(df, ax, variables,plot_name,limits):
     #get uptime and duty cycle from dfc0 and plot them in a contour plo
     grid_x, grid_y = np.mgrid[0:1:200j, 0:1:200j]
     method = 'cubic'
-    #method = 'nearest'
+    method = 'nearest'
     #method = 'linear'
     dataframe = df.groupby(["uptime", "duty_cycle"]).mean(numeric_only=True)
     points = dataframe.index.tolist()
@@ -178,5 +178,6 @@ def plot_contour(df, ax, variables,plot_name,limits):
     print(points)
     grid_data = griddata(list(zip(x, y)), dataframe[variables], (grid_x, grid_y), method=method)
     ax.imshow(grid_data.T, extent=(0,1, 0,1), origin='lower')
+
     ax.plot(x,y, 'k.', ms=2)
-    ax.set(title=plot_name)
+    ax.set(title=plot_name, xlabel="uptime", ylabel="duty_cycle")
