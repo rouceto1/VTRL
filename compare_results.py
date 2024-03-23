@@ -140,6 +140,7 @@ def get_basic():
     results.add_missions(os.path.join("backups", "c_up_dc_sweep_2"))
     results.add_missions(os.path.join("backups", "c_up_dc_sweep_3"))
     results.add_missions(os.path.join("backups", "c_up_dc_sweep_c"))
+    results.add_missions(os.path.join("backups", "c_up_dc_sweep_c2"))
     ## those two: [uptime 025 05 075], [chnge_rate 1 0 -1], [duy_cycle 025 05 075]
 
     # DC vs changer rate
