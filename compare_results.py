@@ -141,6 +141,8 @@ def get_basic():
     results.add_missions(os.path.join("backups", "c_up_dc_sweep_3"))
     results.add_missions(os.path.join("backups", "c_up_dc_sweep_c"))
     results.add_missions(os.path.join("backups", "c_up_dc_sweep_c2"))
+    results.add_missions(os.path.join("backups", "c_up_dc_sweep_c3"))
+
     ## those two: [uptime 025 05 075], [chnge_rate 1 0 -1], [duy_cycle 025 05 075]
 
     # DC vs changer rate
@@ -170,6 +172,12 @@ def get_basic():
                          variables="train_time",
                          sorting_paramteres=["change_rate", "duty_cycle", "uptime"],
                          plot_params=["Rime for each strategy over different duty cycles", "real_uptime",
+                                      "AC Integral", [0.435, 0.475], 'lower right'],extremes=False)
+
+    contour(results, filter_strategy=Strategy(iteration=6, roll_data=False, preteach=True),
+                         variables="used_teach_count",
+                         sorting_paramteres=["change_rate", "duty_cycle", "uptime"],
+                         plot_params=["Rime for each strategy over different duty cycles", "real_uptime",
                                       "AC Integral", [0.435, 0.475], 'lower right'])
 def get_metrics(name = "6_"): ## THIS IS DONE
 
@@ -179,6 +187,8 @@ def get_metrics(name = "6_"): ## THIS IS DONE
     #results.add_missions(os.path.join("backups", "metrics_3"))
     results = Results(os.path.join("backups", "c_methods"))
     results.add_missions(os.path.join("backups", "c_methods_sigma"))# DONE
+
+    results.add_missions(os.path.join("backups", "c_metrics_c"))# DONE
     #TODO use iteration 6,
     ## this one [uptime 025 033], [chnge_rate 1], [duy_cycle 025 033], [method_type 0 1 2]
     dfs = scatter_violin(results, filter_strategy=Strategy(roll_data=False, change_rate=1), exclude_strategy=Strategy(iteration=0),variable="AC_fm_integral",\
@@ -207,6 +217,7 @@ def get_ee(name = "8_"):
     results.add_missions(os.path.join("backups", "c_ee_2"))
 
     results.add_missions(os.path.join("backups", "c_ee_3"))
+    results.add_missions(os.path.join("backups", "c_ee_c"))
     ## TODO NEEDS MORE DATA
     dfs = scatter_violin(results, filter_strategy=Strategy(change_rate=1,
                                                      #uptime = 0.25,
@@ -239,7 +250,7 @@ def get_compare():
     #               )
     #results = Results(os.path.join("backups", "c_basic"))
     results = Results(os.path.join("backups", "c_compare_sigma"))
-    #results.add_missions(os.path.join("backups", "c_compare_sigma"))
+    results.add_missions(os.path.join("backups", "c_compare_c"))
     dfs = scatter_violin(results,exclude_strategy=Strategy(iteration=0), variable="AC_fm_integral",
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
                    plot_params=["Comparison to VTRL all", "Roll data /\nPreteach", "AC Integral", [],
@@ -253,9 +264,9 @@ def get_compare():
 
 def get_graphs_for_paper():
     get_basic()
-    #get_metrics()
-    #get_ee()
-    #get_compare()
+    get_metrics()
+    get_ee()
+    get_compare()
 
 
 

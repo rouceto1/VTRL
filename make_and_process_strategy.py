@@ -72,7 +72,7 @@ class Mission_generator:
 
         # this is split to compute supposedly fast strategies first
         for index, strategy in enumerate(strategies):
-            mission = Mission(index)
+            mission = Mission(self.mission_count )
             mission.c_strategy = strategy
             missions.append(mission)
             self.mission_count += 1

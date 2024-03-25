@@ -122,7 +122,7 @@ def contour(results, filter_strategy=Strategy(roll_data=False, uptime=0.5),varia
     dfs1_a, dfs1_r, dfs1_s, dfc0_a, dfc0_r,dfc0_s = None, None, None, None, None, None
     min = 1
     max = 0
-    COUNT=3
+    COUNT=1
     stategy_c = filter_strategy
     stategy_c.dataset_weights = [1.0, 0.0]
     stategy_c.change_rate = 1.0
@@ -165,7 +165,7 @@ def contour(results, filter_strategy=Strategy(roll_data=False, uptime=0.5),varia
                                                                          ground_truth_index=1)
     strands = [dfs1_a, dfs1_r, dfs1_s]
 
-    fig, ax = plt.subplots(len(strands), 2, sharex=True)
+    fig, ax = plt.subplots(COUNT, 2, sharex=False)
     names = ["Cestlice active", "Cestlice random","Cestlice static","Strands active", "Strands random", "Strands Static"]
     limits = [[30, 271],[1007, 8]]
     if extremes:
@@ -183,16 +183,20 @@ def contour(results, filter_strategy=Strategy(roll_data=False, uptime=0.5),varia
     for index1, dfs in enumerate([cestlice, strands]):
         for index2 in range(COUNT):
             dataframe = dfs[index2].groupby(["uptime", "duty_cycle"]).mean(numeric_only=True)
-            plot_contour(dataframe, ax[index2][index1], variables, names[index1*3+index2],extremes = [extremes,min,max], limits=limits[index1])
-
-def plot_contour(df, ax, variables,plot_name,extremes,limits):
+            if COUNT == 1:
+                plot_contour(dataframe, ax[index1], variables, names[index1 * 3 + index2],
+                             extremes=[extremes, min, max], params=plot_params, limits=limits[index1])
+            else:
+                plot_contour(dataframe, ax[index2][index1], variables, names[index1*3+index2],extremes = [extremes,min,max], params = plot_params,limits=limits[index1])
+    fig.tight_layout()
+def plot_contour(df, ax, variables,plot_name,extremes,params, limits):
     if df is None:
         return
     #get uptime and duty cycle from dfc0 and plot them in a contour plo
     grid_x, grid_y = np.mgrid[0:1:200j, 0:1:200j]
     method = 'cubic'
     method = 'nearest'
-    #method = 'linear'
+    method = 'linear'
 
     points = df.index.tolist()
     x = [i[0] for i in points]
@@ -202,10 +206,37 @@ def plot_contour(df, ax, variables,plot_name,extremes,limits):
     grid_data = griddata(list(zip(x, y)), df[variables], (grid_x, grid_y), method=method)
 
     if extremes[0]:
-        ax.imshow(grid_data.T, extent=(0, 1, 0, 1), origin='lower', vmin=extremes[1], vmax=extremes[2])
+        ax.imshow(grid_data.T, extent=(0, 1, 0, 1), origin='lower', vmin=extremes[1], vmax=extremes[2], label=plot_name )
     else:
-        ax.imshow(grid_data.T, extent=(0, 1, 0, 1), origin='lower')
-
-
+        ax.imshow(grid_data.T, extent=(0, 1, 0, 1), origin='lower', label=plot_name)
     ax.plot(x,y, 'k.', ms=2)
-    ax.set(title=plot_name, xlabel="uptime", ylabel="duty_cycle")
+    labels1 = [item.get_text() for item in ax.get_xticklabels()]
+    if "\n" not in labels1[0]:
+        texts = []
+        for label in labels1:
+            text = "{:.0f}\n{:.0f}".format(float(label)*100.0, limits[1]*float(label))
+            texts.append(text)
+        texts[0] = "0\n0"
+        ax.set_xticklabels(texts)
+    labels2 = [item.get_text() for item in ax.get_yticklabels()]
+    if "\n" in labels2[0]:
+        return
+    texts = []
+    for label in labels2:
+        text = "{:.0f}\n{:.0f}".format(float(label)*100.0, limits[0]*float(label))
+        texts.append(text)
+    texts[0] = "\n\n\n%\n Total"
+    ax.set_yticklabels(texts)
+    #abs.set_ylim(0.0, 1.0 * limits[1])
+
+    #abs.set_ylabel("abs")
+    #absx.spines["right"].set_position(("axes", 0))
+    #abs.set_ylim(ax.get_ylim()[0] * limits[1], ax.get_ylim()[1] * limits[1])
+    #pery = ax.twiny()
+    #absy = ax.twiny()
+    #pery.set_xlabel("%")
+    #absy.set_xlabel("abs")
+    #absy.spines["right"].set_position(("axes", 1.2))
+    #abs.set_xlim(ax.get_xlim()[0] * limits[0], ax.get_xlim()[1] * limits[0])
+    #ax.set(xlabel="Uptime", ylabel="duty_cycle")
+
