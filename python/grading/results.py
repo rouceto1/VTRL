@@ -175,7 +175,10 @@ class Results:
         if sorting_params != "preferences" and len(sorting_params) == 1:
             strategies.sort(key=lambda x: getattr(x, sorting_params[0]), reverse=False)
         colors = get_N_HexCol(len(strategies))
-        return strategies, colors, values, self.make_pandas_df(strategies, ground_truth_index=ground_truth_index)
+        try:
+            return strategies, colors, values, self.make_pandas_df(strategies, ground_truth_index=ground_truth_index)
+        except:
+            return strategies, colors, values, None
 
     def get_corr_from_strategy(self, startegies, var=[], type="standart"):
         out = []

@@ -47,16 +47,55 @@ def compute_ee_diff(results,filter_strategy=Strategy(), exclude_strategy=Strateg
     plt.axhline(y=0.0, color='r', linestyle=':')
 def get_preferences(results):
     preferences = []
+    missions = []
     for mission in results.missions:
         m = []
         for strat in mission.old_strategies:
             if strat.change_rate == 1:
-                if strat.duty_cycle == 5.0:
-                    m.append(strat.place_weights)
-        if strat.change_rate == 1:
-            if strat.duty_cycle == 5.0:
-                preferences.append(m)
-    plot_preferences(preferences)
+                if strat.duty_cycle == 0.5:
+                    m.append(strat.preferences)
+        if len(m) > 0:
+            if strat.change_rate == 1:
+                if strat.duty_cycle == 0.5:
+                    preferences.append(m)
+                    missions.append(mission)
+    plot_preferences(preferences, missions)
+
+def get_pref_df(results,filter_strategy=Strategy(), exclude_strategy=Strategy(), sorting_paramteres=["iteration"],plot_params = [""]):
+    stategy_c = filter_strategy
+    stategy_c.dataset_weights = [1.0, 0.0]
+    strategies_to_plot, colors, values, dfc = results.filter_strategies(stategy_params=stategy_c,
+                                                                       sorting_params=sorting_paramteres,
+                                                                       exclude_strategy=exclude_strategy, ground_truth_index=0)
+    stategy_s = filter_strategy
+    stategy_s.dataset_weights = [0.0, 1.0]
+    strategies_to_plot, colors, values, dfs = results.filter_strategies(stategy_params=stategy_s,
+                                                                       sorting_params=sorting_paramteres,
+                                                                       exclude_strategy=exclude_strategy, ground_truth_index=0)
+    fig, ax = plt.subplots(2)
+    for idx, df in enumerate([dfc, dfs]):
+        if df is None:
+            continue
+        plot_pref_df(df, ax[idx],idx,plot_params)
+    plt.title(plot_params[0])
+
+    plt.show()
+
+    #for each place
+
+def plot_pref_df(df,ax,data,plot_params):
+    # for each place and iteration get mean and std of preferences
+    # plot this as a function of place and iteration
+    d = [r.preferences [data] for i, r in df.iterrows()]
+    df2 = pd.DataFrame.from_records(d)
+    df2 = df2.assign(iter=df.iteration).groupby("iter")
+    mean = df2.mean()
+    std = df2.std(ddof=1)
+
+    for i in range(mean.shape[1]):
+        iter = range(mean.shape[0])
+        ax.plot(iter, mean[i], label=i)
+        ax.fill_between(iter, mean[i] - std[i], mean[i] + std[i], alpha=0.2)
 
 
 def get_dc_vs_change_rate():
@@ -100,9 +139,23 @@ def get_timigs():
 
 def get_progress():
     #convergence of preferences graph
-    results = Results(os.path.join("backups", "compare"))
 
-    get_preferences(results)
+
+    #results = Results(os.path.join("backups", "c_basic_sigma"))
+    #results.add_missions(os.path.join("backups", "c_methods")).
+    #results.add_missions(os.path.join("backups", "c_methods_sigma"))# DONE
+    #results.add_missions(os.path.join("backups", "c_metrics_c"))# DONE
+    #results.add_missions(os.path.join("backups", "c_compare_sigma"))
+    #results.add_missions(os.path.join("backups", "c_compare_c"))
+    #results.add_missions(os.path.join("backups", "c_ee_2"))
+    #results.add_missions(os.path.join("backups", "c_ee_3"))
+    #results.add_missions(os.path.join("backups", "c_ee_c"))
+    names = ["c_basic_sigma", "c_methods", "c_methods_sigma", "c_metrics_c", "c_compare_sigma", "c_compare_c", "c_ee_2", "c_ee_3", "c_ee_c"]
+
+    for name in names:
+        results = Results(os.path.join("backups", name))
+        get_pref_df(results, filter_strategy=Strategy(change_rate=1, roll_data=False, uptime = 0.5, preteach=True, m_type=0, ee_ratio=1.0),plot_params=[name])
+    #get_preferences(results)
 
 def print_df_to_csv(dfs, path, sorting_parameter):
     #saves infromatio for eahc graphs DF to csv
@@ -142,7 +195,7 @@ def get_basic():
     results.add_missions(os.path.join("backups", "c_up_dc_sweep_c"))
     results.add_missions(os.path.join("backups", "c_up_dc_sweep_c2"))
     results.add_missions(os.path.join("backups", "c_up_dc_sweep_c3"))
-
+    results.add_missions(os.path.join("backups", "c_sweep_s"))
     ## those two: [uptime 025 05 075], [chnge_rate 1 0 -1], [duy_cycle 025 05 075]
 
     # DC vs changer rate
@@ -187,7 +240,6 @@ def get_metrics(name = "6_"): ## THIS IS DONE
     #results.add_missions(os.path.join("backups", "metrics_3"))
     results = Results(os.path.join("backups", "c_methods"))
     results.add_missions(os.path.join("backups", "c_methods_sigma"))# DONE
-
     results.add_missions(os.path.join("backups", "c_metrics_c"))# DONE
     #TODO use iteration 6,
     ## this one [uptime 025 033], [chnge_rate 1], [duy_cycle 025 033], [method_type 0 1 2]
@@ -230,13 +282,6 @@ def get_ee(name = "8_"):
     #scatter_violin(results, filter_strategy=Strategy(iteration=6, change_rate=1, uptime = 0.25,roll_data=False), exclude_strategy=Strategy(),
     #              variable="AC_fm_integral", sorting_paramteres=["duty_cycle", "ee_ratio"])
 
-    scatter_violin(results, filter_strategy=Strategy(iteration=6, change_rate=1,
-                                                      #uptime = 0.25,
-                                                      roll_data=False), exclude_strategy=Strategy(iteration=0),
-                   variable="AC_fm_integral", sorting_paramteres=["ee_ratio"],
-    plot_params = ["Exploration/exploitation ratio progression over different duty cycles 6 ", "Duty cycle", "AC Integral",[],'lower right']
-    )
-
 def get_compare():
 
     # COMAPRE TO vtrl
@@ -251,21 +296,22 @@ def get_compare():
     #results = Results(os.path.join("backups", "c_basic"))
     results = Results(os.path.join("backups", "c_compare_sigma"))
     results.add_missions(os.path.join("backups", "c_compare_c"))
+    results.add_missions(os.path.join("backups", "c_compare_2"))
     dfs = scatter_violin(results,exclude_strategy=Strategy(iteration=0), variable="AC_fm_integral",
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
                    plot_params=["Comparison to VTRL all", "Roll data /\nPreteach", "AC Integral", [],
-                                'lower left'])
+                                'lower left'] , versions=[1,0,0,1])
     name = "5_"
     print_df_to_csv(dfs,pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["change_rate", "preteach", "roll_data"])
     dfs = scatter_violin(results,filter_strategy=Strategy(iteration=6), exclude_strategy=Strategy(iteration=0), variable="AC_fm_integral",
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
                    plot_params=["Comparison to VTRL 6", "Roll data /\nPreteach", "AC Integral", [],
-                                'lower left'])
+                                'lower left'], versions=[1,0,0,1])
 
 def get_graphs_for_paper():
-    get_basic()
-    get_metrics()
-    get_ee()
+    #get_basic()
+    #get_metrics()
+    #get_ee()
     get_compare()
 
 
