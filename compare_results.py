@@ -324,6 +324,7 @@ def get_graphs_for_paper():
     #get_basic()
     #get_metrics()
     #get_ee()
+
     get_compare()
 
 
