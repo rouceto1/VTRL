@@ -239,7 +239,7 @@ def get_metrics(name = "6_"): ## THIS IS DONE
     #results.add_missions(os.path.join("backups", "metrics"))
     #results.add_missions(os.path.join("backups", "metrics_3"))
     results = Results(os.path.join("backups", "c_methods"))
-    results = Results(os.path.join("backups", "c_methods_sigma"))# DONE
+    results.add_missions(os.path.join("backups", "c_methods_sigma"))# DONE
     results.add_missions(os.path.join("backups", "c_metrics_c"))# DONE
     #TODO use iteration 6,
     ## this one [uptime 025 033], [chnge_rate 1], [duy_cycle 025 033], [method_type 0 1 2]
