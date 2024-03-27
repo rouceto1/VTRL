@@ -309,6 +309,11 @@ def get_compare():
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
                    plot_params=["", "", "AC Integral", [],
                                 'lower left',45] , versions=[1,0,0,1])
+    results.add_missions(os.path.join("backups", "c_compare_c2"))
+    dfs = scatter_violin(results,exclude_strategy=Strategy(iteration=0),filter_strategy=Strategy(), variable="AC_fm_integral",
+                   sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
+                   plot_params=["", "", "AC Integral", [],
+                                'lower left',45] , versions=[1,0,0,1])
     name = "5_"
     print_df_to_csv(dfs,pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["change_rate", "preteach", "roll_data"])
     #dfs = scatter_violin(results,filter_strategy=Strategy(iteration=6), exclude_strategy=Strategy(iteration=0), variable="AC_fm_integral",
