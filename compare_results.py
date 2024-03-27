@@ -211,7 +211,7 @@ def get_basic():
                          variable="AC_fm_integral",
                          sorting_paramteres=["change_rate", "duty_cycle", "uptime"], grouping="real_uptime",
                          plot_params=["Relative improvement for each strategy over different duty cycles", "real_uptime",
-                                      "AC Integral", [0.435, 0.475], 'lower right']
+                                      "AC Integral", [0.435, 0.475], 'lower right',0]
                          )
     #name = "7_"
     #print_df_to_csv(dfs, pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["change_rate", "real_uptime"])
@@ -224,14 +224,14 @@ def get_basic():
     contour(results, filter_strategy=Strategy(iteration=6, roll_data=False, preteach=True),
                          variables="train_time",
                          sorting_paramteres=["change_rate", "duty_cycle", "uptime"],
-                         plot_params=["Rime for each strategy over different duty cycles", "real_uptime",
-                                      "AC Integral", [0.435, 0.475], 'lower right'],extremes=False)
+                         plot_params=["time for each strategy over different duty cycles", "real_uptime",
+                                      "train_time", [0.435, 0.475], 'lower right'],extremes=False)
 
     contour(results, filter_strategy=Strategy(iteration=6, roll_data=False, preteach=True),
                          variables="used_teach_count",
                          sorting_paramteres=["change_rate", "duty_cycle", "uptime"],
                          plot_params=["Rime for each strategy over different duty cycles", "real_uptime",
-                                      "AC Integral", [0.435, 0.475], 'lower right'])
+                                      "used_teach_count", [0.435, 0.475], 'lower right'])
 def get_metrics(name = "6_"): ## THIS IS DONE
 
     #metrics
@@ -239,15 +239,15 @@ def get_metrics(name = "6_"): ## THIS IS DONE
     #results.add_missions(os.path.join("backups", "metrics"))
     #results.add_missions(os.path.join("backups", "metrics_3"))
     results = Results(os.path.join("backups", "c_methods"))
-    results.add_missions(os.path.join("backups", "c_methods_sigma"))# DONE
+    results = Results(os.path.join("backups", "c_methods_sigma"))# DONE
     results.add_missions(os.path.join("backups", "c_metrics_c"))# DONE
     #TODO use iteration 6,
     ## this one [uptime 025 033], [chnge_rate 1], [duy_cycle 025 033], [method_type 0 1 2]
-    dfs = scatter_violin(results, filter_strategy=Strategy(roll_data=False, change_rate=1), exclude_strategy=Strategy(iteration=0),variable="AC_fm_integral",\
+    dfs = scatter_violin(results, filter_strategy=Strategy(roll_data=False, change_rate=1), exclude_strategy=Strategy(),variable="AC_fm_integral",\
                    ## TODO OLD sorting_paramteres=["metrics_type"],
                    sorting_paramteres=["method_type"],
-                   plot_params=["Metrics comparison", "Metrics",
-                                "AC Integral", [0.435, 0.475]]
+                   plot_params=["", "",
+                                "AC Integral", [],'lower left',0]
                    )
 
 
@@ -266,7 +266,7 @@ def get_ee(name = "8_"):
     #results.add_missions(os.path.join("backups", "ee9"))
     #results.add_missions(os.path.join("backups", "ee10"))
     results = Results(os.path.join("backups", "c_ee"))
-    results.add_missions(os.path.join("backups", "c_ee_2"))
+    results = Results(os.path.join("backups", "c_ee_2"))
 
     results.add_missions(os.path.join("backups", "c_ee_3"))
     results.add_missions(os.path.join("backups", "c_ee_c"))
@@ -275,7 +275,7 @@ def get_ee(name = "8_"):
                                                      #uptime = 0.25,
                                                      roll_data=False), exclude_strategy=Strategy(iteration=0),
                   variable="AC_fm_integral", sorting_paramteres=["ee_ratio"],
-                   plot_params = ["Exploration/exploitation ratio comparison all", "Exploration/exploitation ratio", "AC Integral",[]]
+                   plot_params = ["", "Exploration/exploitation ratio", "AC Integral",[],'lower left',45]
     )
 
     print_df_to_csv(dfs, pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["ee_ratio"])
@@ -297,21 +297,22 @@ def get_compare():
     results = Results(os.path.join("backups", "c_compare_sigma"))
     results.add_missions(os.path.join("backups", "c_compare_c"))
     results.add_missions(os.path.join("backups", "c_compare_2"))
-    dfs = scatter_violin(results,exclude_strategy=Strategy(iteration=0), variable="AC_fm_integral",
+    results.add_missions(os.path.join("backups", "c_compare_c2"))
+    dfs = scatter_violin(results,exclude_strategy=Strategy(iteration=0),filter_strategy=Strategy(), variable="AC_fm_integral",
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
-                   plot_params=["Comparison to VTRL all", "Roll data /\nPreteach", "AC Integral", [],
-                                'lower left'] , versions=[1,0,0,1])
+                   plot_params=["", "", "AC Integral", [],
+                                'lower left',45] , versions=[1,0,0,1])
     name = "5_"
     print_df_to_csv(dfs,pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["change_rate", "preteach", "roll_data"])
-    dfs = scatter_violin(results,filter_strategy=Strategy(iteration=6), exclude_strategy=Strategy(iteration=0), variable="AC_fm_integral",
-                   sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
-                   plot_params=["Comparison to VTRL 6", "Roll data /\nPreteach", "AC Integral", [],
-                                'lower left'], versions=[1,0,0,1])
+    #dfs = scatter_violin(results,filter_strategy=Strategy(iteration=6), exclude_strategy=Strategy(iteration=0), variable="AC_fm_integral",
+    ##               sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
+    #               plot_params=["Comparison to VTRL 6", "Roll data /\nPreteach", "AC Integral", [],
+    #                            'lower left'], versions=[1,0,0,1])
 
 def get_graphs_for_paper():
-    #get_basic()
-    #get_metrics()
-    #get_ee()
+    get_basic()
+    get_metrics()
+    get_ee()
     get_compare()
 
 

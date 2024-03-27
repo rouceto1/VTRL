@@ -73,6 +73,8 @@ class Results:
         p = get_only_keys(strategy_keys, vars(params))
         m = get_only_keys(strategy_keys, vars(strategy))
         e = get_only_keys(strategy_keys, vars(exclude))
+        always_exclude = Strategy(iteration=0)
+        ee = get_only_keys(strategy_keys, vars(always_exclude))
         # compare dicts p and m and return true if non None values from p are same in m
         for key in p:
             if p[key] is not None:
@@ -98,6 +100,19 @@ class Results:
                     if np.array_equal(p[key], m[key]):
                         return False
                 elif e[key] == m[key]:
+                    return False
+
+        for key in ee:
+            if ee[key] is not None:
+                if key in ["used_teach_count"]:
+                    if ee[key] == 0:
+                        continue
+                    if ee[key] >= m[key]:
+                        return False
+                elif key in ["preferences"]:
+                    if np.array_equal(p[key], m[key]):
+                        return False
+                elif ee[key] == m[key]:
                     return False
 
         return True
@@ -276,7 +291,7 @@ class Results:
     def name_metrics(self, dataframe):
         try:
             if dataframe["metrics_type"] == 0:
-                return "Enthropy threshold"
+                return "Enthropy \n threshold"
             elif dataframe["metrics_type"] == 1:
                 return "Enthropy"
             elif dataframe["metrics_type"] == 2:

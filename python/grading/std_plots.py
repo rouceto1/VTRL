@@ -24,16 +24,28 @@ def pure_plot(ax, df, sorting_paramteres, variable, grouping, plot_params):
     for index, info in enumerate(plot_params):
         if index == 0:
             boxplot.set(title=info)
+            continue
         if index == 1:
             boxplot.set(xlabel=info)
+            continue
         if index == 2:
             boxplot.set(ylabel=info)
+            continue
         if index == 3:
             if len(info) == 2:
                 ax.set(ylim=(info[0], info[1]))
+            continue
         if index == 4:
+            if info is None:
+                if ax.get_legend() is not None:
+                    ax.get_legend().remove()
+                continue
             if len(info) >= 2:
-                plt.legend(loc=info)
+                ax.legend(loc=info)
+            continue
+        if index == 5:
+            ax.tick_params(axis='x', labelrotation=info)
+            continue
 
 def scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral", exclude_strategy=Strategy(),
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
@@ -66,15 +78,22 @@ def scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral
         pure_plot(ax2[1], dfs1, sorting_paramteres, variable, grouping, ["Strands strands", plot_params[1],plot_params[2], [], ""])
         out = [dfc0,dfs1]
     elif sum(versions) == 2:
-        par =  [plot_params[0], plot_params[1], plot_params[2], [], "upper left"]
+        par =  ["Čestlice",plot_params[1],plot_params[2],plot_params[3],None,plot_params[5]]
         fig, ax = plt.subplots(1, 2, sharex=True)
         i=0
         for idx, v in enumerate(versions):
             if v == 1:
+                if dfs[idx] is None:
+                    continue
                 pure_plot(ax[i], dfs[idx], sorting_paramteres, variable, grouping, par)
                 i+=1
-                par = []
+                par = ["Witham Wharf",plot_params[1],"",plot_params[3],plot_params[4],plot_params[5]]
                 out.append(dfs[idx])
+        fig.tight_layout()
+        if len(plot_params) > 0:
+            plt.suptitle(plot_params[0])
+
+        #plt.title(plot_params[0])
     return  out
 
 def plot_std(results, filter_strategy=Strategy(), exclude_strategy=Strategy(),
@@ -180,8 +199,8 @@ def contour(results, filter_strategy=Strategy(roll_data=False, uptime=0.5),varia
     strands = [dfs1_a, dfs1_r, dfs1_s]
 
     fig, ax = plt.subplots(COUNT, 2, sharex=False)
-    names = ["Cestlice active", "Cestlice random","Cestlice static","Strands active", "Strands random", "Strands Static"]
-    limits = [[30, 271],[1007, 8]]
+    names = ["Čestlice", "Cestlice random","Cestlice static","Wharf", "Strands random", "Strands Static"]
+    limits = [[1007, 8],[30, 271]]
     if extremes:
         for index1, dfs in enumerate([cestlice, strands]):
             for index2 in range(COUNT):
@@ -194,12 +213,15 @@ def contour(results, filter_strategy=Strategy(roll_data=False, uptime=0.5),varia
                 if dmax > max:
                     max = dmax
     print("min: " + str(min) + " max: " + str(max))
+
     for index1, dfs in enumerate([cestlice, strands]):
         for index2 in range(COUNT):
             dataframe = dfs[index2].groupby(["uptime", "duty_cycle"]).mean(numeric_only=True)
             if COUNT == 1:
                 plot_contour(dataframe, ax[index1], variables, names[index1 * 3 + index2],
                              extremes=[extremes, min, max], params=plot_params, limits=limits[index1])
+                ax[index1].set(xlabel="Duty cycle", ylabel="Uptime")
+                ax[index1].set(title=names[index1 * 3 + index2])
             else:
                 plot_contour(dataframe, ax[index2][index1], variables, names[index1*3+index2],extremes = [extremes,min,max], params = plot_params,limits=limits[index1])
     fig.tight_layout()
