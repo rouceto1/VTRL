@@ -71,11 +71,12 @@ def scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral
 
     if sum(versions) == 4:
         fig, (ax1, ax2) = plt.subplots(2, 2, sharex=True)
-        pure_plot(ax1[0], dfc0, sorting_paramteres, variable, grouping, [plot_params[0]+ "\nCestlice cestlice ", "", plot_params[2], [], "upper left"])
-        pure_plot(ax2[0], dfs0, sorting_paramteres, variable, grouping, ["Strands cestlice", plot_params[1],plot_params[2], [], ""])
-
-        pure_plot(ax1[1], dfc1, sorting_paramteres, variable, grouping, ["Cestlice strands", "", plot_params[2], [], ""])
-        pure_plot(ax2[1], dfs1, sorting_paramteres, variable, grouping, ["Strands strands", plot_params[1],plot_params[2], [], ""])
+        if dfc0 is not None:
+            pure_plot(ax1[0], dfc0, sorting_paramteres, variable, grouping, [plot_params[0]+ "\nCestlice cestlice ", "", plot_params[2], [], "upper left"])
+            pure_plot(ax2[0], dfs0, sorting_paramteres, variable, grouping, ["Strands cestlice", plot_params[1],plot_params[2], [], ""])
+        if dfc1 is not None:
+            pure_plot(ax1[1], dfc1, sorting_paramteres, variable, grouping, ["Cestlice strands", "", plot_params[2], [], ""])
+            pure_plot(ax2[1], dfs1, sorting_paramteres, variable, grouping, ["Strands strands", plot_params[1],plot_params[2], [], ""])
         out = [dfc0,dfs1]
     elif sum(versions) == 2:
         par =  ["Čestlice",plot_params[1],plot_params[2],plot_params[3],None,plot_params[5]]
