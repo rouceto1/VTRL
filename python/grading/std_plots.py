@@ -201,7 +201,7 @@ def contour(results, filter_strategy=Strategy(roll_data=False, uptime=0.5),varia
 
     fig, ax = plt.subplots(COUNT, 2, sharex=False)
     names = ["Čestlice", "Cestlice random","Cestlice static","Wharf", "Strands random", "Strands Static"]
-    limits = [[1007, 8],[30, 271]]
+    limits = [[ 271,30],[8,1007]]
     if extremes:
         for index1, dfs in enumerate([cestlice, strands]):
             for index2 in range(COUNT):
