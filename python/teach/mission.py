@@ -135,7 +135,7 @@ class Strategy:
                  iteration=None, duty_cycle=None, preteach=None, m_type=None, roll_data=None, ee_ratio=None,
                  simulation=False,sigma=0):
         # internal variables: percentage_to_explore, block_size, dataset_weights, preferences, iteration
-        self.no_more_data = None
+        self.no_more_data = False
         self.exploit = None
         self.uptime = uptime
         self.block_size = block_size
@@ -143,6 +143,7 @@ class Strategy:
         self.preferences = preferences  # list of weights for each place TODO: make this strands agnostic
         self.time_limit = time_limit  # latest possible time to teach
         self.time_start = 0
+
         self.sigma = sigma
         self.iteration = iteration
         self.time_advance = time_advance  # how much is each new data training
