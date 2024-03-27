@@ -305,13 +305,12 @@ def get_compare():
                    plot_params=["", "", "AC Integral", [],
                                 'lower left',45] , versions=[1,0,0,1])
     #results.add_missions(os.path.join("backups", "c_compare_c2"))
-    results.add_missions(os.path.join("backups", "c_compare_c3"))
     dfs = scatter_violin(results,exclude_strategy=Strategy(iteration=0),filter_strategy=Strategy(), variable="AC_fm_integral",
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
                    plot_params=["", "", "AC Integral", [],
                                 'lower left',45] , versions=[1,0,0,1])
     name = "5_"
-    dfs = scatter_violin(results,exclude_strategy=Strategy(iteration=0),filter_strategy=Strategy(preteach=True,roll_data=False), variable="AC_fm_integral",
+    dfs = scatter_violin(results,exclude_strategy=Strategy(iteration=0),filter_strategy=Strategy(roll_data=False), variable="AC_fm_integral",
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
                    plot_params=["", "", "AC Integral", [],
                                 'lower left',0] , versions=[1,0,0,1])
