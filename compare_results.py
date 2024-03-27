@@ -300,20 +300,22 @@ def get_compare():
     results.add_missions(os.path.join("backups", "c_compare_c"))
 
     results.add_missions(os.path.join("backups", "c_compare_2"))
+    results.add_missions(os.path.join("backups", "c_compare_4"))
+    results.add_missions(os.path.join("backups", "c_compare_5"))
     dfs = scatter_violin(results,exclude_strategy=Strategy(iteration=0),filter_strategy=Strategy(), variable="AC_fm_integral",
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
                    plot_params=["", "", "AC Integral", [],
                                 'lower left',45] , versions=[1,0,0,1])
-    #results.add_missions(os.path.join("backups", "c_compare_c2"))
-    dfs = scatter_violin(results,exclude_strategy=Strategy(iteration=0),filter_strategy=Strategy(), variable="AC_fm_integral",
-                   sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
-                   plot_params=["", "", "AC Integral", [],
-                                'lower left',45] , versions=[1,0,0,1])
-    name = "5_"
+
+    name = "rp_"
+    print_df_to_csv(dfs, pwd + "/datafast/2024_ral_predictive_roura/" + name,
+                    sorting_parameter=["change_rate", "preteach", "roll_data"])
+
     dfs = scatter_violin(results,exclude_strategy=Strategy(iteration=0),filter_strategy=Strategy(roll_data=False), variable="AC_fm_integral",
                    sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
                    plot_params=["", "", "AC Integral", [],
                                 'lower left',0] , versions=[1,0,0,1])
+    name = "cr_"
     print_df_to_csv(dfs,pwd + "/datafast/2024_ral_predictive_roura/" + name, sorting_parameter=["change_rate", "preteach", "roll_data"])
     #dfs = scatter_violin(results,filter_strategy=Strategy(iteration=6), exclude_strategy=Strategy(iteration=0), variable="AC_fm_integral",
     ##               sorting_paramteres=["change_rate", "preteach", "roll_data"], grouping="roll_pretech",
@@ -321,10 +323,9 @@ def get_compare():
     #                            'lower left'], versions=[1,0,0,1])
 
 def get_graphs_for_paper():
-    #get_basic()
-    #get_metrics()
-    #get_ee()
-
+    get_basic()
+    get_metrics()
+    get_ee()
     get_compare()
 
 
