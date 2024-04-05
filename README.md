@@ -1,3 +1,5 @@
+# CURRENTLY under construction until RAL paper decision
+
 # Visual Teach Repeat and Learn (VTRL) pipeline
 
 This pipeline was made as an investigation into self-learning capabilities for mobile robotics.
