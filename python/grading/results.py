@@ -243,6 +243,11 @@ class Results:
             #Probably make it so it has "AC_fm_integral, AC_fm_integral_cestlice, AC_fm_integral_strands" and so on
             out.append(a | b)
         df = pd.DataFrame(out)
+        if ground_truth_index == 10:
+            print("Ground truth index is 0")
+            df['preteach'] = df.apply(self.agreagate_flip, axis=1)
+        else:
+            pass
         df['preteach'] = df.apply(self.agreagate_preteach, axis=1)
         df['roll_data'] = df.apply(self.agreagate_roll_data, axis=1)
         df['change_rate'] = df.apply(self.name_change_rate, axis=1)
@@ -259,6 +264,12 @@ class Results:
             return "Continued weights"
         else:
             return "Initial weights"
+
+    def agreagate_flip(self, dataframe):
+        if dataframe["preteach"] == True:
+            return "Initial weights"
+        else:
+            return "Continued weights"
 
     def get_sigma(self, dataframe):
         try:
@@ -291,15 +302,15 @@ class Results:
     def name_metrics(self, dataframe):
         try:
             if dataframe["metrics_type"] == 0:
-                return "Enthropy \n threshold"
+                return "Entropy\nthreshold"
             elif dataframe["metrics_type"] == 1:
-                return "Enthropy"
+                return "Entropy"
             elif dataframe["metrics_type"] == 2:
                 return "Ratio"
         except:
             if dataframe["method_type"] == 0:
-                return "Enthropy threshold"
+                return "Entropy\nthreshold"
             elif dataframe["method_type"] == 1:
-                return "Enthropy"
+                return "Entropy"
             elif dataframe["method_type"] == 2:
                 return "Ratio"

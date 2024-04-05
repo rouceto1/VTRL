@@ -5,6 +5,7 @@ import seaborn as sn
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import griddata
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 def get_N_HexCol(N=5):
     HSV_tuples = [(x * 1.0 / (N * 1.5), 1, 1) for x in range(N)]
     hex_out = []
@@ -79,8 +80,8 @@ def scatter_violin(results, filter_strategy=Strategy(), variable="AC_fm_integral
             pure_plot(ax2[1], dfs1, sorting_paramteres, variable, grouping, ["Strands strands", plot_params[1],plot_params[2], [], ""])
         out = [dfc0,dfs1]
     elif sum(versions) == 2:
-        par =  ["Čestlice",plot_params[1],plot_params[2],plot_params[3],None,plot_params[5]]
-        fig, ax = plt.subplots(1, 2, sharex=True)
+        par =  ["Čestlice",plot_params[1],plot_params[2],plot_params[3],None ,plot_params[5]]
+        fig, ax = plt.subplots(1, 2, sharex=False)
         i=0
         for idx, v in enumerate(versions):
             if v == 1:
@@ -200,8 +201,8 @@ def contour(results, filter_strategy=Strategy(roll_data=False, uptime=0.5),varia
     strands = [dfs1_a, dfs1_r, dfs1_s]
 
     fig, ax = plt.subplots(COUNT, 2, sharex=False)
-    names = ["Čestlice", "Cestlice random","Cestlice static","Wharf", "Strands random", "Strands Static"]
-    limits = [[ 271,30],[8,1007]]
+    names = ["Čestlice", "Cestlice random","Cestlice static","Witham Wharf", "Strands random", "Strands Static"]
+    limits = [[271, 30], [8, 1007]]
     if extremes:
         for index1, dfs in enumerate([cestlice, strands]):
             for index2 in range(COUNT):
@@ -213,26 +214,35 @@ def contour(results, filter_strategy=Strategy(roll_data=False, uptime=0.5),varia
                     min = dmin
                 if dmax > max:
                     max = dmax
+
     print("min: " + str(min) + " max: " + str(max))
 
     for index1, dfs in enumerate([cestlice, strands]):
         for index2 in range(COUNT):
             dataframe = dfs[index2].groupby(["uptime", "duty_cycle"]).mean(numeric_only=True)
             if COUNT == 1:
-                plot_contour(dataframe, ax[index1], variables, names[index1 * 3 + index2],
-                             extremes=[extremes, min, max], params=plot_params, limits=limits[index1])
-                ax[index1].set(xlabel="Duty cycle", ylabel="Uptime")
+                im = plot_contour(dataframe, ax[index1], variables, names[index1 * 3 + index2],
+                             extremes=[extremes, min, max], params=plot_params, limits=limits[index1],fig=fig)
+                if index1 < 1:
+                    ax[index1].set(xlabel="Uptime", ylabel="Duty cycle")
+                else:
+                    ax[index1].set(xlabel="Uptime")
                 ax[index1].set(title=names[index1 * 3 + index2])
+                #fig.colorbar(im ,ax = ax[index1])
+
             else:
-                plot_contour(dataframe, ax[index2][index1], variables, names[index1*3+index2],extremes = [extremes,min,max], params = plot_params,limits=limits[index1])
+                im = plot_contour(dataframe, ax[index2][index1], variables, names[index1*3+index2],
+                                  extremes = [extremes, min, max], params = plot_params,limits=limits[index1],fig=fig)
+                #fig.colorbar(im, ax = ax[index2][index1])
+
     fig.tight_layout()
-def plot_contour(df, ax, variables,plot_name,extremes,params, limits):
+def plot_contour(df, ax, variables,plot_name,extremes,params, limits,fig=None):
     if df is None:
         return
     #get uptime and duty cycle from dfc0 and plot them in a contour plo
     grid_x, grid_y = np.mgrid[0:1:200j, 0:1:200j]
     method = 'cubic'
-    method = 'nearest'
+    #method = 'nearest'
     method = 'linear'
 
     points = df.index.tolist()
@@ -243,9 +253,9 @@ def plot_contour(df, ax, variables,plot_name,extremes,params, limits):
     grid_data = griddata(list(zip(x, y)), df[variables], (grid_x, grid_y), method=method)
 
     if extremes[0]:
-        ax.imshow(grid_data.T, extent=(0, 1, 0, 1), origin='lower', vmin=extremes[1], vmax=extremes[2], label=plot_name )
+        im = ax.imshow(grid_data.T, extent=(0, 1, 0, 1), origin='lower', vmin=extremes[1], vmax=extremes[2], label=plot_name )
     else:
-        ax.imshow(grid_data.T, extent=(0, 1, 0, 1), origin='lower', label=plot_name)
+        im = ax.imshow(grid_data.T, extent=(0, 1, 0, 1), origin='lower', label=plot_name)
     ax.plot(x,y, 'k.', ms=2)
     labels1 = [item.get_text() for item in ax.get_xticklabels()]
     if "\n" not in labels1[0]:
@@ -264,6 +274,11 @@ def plot_contour(df, ax, variables,plot_name,extremes,params, limits):
         texts.append(text)
     texts[0] = "\n\n\n%\n Total"
     ax.set_yticklabels(texts)
+
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes('right', size='5%', pad=0.05)
+    fig.colorbar(im, cax=cax, orientation='vertical')
+    return im
     #abs.set_ylim(0.0, 1.0 * limits[1])
 
     #abs.set_ylabel("abs")
