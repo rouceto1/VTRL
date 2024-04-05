@@ -14,10 +14,12 @@ IT also continues to explore the enviroment.
 To run this pipeline download the datasets below.
 
 All have to be in one folder and this has to be in 'datasets" folder in the home directory of this porject.
-Can be done by linking it ` ln -s "dataset_folder_patCestlice
-Withm Warf
+Can be done by linking it ` ln -s dataset_folder_path `
 
-Ground Truth
+- [Cestlice](https://datasets.chronorobotics.tk/s/wdq7P8K6tx16aRA)
+- [Withm Warf](https://datasets.chronorobotics.tk/s/afc5YEubVEtzBhd)
+
+- [Ground Truth](https://datasets.chronorobotics.tk/s/wPp7NRA1boukvdk)
 
 
 ## Prerequisites
