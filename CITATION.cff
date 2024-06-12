@@ -1,0 +1,17 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: 'Visual Teach, Repeat and Learn (VTRL)'
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Tomáš
+    family-names: Rouček
+    orcid: 'https://orcid.org/0000-0003-3598-1630'
+identifiers:
+  - type: url
+    value: 'https://github.com/rouceto1/VTRL'
+repository-code: 'https://github.com/rouceto1/VTRL'
